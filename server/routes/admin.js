@@ -1,6 +1,6 @@
 import { asyncRouter } from '../async-router.js';
 import crypto from 'node:crypto';
-import { query } from '../db.js';
+import { query, pool } from '../db.js';
 import { checkAdminPassword, clearSessionCookie, isAdmin, requireAdmin, setSessionCookie } from '../auth.js';
 import { scoreAssessment } from '../../shared/scoring.js';
 import { VARIANTS } from '../../shared/questions/index.js';
@@ -115,6 +115,27 @@ router.post('/assessments', async (req, res) => {
     return res.status(400).json({ error: 'Choose either the merchant or service provider edition, or let the client determine it.' });
   }
 
+  // Field-level caps: the 256kb body limit alone would let one field carry a
+  // quarter megabyte into the database and into every PDF generated from it.
+  const LIMITS = {
+    clientName: 200,
+    dba: 200,
+    contactName: 200,
+    contactEmail: 320,
+    scopeSummary: 4000,
+    internalNotes: 8000,
+  };
+  for (const [field, limit] of Object.entries(LIMITS)) {
+    const value = { clientName, dba, contactName, contactEmail, scopeSummary, internalNotes }[field];
+    if (typeof value === 'string' && value.length > limit) {
+      return res.status(400).json({
+        error: `That ${field} is too long. The limit is ${limit.toLocaleString()} characters.`,
+        field,
+        limit,
+      });
+    }
+  }
+
   const id = crypto.randomUUID();
   // 32 hex characters of entropy: the link is the only credential a client has.
   const token = crypto.randomBytes(16).toString('hex');
@@ -187,6 +208,13 @@ router.patch('/assessments/:id', async (req, res) => {
   if (!assessment) return res.status(404).json({ error: 'Assessment not found.' });
 
   const { internalNotes, scopeSummary } = req.body || {};
+  if (typeof internalNotes === 'string' && internalNotes.length > 8000) {
+    return res.status(400).json({ error: 'Those internal notes are too long. The limit is 8,000 characters.' });
+  }
+  if (typeof scopeSummary === 'string' && scopeSummary.length > 4000) {
+    return res.status(400).json({ error: 'That scope summary is too long. The limit is 4,000 characters.' });
+  }
+
   await query(
     `UPDATE assessments
         SET internal_notes = COALESCE($2, internal_notes),
@@ -209,15 +237,31 @@ router.post('/assessments/:id/reset-eligibility', async (req, res) => {
   const assessment = await getAssessmentById(req.params.id);
   if (!assessment) return res.status(404).json({ error: 'Assessment not found.' });
 
-  await query('DELETE FROM answers WHERE assessment_id = $1', [assessment.id]);
-  await query(
-    `UPDATE assessments
-        SET saq_type = NULL, variant = NULL, eligibility = NULL, eligibility_completed_at = NULL,
-            status = 'in-progress', submitted_at = NULL, submitted_by = NULL, submitted_title = NULL,
-            updated_at = now()
-      WHERE id = $1`,
-    [assessment.id]
-  );
+  // Both statements run in one transaction under the assessment's row lock. A
+  // failure between them would otherwise leave the answers deleted but the old
+  // determination intact, which is unrecoverable client data lost for nothing.
+  // The lock also stops an answer write in flight from surviving the reset.
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query('SELECT id FROM assessments WHERE id = $1 FOR UPDATE', [assessment.id]);
+    await client.query('DELETE FROM answers WHERE assessment_id = $1', [assessment.id]);
+    await client.query(
+      `UPDATE assessments
+          SET saq_type = NULL, variant = NULL, eligibility = NULL, eligibility_completed_at = NULL,
+              status = 'in-progress', submitted_at = NULL, submitted_by = NULL, submitted_title = NULL,
+              updated_at = now()
+        WHERE id = $1`,
+      [assessment.id]
+    );
+    await client.query('COMMIT');
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw err;
+  } finally {
+    client.release();
+  }
+
   res.json({ ok: true });
 });
 

@@ -57,6 +57,7 @@ function matchesSearch(question: Question, needle: string) {
 }
 
 export default function Requirements() {
+  const printRestore = React.useRef<boolean | null>(null);
   const [data, setData] = useState<Catalogue | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
@@ -143,6 +144,33 @@ export default function Requirements() {
   // Searching or filtering shows every match across the standard; otherwise browse one
   // requirement at a time, since rendering all 260 at once is rarely what you want.
   const searching = needle.length > 0;
+
+  /**
+   * Print every requirement, not just the section being browsed.
+   *
+   * Only mounted content reaches the printed page, so switch to the all-sections
+   * view, let React commit it, then open the dialog and restore afterwards.
+   */
+  const startPrint = () => {
+    if (showAll || searching) {
+      window.print();
+      return;
+    }
+    printRestore.current = showAll;
+    setShowAll(true);
+    // Two frames: one for React to commit, one for layout to settle before the
+    // dialog snapshots the page.
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        window.print();
+        if (printRestore.current !== null) {
+          setShowAll(printRestore.current);
+          printRestore.current = null;
+        }
+      })
+    );
+  };
+
   const visibleSections =
     showAll || searching ? filteredSections : filteredSections.filter((s) => String(s.id) === activeSection);
 
@@ -215,7 +243,7 @@ export default function Requirements() {
               N/A permitted only
             </label>
 
-            <button type="button" className="btn btn-secondary btn-sm" onClick={() => window.print()}>
+            <button type="button" className="btn btn-secondary btn-sm" onClick={startPrint}>
               <Printer size={14} /> Print
             </button>
           </div>

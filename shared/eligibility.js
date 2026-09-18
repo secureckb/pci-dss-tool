@@ -405,6 +405,28 @@ export const ELIGIBILITY_STEPS = {
 
   'tpsp-vt': {
     id: 'tpsp-vt',
+    question: 'Is the virtual terminal provided and hosted by a PCI DSS validated third party, and have you confirmed it?',
+    help:
+      'SAQ C-VT requires the virtual terminal to be hosted by a validated provider. Confirmed means you hold a current Attestation of Compliance from them, or you have found them on the relevant payment brand\u2019s list of validated providers.',
+    options: [
+      {
+        value: 'yes',
+        label: 'Yes, and we hold evidence of it',
+        description: 'We have a current AOC, or have verified the provider on a payment brand list.',
+        next: 'vt-isolation',
+      },
+      {
+        value: 'no',
+        label: 'No, or we have not checked',
+        description: 'The terminal is self-hosted, or we have not obtained the provider\u2019s compliance evidence.',
+        outcome: 'D-Merchant',
+        note: 'A validated hosting provider is a condition of SAQ C-VT, so this routes to SAQ D for now. If the terminal is hosted by a third party, request their current AOC \u2014 once you hold it you may qualify for SAQ C-VT. If you host it yourself, SAQ D is correct.',
+      },
+    ],
+  },
+
+  'vt-isolation': {
+    id: 'vt-isolation',
     question: 'Is the computer used for the virtual terminal isolated from your other systems?',
     help:
       'SAQ C-VT requires that the machine used to key transactions is not connected to any other system or location in your business, and that no card-reading device is attached to it.',
