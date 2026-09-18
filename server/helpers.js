@@ -111,10 +111,13 @@ export function publicBaseUrl(req) {
   return `${proto}://${host}`;
 }
 
-/** Whether generated links would point at a developer's own machine. */
+/** Whether generated links would point at a developer's own machine. IPv6 hosts
+ *  are bracketed with the port outside the brackets, so they cannot be split on
+ *  the first colon. */
 export function isLocalHost(host) {
-  const name = (host || '').split(':')[0].toLowerCase();
-  return name === 'localhost' || name === '127.0.0.1' || name === '::1' || name === '[::1]';
+  const raw = (host || '').trim().toLowerCase();
+  const name = raw.startsWith('[') ? raw.slice(1, raw.indexOf(']')) : raw.split(':')[0];
+  return name === 'localhost' || name === '127.0.0.1' || name === '::1';
 }
 
 /** True when a link was built from the request rather than from configuration. */

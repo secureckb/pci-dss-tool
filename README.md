@@ -132,7 +132,7 @@ the Not Applicable option disabled, and the server rejects it too.
    | `SESSION_SECRET` | yes | Signs the admin session cookie. Generate with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`. |
    | `DATABASE_URL` | yes | Provided by the Postgres plugin. |
    | `PUBLIC_BASE_URL` | recommended | e.g. `https://your-app.up.railway.app`. Used to build client links. Without it, links are built from the request host. |
-   | `REQUIRE_HTTPS` | no | Plain HTTP is redirected to HTTPS by default, since a client link is a bearer credential. Set to `0` only for an instance you accept is plaintext. Localhost is exempt, and a redirect that comes straight back is served with a warning rather than looping. |
+   | `REQUIRE_HTTPS` | no | Plain HTTP is redirected to HTTPS by default, since a client link is a bearer credential. Set to `0` only for an instance you accept is plaintext. Localhost and `/api/health` are exempt. A proxy terminating TLS in front of this service must set `X-Forwarded-Proto`, or requests will be redirected back to it. |
    | `DATABASE_SSL` | no | Remote Postgres connections verify the server certificate by default. Set `no-verify` to encrypt without verifying (the connection is then not authenticated), or `off` for a private network with no TLS. |
    | `DATABASE_CA` | no | PEM for a private root certificate, if your provider publishes one. |
    | `PORT` | no | Railway sets this. |

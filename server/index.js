@@ -63,55 +63,40 @@ app.use(cookieParser());
  *
  * A client link is a bearer credential: the token in the URL is all anyone needs
  * to read and answer that questionnaire. Over plain HTTP both the token and the
- * answers cross the network in the clear, so a deployment that answers HTTP at
- * all is one where a link can be lifted in transit and the assessment read or
- * altered by whoever lifted it.
+ * answers cross the network in the clear, so plaintext is refused rather than
+ * served.
  *
- * So plaintext is refused by default rather than on request. The earlier version
- * of this made it opt-in, to avoid a redirect loop on an instance whose proxy
- * terminates TLS but does not set X-Forwarded-Proto — such an instance cannot be
- * told apart from a plaintext one, and would bounce a request straight back to
- * itself. That was the wrong way round: it made every correctly deployed
- * instance insecure by default to protect a misconfigured one.
+ * There is deliberately no escape hatch in the request. An earlier version let a
+ * redirect carry a marker so that a request coming back still on plaintext was
+ * served instead of bounced again — which meant anyone could put that marker in
+ * a link and have the whole thing served over HTTP, defeating the point. A
+ * redirect condition that a request can talk its way out of is not a redirect
+ * condition.
  *
- * The loop is instead broken directly. A redirect carries a marker, and a
- * request that comes back still on plaintext carrying that marker is served
- * with a loud warning naming the fix, rather than bounced again. At most one
- * redirect per request either way, so the site cannot be taken down by this.
- * Local development is exempt, since there is no TLS to have.
+ * So the loop it was avoiding is handled by saying so at startup instead: an
+ * instance whose proxy terminates TLS without setting X-Forwarded-Proto cannot
+ * be told apart from a plaintext one, and will loop until the browser gives up.
+ * The fix is to set that header, or to set REQUIRE_HTTPS=0 for an instance the
+ * operator accepts is plaintext. Local development is exempt, since there is no
+ * TLS to have, and so is the health check, which a platform probes directly on
+ * the service's own port — behind the TLS edge, with nothing confidential in the
+ * response.
  *
  * HSTS is sent whenever the request did arrive over TLS, so a browser that has
  * been here once will not be talked down to HTTP afterwards.
  */
 const REQUIRE_HTTPS = !/^(0|false|no|off)$/i.test(process.env.REQUIRE_HTTPS ?? '');
-const HTTPS_RETRY_MARKER = '__https_retry';
-let warnedAboutProxy = false;
+const HEALTH_PATH = '/api/health';
 
 app.use((req, res, next) => {
   if (isSecureRequest(req)) {
     res.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
     return next();
   }
-  if (!REQUIRE_HTTPS || isLocalRequest(req)) return next();
+  if (!REQUIRE_HTTPS || isLocalRequest(req) || req.path === HEALTH_PATH) return next();
 
-  if (req.query[HTTPS_RETRY_MARKER] !== undefined) {
-    // The redirect did not take, so this deployment is either genuinely
-    // plaintext or is behind a proxy that does not say otherwise. Serve the
-    // request — an unreachable site helps nobody — but say so once, clearly.
-    if (!warnedAboutProxy) {
-      warnedAboutProxy = true;
-      console.warn(
-        'Serving over plain HTTP: a redirect to HTTPS came straight back. Client links are bearer ' +
-          'credentials and are exposed in transit. Either set X-Forwarded-Proto on the proxy in front ' +
-          'of this service, or set REQUIRE_HTTPS=0 to acknowledge that this instance is plaintext.'
-      );
-    }
-    return next();
-  }
-
-  const separator = req.originalUrl.includes('?') ? '&' : '?';
   // 308 keeps the method and body, so a save in flight is not turned into a GET.
-  return res.redirect(308, `https://${req.get('host')}${req.originalUrl}${separator}${HTTPS_RETRY_MARKER}=1`);
+  return res.redirect(308, `https://${req.get('host')}${req.originalUrl}`);
 });
 
 /**
@@ -180,6 +165,14 @@ migrate()
   .then(() => {
     app.listen(PORT, () => {
       console.log(`PCI DSS SAQ D tool listening on port ${PORT}`);
+      if (REQUIRE_HTTPS) {
+        console.log(
+          'Plain HTTP is redirected to HTTPS. If TLS is terminated by a proxy in front of this ' +
+            'service, that proxy must set X-Forwarded-Proto, or requests will be redirected back to ' +
+            'it until the browser gives up. Set REQUIRE_HTTPS=0 for an instance that is genuinely ' +
+            'plaintext.'
+        );
+      }
     });
   })
   .catch((err) => {

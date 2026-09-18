@@ -84,10 +84,18 @@ export function isSecureRequest(req) {
   return isHttps(req);
 }
 
-/** Local development, where there is no TLS to have and nothing to intercept. */
+/**
+ * Local development, where there is no TLS to have and nothing to intercept.
+ *
+ * An IPv6 host is bracketed and the port follows the brackets, so splitting on
+ * the first colon turned `[::1]:8080` into `[` and missed loopback entirely —
+ * which, once HTTPS became the default, redirected local development to a TLS
+ * endpoint that does not exist.
+ */
 export function isLocalRequest(req) {
-  const host = (req.get('host') || '').split(':')[0].toLowerCase();
-  return host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '[::1]';
+  const raw = (req.get('host') || '').trim().toLowerCase();
+  const host = raw.startsWith('[') ? raw.slice(1, raw.indexOf(']')) : raw.split(':')[0];
+  return host === 'localhost' || host === '127.0.0.1' || host === '::1';
 }
 
 /**
