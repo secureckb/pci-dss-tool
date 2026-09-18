@@ -133,7 +133,7 @@ router.post('/:token/eligibility', withAssessment, async (req, res) => {
     }
 
     const { rows: counted } = await client.query(
-      'SELECT COUNT(*)::int AS count FROM answers WHERE assessment_id = $1',
+      'SELECT COUNT(*)::int AS count FROM answers WHERE assessment_id = $1 AND response IS NOT NULL',
       [req.assessment.id]
     );
     // Any saved answer means a questionnaire is under way, whether the SAQ type
@@ -184,7 +184,7 @@ router.post('/:token/eligibility/reset', withAssessment, async (req, res) => {
     }
 
     const { rows } = await client.query(
-      'SELECT COUNT(*)::int AS count FROM answers WHERE assessment_id = $1',
+      'SELECT COUNT(*)::int AS count FROM answers WHERE assessment_id = $1 AND response IS NOT NULL',
       [req.assessment.id]
     );
     if (rows[0].count > 0) {
@@ -271,32 +271,32 @@ router.put('/:token/answers/:questionId', withAssessment, requireVariant, async 
     // `keepalive` outside the client's per-question queue, so a request carrying
     // older text can arrive after a newer one. The revision decides, not arrival
     // order — a write is applied only if it is at least as new as what is stored.
-    let applied;
-    if (clearing) {
-      const { rowCount } = await client.query(
-        hasRevision
-          ? `DELETE FROM answers
-              WHERE assessment_id = $1 AND question_id = $2 AND client_revision <= $3`
-          : `DELETE FROM answers WHERE assessment_id = $1 AND question_id = $2 AND $3 = $3`,
-        [req.assessment.id, question.id, revision]
-      );
-      applied = rowCount > 0;
-    } else {
-      const { rows: written } = await client.query(
-        `INSERT INTO answers (assessment_id, question_id, response, justification, evidence, client_revision)
-         VALUES ($1, $2, $3, $4, $5, $6)
-         ON CONFLICT (assessment_id, question_id)
-         DO UPDATE SET response = EXCLUDED.response,
-                       justification = EXCLUDED.justification,
-                       evidence = EXCLUDED.evidence,
-                       client_revision = EXCLUDED.client_revision,
-                       updated_at = now()
-           WHERE $7::boolean IS FALSE OR answers.client_revision <= EXCLUDED.client_revision
-         RETURNING client_revision`,
-        [req.assessment.id, question.id, response, justification, evidence, revision, hasRevision]
-      );
-      applied = written.length > 0;
-    }
+    // Clearing is an upsert too, storing a NULL response rather than removing the
+    // row. Deleting it would take the revision watermark with it, and a write
+    // still in flight carrying an older revision would then find no conflict and
+    // resurrect the answer the client had just cleared.
+    const { rows: written } = await client.query(
+      `INSERT INTO answers (assessment_id, question_id, response, justification, evidence, client_revision)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       ON CONFLICT (assessment_id, question_id)
+       DO UPDATE SET response = EXCLUDED.response,
+                     justification = EXCLUDED.justification,
+                     evidence = EXCLUDED.evidence,
+                     client_revision = EXCLUDED.client_revision,
+                     updated_at = now()
+         WHERE $7::boolean IS FALSE OR answers.client_revision <= EXCLUDED.client_revision
+       RETURNING client_revision`,
+      [
+        req.assessment.id,
+        question.id,
+        clearing ? null : response,
+        clearing ? '' : justification,
+        clearing ? '' : evidence,
+        revision,
+        hasRevision,
+      ]
+    );
+    const applied = written.length > 0;
 
     await client.query('UPDATE assessments SET updated_at = now() WHERE id = $1', [req.assessment.id]);
     // A superseded write is not an error: a newer answer already won, which is
@@ -322,7 +322,7 @@ router.post('/:token/submit', withAssessment, requireVariant, async (req, res) =
     }
 
     const { rows: answerRows } = await client.query(
-      'SELECT question_id, response, justification, evidence FROM answers WHERE assessment_id = $1',
+      'SELECT question_id, response, justification, evidence FROM answers WHERE assessment_id = $1 AND response IS NOT NULL',
       [req.assessment.id]
     );
     const answers = Object.fromEntries(

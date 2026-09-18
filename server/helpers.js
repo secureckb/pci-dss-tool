@@ -3,7 +3,9 @@ import { query, pool } from './db.js';
 /** Loads an assessment's answers keyed by question id, the shape the scorer expects. */
 export async function loadAnswers(assessmentId) {
   const { rows } = await query(
-    'SELECT question_id, response, justification, evidence, updated_at FROM answers WHERE assessment_id = $1',
+    `SELECT question_id, response, justification, evidence, updated_at
+       FROM answers
+      WHERE assessment_id = $1 AND response IS NOT NULL`,
     [assessmentId]
   );
   const answers = {};
