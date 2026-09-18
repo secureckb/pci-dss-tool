@@ -44,11 +44,24 @@ export function checkAdminPassword(candidate) {
   return crypto.timingSafeEqual(a, b);
 }
 
-export function setSessionCookie(res) {
+/**
+ * Whether to mark the session cookie Secure.
+ *
+ * Keying this off NODE_ENV alone is unreliable: a platform may not set it at
+ * runtime, and the cookie would then be sent over plaintext. Decide from the
+ * request instead — Express resolves `req.secure` from X-Forwarded-Proto when
+ * `trust proxy` is set, which is how it runs behind Railway's edge. Any request
+ * that did not arrive over HTTPS is treated as local development.
+ */
+function useSecureCookie(req) {
+  return req.secure || (req.get('x-forwarded-proto') || '').split(',')[0].trim() === 'https';
+}
+
+export function setSessionCookie(req, res) {
   res.cookie(COOKIE_NAME, createSessionToken(), {
     httpOnly: true,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    secure: useSecureCookie(req),
     maxAge: SESSION_TTL_MS,
     path: '/',
   });

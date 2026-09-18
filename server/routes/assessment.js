@@ -1,5 +1,5 @@
 import { asyncRouter } from '../async-router.js';
-import { query } from '../db.js';
+import { query, pool } from '../db.js';
 import { scoreAssessment, RESPONSES } from '../../shared/scoring.js';
 import { getSections, getQuestion, VARIANTS } from '../../shared/questions/index.js';
 import { determineSaq, prunedAnswers, ELIGIBILITY_STEPS, FIRST_STEP, SAQ_TYPES } from '../../shared/eligibility.js';
@@ -7,6 +7,9 @@ import { buildGapReport, buildAttestation } from '../pdf.js';
 import { loadAnswers } from '../helpers.js';
 
 const router = asyncRouter();
+
+/** Maximum length of the free-text fields, enforced here and mirrored in the UI. */
+export const MAX_TEXT_LENGTH = 4000;
 
 async function getByToken(token) {
   const { rows } = await query('SELECT * FROM assessments WHERE token = $1', [token]);
@@ -192,71 +195,149 @@ router.put('/:token/answers/:questionId', withAssessment, requireVariant, async 
 
   const { response, justification = '', evidence = '' } = req.body || {};
 
-  // Clearing an answer removes the row rather than storing an empty response.
-  if (response === null || response === '') {
-    await query('DELETE FROM answers WHERE assessment_id = $1 AND question_id = $2', [
+  // Reject oversized text rather than silently truncating it: a client whose
+  // compensating-control description was cut in half would not find out until
+  // the assessor read the report.
+  for (const [field, value] of [['justification', justification], ['evidence', evidence]]) {
+    if (typeof value === 'string' && value.length > MAX_TEXT_LENGTH) {
+      return res.status(400).json({
+        error: `That ${field} is too long. The limit is ${MAX_TEXT_LENGTH.toLocaleString()} characters and you entered ${value.length.toLocaleString()}.`,
+        field,
+        limit: MAX_TEXT_LENGTH,
+      });
+    }
+  }
+
+  const clearing = response === null || response === '';
+
+  if (!clearing) {
+    if (!RESPONSES[response]) {
+      return res.status(400).json({ error: 'Invalid response value.' });
+    }
+    if (response === 'na' && !question.allowNA) {
+      return res.status(400).json({
+        error: 'This requirement cannot be marked Not Applicable. It applies to every entity completing SAQ D.',
+      });
+    }
+  }
+
+  // The status was read by withAssessment, so a submit could have landed since.
+  // Taking FOR UPDATE on the assessment row makes this wait for any submission
+  // in flight and then see its result, rather than writing over locked answers.
+  // It also serializes writes for one assessment, so two saves for the same
+  // requirement cannot be applied out of order.
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const { rows } = await client.query('SELECT status FROM assessments WHERE id = $1 FOR UPDATE', [
       req.assessment.id,
-      question.id,
     ]);
-    await query('UPDATE assessments SET updated_at = now() WHERE id = $1', [req.assessment.id]);
-    return res.json({ ok: true, cleared: true });
-  }
+    if (!rows[0]) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'This questionnaire link is not valid.' });
+    }
+    if (rows[0].status === 'submitted') {
+      await client.query('ROLLBACK');
+      return res.status(409).json({ error: 'This questionnaire has been submitted and can no longer be edited.' });
+    }
 
-  if (!RESPONSES[response]) {
-    return res.status(400).json({ error: 'Invalid response value.' });
-  }
-  if (response === 'na' && !question.allowNA) {
-    return res.status(400).json({
-      error: 'This requirement cannot be marked Not Applicable. It applies to every entity completing SAQ D.',
-    });
-  }
+    if (clearing) {
+      await client.query('DELETE FROM answers WHERE assessment_id = $1 AND question_id = $2', [
+        req.assessment.id,
+        question.id,
+      ]);
+    } else {
+      await client.query(
+        `INSERT INTO answers (assessment_id, question_id, response, justification, evidence)
+         VALUES ($1, $2, $3, $4, $5)
+         ON CONFLICT (assessment_id, question_id)
+         DO UPDATE SET response = EXCLUDED.response,
+                       justification = EXCLUDED.justification,
+                       evidence = EXCLUDED.evidence,
+                       updated_at = now()`,
+        [req.assessment.id, question.id, response, String(justification), String(evidence)]
+      );
+    }
 
-  await query(
-    `INSERT INTO answers (assessment_id, question_id, response, justification, evidence)
-     VALUES ($1, $2, $3, $4, $5)
-     ON CONFLICT (assessment_id, question_id)
-     DO UPDATE SET response = EXCLUDED.response,
-                   justification = EXCLUDED.justification,
-                   evidence = EXCLUDED.evidence,
-                   updated_at = now()`,
-    [req.assessment.id, question.id, response, String(justification).slice(0, 4000), String(evidence).slice(0, 4000)]
-  );
-  await query('UPDATE assessments SET updated_at = now() WHERE id = $1', [req.assessment.id]);
-
-  res.json({ ok: true });
+    await client.query('UPDATE assessments SET updated_at = now() WHERE id = $1', [req.assessment.id]);
+    await client.query('COMMIT');
+    res.json({ ok: true, cleared: clearing });
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw err;
+  } finally {
+    client.release();
+  }
 });
 
 router.post('/:token/submit', withAssessment, requireVariant, async (req, res) => {
-  if (req.assessment.status === 'submitted') {
-    return res.status(409).json({ error: 'This questionnaire has already been submitted.' });
-  }
-
-  const answers = await loadAnswers(req.assessment.id);
-  const result = scoreAssessment(req.assessment.variant, answers);
-
-  // An incomplete questionnaire cannot produce a determination, so it cannot be submitted.
-  if (result.determination === 'incomplete') {
-    return res.status(400).json({
-      error: 'The questionnaire is not complete.',
-      unanswered: result.unanswered.map((q) => q.id),
-      missingJustification: result.missingJustification.map((q) => q.id),
-    });
-  }
-
   const { name, title } = req.body || {};
   if (!name || !String(name).trim()) {
     return res.status(400).json({ error: 'Enter the name of the person attesting to these answers.' });
   }
 
-  await query(
-    `UPDATE assessments
-        SET status = 'submitted', submitted_at = now(), submitted_by = $2,
-            submitted_title = $3, updated_at = now()
-      WHERE id = $1`,
-    [req.assessment.id, String(name).trim().slice(0, 200), String(title || '').trim().slice(0, 200) || null]
-  );
+  // Scoring and locking happen in one transaction, with the assessment row held
+  // under FOR UPDATE. Without it, an answer save in flight could land between
+  // the score and the status change, so the stored result would not match the
+  // answers that were attested to.
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
 
-  res.json({ ok: true, result });
+    const { rows } = await client.query(
+      "SELECT status, variant FROM assessments WHERE id = $1 FOR UPDATE",
+      [req.assessment.id]
+    );
+    const current = rows[0];
+    if (!current) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'This questionnaire link is not valid.' });
+    }
+    if (current.status === 'submitted') {
+      await client.query('ROLLBACK');
+      return res.status(409).json({ error: 'This questionnaire has already been submitted.' });
+    }
+
+    const { rows: answerRows } = await client.query(
+      'SELECT question_id, response, justification, evidence FROM answers WHERE assessment_id = $1',
+      [req.assessment.id]
+    );
+    const answers = Object.fromEntries(
+      answerRows.map((row) => [
+        row.question_id,
+        { response: row.response, justification: row.justification, evidence: row.evidence },
+      ])
+    );
+
+    const result = scoreAssessment(current.variant, answers);
+
+    // An incomplete questionnaire cannot produce a determination, so it cannot be submitted.
+    if (result.determination === 'incomplete') {
+      await client.query('ROLLBACK');
+      return res.status(400).json({
+        error: 'The questionnaire is not complete.',
+        unanswered: result.unanswered.map((q) => q.id),
+        missingJustification: result.missingJustification.map((q) => q.id),
+      });
+    }
+
+    await client.query(
+      `UPDATE assessments
+          SET status = 'submitted', submitted_at = now(), submitted_by = $2,
+              submitted_title = $3, updated_at = now()
+        WHERE id = $1 AND status = 'in-progress'`,
+      [req.assessment.id, String(name).trim().slice(0, 200), String(title || '').trim().slice(0, 200) || null]
+    );
+
+    await client.query('COMMIT');
+    res.json({ ok: true, result });
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw err;
+  } finally {
+    client.release();
+  }
 });
 
 router.get('/:token/result', withAssessment, requireVariant, async (req, res) => {
@@ -274,6 +355,15 @@ router.get('/:token/report.pdf', withAssessment, requireVariant, async (req, res
 });
 
 router.get('/:token/aoc.pdf', withAssessment, requireVariant, async (req, res) => {
+  // An attestation summary carries signature blocks. Before submission there is
+  // nothing to attest to, so the client-facing copy is withheld until then; the
+  // assessor can still pull a working copy from the admin side at any point.
+  if (req.assessment.status !== 'submitted') {
+    return res.status(409).json({
+      error: 'The attestation summary is available once the questionnaire has been submitted.',
+    });
+  }
+
   const answers = await loadAnswers(req.assessment.id);
   const result = scoreAssessment(req.assessment.variant, answers);
   buildAttestation(res, req.assessment, result);

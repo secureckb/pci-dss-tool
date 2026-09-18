@@ -17,7 +17,9 @@ export const appendixA1 = {
         'Examine authorization records for any provider access to customer environments.',
       ],
       appliesTo: 'service-provider',
-      allowNA: false,
+      allowNA: true,
+      condition:
+        'Mark N/A if your organization is not a multi-tenant service provider — that is, if customers do not share your system resources such as physical or virtual servers, infrastructure, or applications. Appendix A1 applies only to multi-tenant providers.',
     },
     {
       id: 'A1.1.2',
@@ -30,7 +32,9 @@ export const appendixA1 = {
         'Examine documentation and system configurations to verify that controls restrict each customer to its own cardholder data and CDE.',
       ],
       appliesTo: 'service-provider',
-      allowNA: false,
+      allowNA: true,
+      condition:
+        'Mark N/A if your organization is not a multi-tenant service provider — that is, if customers do not share your system resources such as physical or virtual servers, infrastructure, or applications. Appendix A1 applies only to multi-tenant providers.',
     },
     {
       id: 'A1.1.3',
@@ -43,7 +47,9 @@ export const appendixA1 = {
         'Examine system configurations and access controls to verify that customers can only access resources allocated to them.',
       ],
       appliesTo: 'service-provider',
-      allowNA: false,
+      allowNA: true,
+      condition:
+        'Mark N/A if your organization is not a multi-tenant service provider — that is, if customers do not share your system resources such as physical or virtual servers, infrastructure, or applications. Appendix A1 applies only to multi-tenant providers.',
     },
     {
       id: 'A1.1.4',
@@ -56,7 +62,9 @@ export const appendixA1 = {
         'Examine the results of the most recent penetration tests to verify that testing confirmed the effectiveness of logical separation controls at least once every six months.',
       ],
       appliesTo: 'service-provider',
-      allowNA: false,
+      allowNA: true,
+      condition:
+        'Mark N/A if your organization is not a multi-tenant service provider — that is, if customers do not share your system resources such as physical or virtual servers, infrastructure, or applications. Appendix A1 applies only to multi-tenant providers.',
     },
     {
       id: 'A1.2.1',
@@ -70,7 +78,9 @@ export const appendixA1 = {
         'Interview personnel and examine logs to verify logs are available only to the owning customer.',
       ],
       appliesTo: 'service-provider',
-      allowNA: false,
+      allowNA: true,
+      condition:
+        'Mark N/A if your organization is not a multi-tenant service provider — that is, if customers do not share your system resources such as physical or virtual servers, infrastructure, or applications. Appendix A1 applies only to multi-tenant providers.',
     },
     {
       id: 'A1.2.2',
@@ -84,7 +94,9 @@ export const appendixA1 = {
         'Interview personnel to verify the processes are implemented.',
       ],
       appliesTo: 'service-provider',
-      allowNA: false,
+      allowNA: true,
+      condition:
+        'Mark N/A if your organization is not a multi-tenant service provider — that is, if customers do not share your system resources such as physical or virtual servers, infrastructure, or applications. Appendix A1 applies only to multi-tenant providers.',
     },
     {
       id: 'A1.2.3',
@@ -98,7 +110,9 @@ export const appendixA1 = {
         'Examine records of reported incidents and vulnerabilities to verify they are addressed and remediated.',
       ],
       appliesTo: 'service-provider',
-      allowNA: false,
+      allowNA: true,
+      condition:
+        'Mark N/A if your organization is not a multi-tenant service provider — that is, if customers do not share your system resources such as physical or virtual servers, infrastructure, or applications. Appendix A1 applies only to multi-tenant providers.',
     },
   ],
 };
@@ -108,7 +122,7 @@ export const appendixA2 = {
   title: 'Appendix A2: Additional PCI DSS Requirements for Entities Using SSL/Early TLS for Card-Present POS POI Terminal Connections',
   goal: 'Additional PCI DSS Requirements',
   intro:
-    'This appendix applies only to entities using SSL/early TLS as a security control to protect POS POI terminal connections, including service providers that provide connection points to such terminals.',
+    'This appendix applies only to entities using SSL/early TLS as a security control to protect POS POI terminal connections, including service providers that provide connection points to such terminals. If you do not use SSL or early TLS for these connections, mark each requirement here Not Applicable and say so in the justification.',
   questions: [
     {
       id: 'A2.1.1',
@@ -149,7 +163,9 @@ export const appendixA2 = {
         'Examine system configurations and supporting documentation to verify that the service provider offers a secure protocol option for its service.',
       ],
       appliesTo: 'service-provider',
-      allowNA: false,
+      allowNA: true,
+      condition:
+        'Mark N/A if your organization does not use SSL or early TLS for any POS POI terminal connection. Appendix A2 applies only to entities that do.',
     },
   ],
 };
