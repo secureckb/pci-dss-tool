@@ -25,15 +25,32 @@ interface LoadPayload {
   answers: AnswerMap;
   result: Result | null;
   eligibility?: { steps: Record<string, unknown>; firstStep: string; saqTypes: Record<string, SaqType> };
+  /** Ordering epoch issued by the server for this page load; see `nextSeq`. */
+  session?: { epoch: number };
 }
 
-type SaveState = 'idle' | 'saving' | 'saved' | 'error';
+/** What a write returns, so the client can tell a superseded write from a saved one. */
+interface SaveOutcome {
+  applied: boolean;
+  superseded: boolean;
+  storedEpoch: number | null;
+}
+
+type SaveState = 'idle' | 'saving' | 'saved' | 'error' | 'stale';
 
 /** Debounce delay for free-text fields, so typing does not hit the API on every keystroke. */
 const TEXT_SAVE_DELAY = 700;
 
 /** Matches MAX_TEXT_LENGTH on the server, which rejects anything longer. */
 const MAX_TEXT_LENGTH = 4000;
+
+/** Raised when the server declined a write because another page holds the answer. */
+class StaleWindowError extends Error {}
+
+const STALE_MESSAGE =
+  'This questionnaire is open in another window or on another device, and that copy has ' +
+  'answers this one does not. Nothing typed here has been saved since. Reload this page to ' +
+  'pick up the latest answers, then re-enter anything that is missing.';
 
 export default function Questionnaire() {
   const { token = '' } = useParams();
@@ -62,15 +79,26 @@ export default function Questionnaire() {
   // wrote, or a slow earlier request would erase text typed while it was in
   // flight and the debounce would then find nothing to send.
   const pendingText = useRef<Record<string, { answer: Answer; rev: number }>>({});
-  // Revisions are wall-clock milliseconds, nudged forward on collision. A plain
-  // counter would restart at zero on reload, and the server would then discard
-  // the new session's edits as older than the previous session's.
-  const revCounter = useRef(0);
-  const nextRevision = () => {
-    const now = Date.now();
-    revCounter.current = revCounter.current >= now ? revCounter.current + 1 : now;
-    return revCounter.current;
-  };
+  // Writes are ordered by (epoch, seq). The epoch is issued by the server when
+  // this page loads, so every session is ordered by the one clock they share;
+  // the sequence just counts this page's writes, which is enough to order them
+  // against each other. Deriving the order from `Date.now()` here instead made it
+  // depend on the device: a client whose laptop clock ran fast set a watermark
+  // their phone could never reach, and every edit made on the phone was silently
+  // discarded while the phone reported it saved.
+  const epoch = useRef<number | null>(null);
+  const seqCounter = useRef(0);
+  const nextSeq = () => (seqCounter.current += 1);
+  // Set once another page is found to be writing to this assessment: this page's
+  // view is behind, so it stops claiming to have saved and asks for a reload.
+  // The ref is what the save bookkeeping reads, since it has to be current
+  // inside a callback that will not see the re-rendered state.
+  const [staleWindow, setStaleWindow] = useState(false);
+  const staleWindowRef = useRef(false);
+  const markStale = useCallback(() => {
+    staleWindowRef.current = true;
+    setStaleWindow(true);
+  }, []);
   const inFlight = useRef(0);
   // Which questions have an unsaved failure, and at which revision.
   //
@@ -96,6 +124,7 @@ export default function Questionnaire() {
           navigate(`/q/${token}/results`, { replace: true });
           return;
         }
+        epoch.current = payload.session?.epoch ?? null;
         setData(payload);
         setAnswers(payload.answers);
         setActiveSection(String(payload.sections?.[0]?.id ?? ''));
@@ -127,9 +156,11 @@ export default function Questionnaire() {
               response: entry.answer.response,
               justification: entry.answer.justification,
               evidence: entry.answer.evidence,
-              // Carries its revision, so if the client returns and edits again
-              // before this lands, the server discards this one as superseded.
-              revision: entry.rev,
+              // Carries its place in this page's order, so if the client returns
+              // and edits again before this lands, the server discards it as
+              // superseded rather than undoing the newer edit.
+              epoch: epoch.current,
+              seq: entry.rev,
             }),
           });
         } catch {
@@ -170,12 +201,27 @@ export default function Questionnaire() {
         .catch(() => {})
         .then(async () => {
           try {
-            await api.put(`/api/assessment/${token}/answers/${questionId}`, {
+            const outcome = await api.put<SaveOutcome>(`/api/assessment/${token}/answers/${questionId}`, {
               response: answer?.response ?? null,
               justification: answer?.justification ?? '',
               evidence: answer?.evidence ?? '',
-              revision: rev,
+              epoch: epoch.current,
+              seq: rev,
             });
+            // HTTP 200 does not mean this text was stored. The server declines a
+            // write that a newer one has already superseded, and if the newer one
+            // came from a different page load then this page is behind: treating
+            // that as "Saved" is how a client could sit in front of an answer the
+            // server does not have. Being superseded by this page's own later
+            // write is the ordinary case and needs no warning.
+            if (
+              outcome?.applied === false &&
+              outcome.storedEpoch !== null &&
+              outcome.storedEpoch !== epoch.current
+            ) {
+              markStale();
+              throw new StaleWindowError(questionId);
+            }
             // Only clear the buffered edit if it is still the one just written.
             const buffered = pendingText.current[questionId];
             if (buffered && (rev === undefined || buffered.rev === rev)) {
@@ -189,8 +235,14 @@ export default function Questionnaire() {
             }
           } catch (err) {
             failedSaves.current.set(questionId, rev ?? Number.MAX_SAFE_INTEGER);
-            setSaveState('error');
-            setSaveError(err instanceof ApiError ? err.message : 'Could not save your answer.');
+            setSaveState(err instanceof StaleWindowError ? 'stale' : 'error');
+            setSaveError(
+              err instanceof StaleWindowError
+                ? STALE_MESSAGE
+                : err instanceof ApiError
+                  ? err.message
+                  : 'Could not save your answer.'
+            );
             throw err;
           }
         })
@@ -200,14 +252,16 @@ export default function Questionnaire() {
           // outstanding, so one quick success cannot paint over another
           // question's failure.
           if (inFlight.current === 0) {
-            setSaveState(failedSaves.current.size > 0 ? 'error' : 'saved');
+            setSaveState(
+              staleWindowRef.current ? 'stale' : failedSaves.current.size > 0 ? 'error' : 'saved'
+            );
           }
         });
 
       saveChains.current[questionId] = chained.catch(() => {});
       return chained;
     },
-    [token]
+    [token, markStale]
   );
 
   persistRef.current = persist;
@@ -238,7 +292,7 @@ export default function Questionnaire() {
     clearTimeout(timers.current[question.id]);
     delete timers.current[question.id];
 
-    const rev = nextRevision();
+    const rev = nextSeq();
     if (next) pendingText.current[question.id] = { answer: next, rev };
     else delete pendingText.current[question.id];
 
@@ -253,7 +307,7 @@ export default function Questionnaire() {
     });
 
     clearTimeout(timers.current[question.id]);
-    const rev = nextRevision();
+    const rev = nextSeq();
     setAnswers((latest) => {
       const answer = latest[question.id];
       // Buffer the value before the debounce fires, so an early submit or a
@@ -357,6 +411,13 @@ export default function Questionnaire() {
       return;
     }
     if (!attestName.trim()) return;
+    // Submitting locks the answers the server holds, which are not the answers
+    // on screen once another window has moved ahead. Attesting to a set the
+    // client has not seen is the one outcome this tool must never produce.
+    if (staleWindow) {
+      setSaveError(STALE_MESSAGE);
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -514,6 +575,11 @@ export default function Questionnaire() {
           {saveState === 'error' && (
             <span style={{ color: 'var(--fail)' }}>
               <CircleAlert size={13} /> Not saved
+            </span>
+          )}
+          {saveState === 'stale' && (
+            <span style={{ color: 'var(--fail)' }}>
+              <CircleAlert size={13} /> Changed elsewhere &mdash; reload
             </span>
           )}
         </span>

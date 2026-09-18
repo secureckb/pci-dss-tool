@@ -21,6 +21,22 @@ export async function loadAnswers(assessmentId) {
 }
 
 /**
+ * Issues the ordering epoch for one page load.
+ *
+ * Every session that opens the questionnaire gets a number from a single
+ * database sequence, and tags its writes with (epoch, seq). Ordering therefore
+ * depends on one clock — Postgres's — rather than on each device's. The earlier
+ * scheme used `Date.now()` from the browser, which is monotonic only relative to
+ * that one device: a laptop running fast set a watermark a phone could not
+ * reach, and every edit made on the phone was discarded while it was told the
+ * answer had saved.
+ */
+export async function issueEpoch() {
+  const { rows } = await query("SELECT nextval('client_epoch_seq')::bigint AS epoch");
+  return Number(rows[0].epoch);
+}
+
+/**
  * Base URL for client invite links. PUBLIC_BASE_URL wins so links stay stable
  * behind a proxy; otherwise fall back to the request's own origin.
  */
