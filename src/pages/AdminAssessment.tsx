@@ -151,11 +151,9 @@ export default function AdminAssessment() {
             )}
 
             <div className="row" style={{ marginTop: 18 }}>
-              {assessment.eligibilityCompletedAt && (
-                <button className="btn btn-secondary" onClick={resetEligibility}>
-                  <RotateCcw size={15} /> Reset determination
-                </button>
-              )}
+              <button className="btn btn-secondary" onClick={resetEligibility}>
+                <RotateCcw size={15} /> Reset determination
+              </button>
               <button className="btn btn-danger btn-sm" onClick={remove} style={{ marginLeft: 'auto' }}>
                 <Trash2 size={14} /> Delete
               </button>
@@ -276,6 +274,24 @@ export default function AdminAssessment() {
                 <RotateCcw size={14} /> Reset determination
               </button>
               <span className="small muted">Deletes their answers and returns them to the eligibility questions.</span>
+            </div>
+          </div>
+        )}
+
+        {result && !assessment.eligibility && (
+          <div className="card">
+            <h2>SAQ type</h2>
+            <p className="small muted">
+              You chose {assessment.saqName} when creating this assessment, so the client did not answer the eligibility
+              questions.
+            </p>
+            <div className="row" style={{ marginTop: 14 }}>
+              <button className="btn btn-secondary btn-sm" onClick={resetEligibility}>
+                <RotateCcw size={14} /> Reset determination
+              </button>
+              <span className="small muted">
+                Deletes their answers and hands the choice to the client's eligibility answers instead.
+              </span>
             </div>
           </div>
         )}
