@@ -277,6 +277,10 @@ router.post('/assessments/:id/reset-eligibility', async (req, res) => {
       `UPDATE assessments
           SET saq_type = NULL, variant = NULL, eligibility = NULL, eligibility_completed_at = NULL,
               status = 'in-progress', submitted_at = NULL, submitted_by = NULL, submitted_title = NULL,
+              -- Moving the revision tells a client still holding the old
+              -- questionnaire that what it is showing is gone, rather than
+              -- letting it submit answers this reset has just deleted.
+              answers_revision = answers_revision + 1,
               updated_at = now()
         WHERE id = $1`,
       [req.params.id]

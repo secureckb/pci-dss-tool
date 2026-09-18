@@ -83,9 +83,11 @@ router.get('/:token', withAssessment, async (req, res) => {
     sections: getSections(req.assessment.variant),
     answers,
     result: scoreAssessment(req.assessment.variant, answers),
-    // The ordering epoch for this page load. The client tags each write with it
-    // and a per-page counter; see issueEpoch().
-    session: { epoch: await issueEpoch() },
+    // The ordering epoch for this page load, and the revision of the answer set
+    // it is showing. The client tags each write with the epoch and a per-page
+    // counter (see issueEpoch()), and sends the revision back when it submits so
+    // the server can refuse to attest an answer set the client never saw.
+    session: { epoch: await issueEpoch(), revision: Number(req.assessment.answers_revision ?? 0) },
   });
 });
 
@@ -330,7 +332,17 @@ router.put('/:token/answers/:questionId', withAssessment, requireVariant, async 
       storedEpoch = stored[0]?.client_epoch;
     }
 
-    await client.query('UPDATE assessments SET updated_at = now() WHERE id = $1', [req.assessment.id]);
+    // Only a write that changed something moves the revision, so a client can
+    // tell how far the answer set has advanced against how many writes of its own
+    // it has sent. Anything beyond that came from somewhere else.
+    const { rows: bumped } = await client.query(
+      `UPDATE assessments
+          SET answers_revision = answers_revision + $2, updated_at = now()
+        WHERE id = $1
+        RETURNING answers_revision`,
+      [req.assessment.id, applied ? 1 : 0]
+    );
+
     // A superseded write is not an error: a newer answer already won, which is
     // the outcome the client wanted.
     return {
@@ -341,6 +353,7 @@ router.put('/:token/answers/:questionId', withAssessment, requireVariant, async 
         applied,
         superseded: !applied,
         storedEpoch: storedEpoch === undefined || storedEpoch === null ? null : Number(storedEpoch),
+        revision: Number(bumped[0].answers_revision),
       },
     };
   });
@@ -354,12 +367,35 @@ router.post('/:token/submit', withAssessment, requireVariant, async (req, res) =
     return res.status(400).json({ error: 'Enter the name of the person attesting to these answers.' });
   }
 
+  // The revision the client believes it is attesting to, if it sent one.
+  const claimed = req.body?.revision;
+  const hasClaim = Number.isSafeInteger(claimed) && claimed >= 0;
+
   const { status, body } = await withLockedAssessment(req.assessment.id, async (client, current) => {
     if (current.status === 'submitted') {
       return { status: 409, body: { error: 'This questionnaire has already been submitted.' } };
     }
     if (!current.variant) {
       return { status: 409, body: { error: 'The eligibility questions have not been completed yet.' } };
+    }
+
+    // Per-answer ordering catches a second window editing the same requirement,
+    // but not one editing a different requirement: that write conflicts with
+    // nothing and this page never hears about it. Scoring here would then attest
+    // an answer the signatory has never seen. The revision covers the whole
+    // answer set, so any change from anywhere is caught before anything is
+    // locked and signed.
+    if (hasClaim && Number(current.answers_revision ?? 0) !== claimed) {
+      return {
+        status: 409,
+        body: {
+          error:
+            'These answers have changed since this page loaded — the questionnaire is open somewhere else. ' +
+            'Reload to see the current answers before submitting them.',
+          stale: true,
+          revision: Number(current.answers_revision ?? 0),
+        },
+      };
     }
 
     const { rows: answerRows } = await client.query(

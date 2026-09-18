@@ -25,8 +25,9 @@ interface LoadPayload {
   answers: AnswerMap;
   result: Result | null;
   eligibility?: { steps: Record<string, unknown>; firstStep: string; saqTypes: Record<string, SaqType> };
-  /** Ordering epoch issued by the server for this page load; see `nextSeq`. */
-  session?: { epoch: number };
+  /** Ordering epoch issued by the server for this page load (see `nextSeq`), and
+   *  the revision of the answer set this payload is showing. */
+  session?: { epoch: number; revision: number };
 }
 
 /** What a write returns, so the client can tell a superseded write from a saved one. */
@@ -34,6 +35,8 @@ interface SaveOutcome {
   applied: boolean;
   superseded: boolean;
   storedEpoch: number | null;
+  /** The answer set's revision after this write. */
+  revision?: number;
 }
 
 type SaveState = 'idle' | 'saving' | 'saved' | 'error' | 'stale';
@@ -95,6 +98,17 @@ export default function Questionnaire() {
   const epoch = useRef<number | null>(null);
   const seqCounter = useRef(0);
   const nextSeq = () => (seqCounter.current += 1);
+  // Per-answer ordering only notices a second window editing the *same*
+  // requirement. One editing a different requirement conflicts with nothing, so
+  // this page would never hear about it and could attest an answer its signatory
+  // has never seen. The revision counts every applied write to the whole answer
+  // set: if it has moved further than this page's own writes account for, the
+  // difference came from somewhere else.
+  const revision = useRef(0);
+  const writesSent = useRef(0);
+  // The furthest revision this page has been told about, which is what it
+  // attests to when it submits.
+  const latestRevision = useRef(0);
   // Set once another page is found to be writing to this assessment: this page's
   // view is behind, so it stops claiming to have saved and asks for a reload.
   // The ref is what the save bookkeeping reads, since it has to be current
@@ -131,6 +145,9 @@ export default function Questionnaire() {
   const adoptPayload = useCallback((payload: LoadPayload) => {
     epoch.current = payload.session?.epoch ?? null;
     seqCounter.current = 0;
+    revision.current = payload.session?.revision ?? 0;
+    latestRevision.current = revision.current;
+    writesSent.current = 0;
     setData(payload);
     setAnswers(payload.answers);
   }, []);
@@ -213,6 +230,7 @@ export default function Questionnaire() {
       setSaveState('saving');
       setSaveError(null);
       inFlight.current += 1;
+      writesSent.current += 1;
 
       // Queue behind any save already running for this question. The server's
       // write is an unconditional upsert, so ordering has to be guaranteed here.
@@ -240,6 +258,17 @@ export default function Questionnaire() {
             ) {
               markStale();
               throw new StaleWindowError(questionId);
+            }
+            // The answer set can only have advanced by this page's own writes.
+            // Anything past that is another window's work on some other
+            // requirement, which nothing else here would catch.
+            if (typeof outcome?.revision === 'number') {
+              const ours = revision.current + writesSent.current;
+              if (outcome.revision > ours) {
+                markStale();
+                throw new StaleWindowError(questionId);
+              }
+              latestRevision.current = Math.max(latestRevision.current, outcome.revision);
             }
             // Only clear the buffered edit if it is still the one just written.
             const buffered = pendingText.current[questionId];
@@ -479,10 +508,23 @@ export default function Questionnaire() {
     }
 
     try {
-      await api.post(`/api/assessment/${token}/submit`, { name: attestName, title: attestTitle });
+      await api.post(`/api/assessment/${token}/submit`, {
+        name: attestName,
+        title: attestTitle,
+        // What this page believes it is attesting to. The server refuses if the
+        // answers have moved on, rather than signing a set nobody has read.
+        revision: latestRevision.current,
+      });
       navigate(`/q/${token}/results`);
     } catch (err) {
-      setSaveError(err instanceof ApiError ? err.message : 'Could not submit the questionnaire.');
+      if (err instanceof ApiError && err.payload?.stale) markStale();
+      setSaveError(
+        err instanceof ApiError
+          ? err.payload?.stale
+            ? STALE_MESSAGE
+            : err.message
+          : 'Could not submit the questionnaire.'
+      );
       submittingRef.current = false;
       setSubmitting(false);
     }
@@ -641,6 +683,7 @@ export default function Questionnaire() {
           <div style={{ marginTop: 12, maxWidth: 420 }}>
             <Progress percent={progress.percent} />
           </div>
+          {data.assessment.scopeSummary && <ScopeSummary text={data.assessment.scopeSummary} />}
         </div>
 
         {saveError && <p className="error-text">{saveError}</p>}
@@ -735,12 +778,15 @@ export default function Questionnaire() {
                     </p>
                   </div>
                 ) : (
-                  <div className="callout callout-info" style={{ marginBottom: 14 }}>
-                    <p className="small" style={{ marginBottom: 0 }}>
-                      By submitting, you confirm that these responses accurately reflect your cardholder data environment and
-                      that supporting evidence is available for each requirement marked as in place.
-                    </p>
-                  </div>
+                  <>
+                    {data.assessment.scopeSummary && <ScopeSummary text={data.assessment.scopeSummary} />}
+                    <div className="callout callout-info" style={{ marginBottom: 14 }}>
+                      <p className="small" style={{ marginBottom: 0 }}>
+                        By submitting, you confirm that these responses accurately reflect the environment described above
+                        and that supporting evidence is available for each requirement marked as in place.
+                      </p>
+                    </div>
+                  </>
                 )}
 
                 <div className="grid grid-2">
@@ -768,6 +814,25 @@ export default function Questionnaire() {
         </div>
       </main>
     </>
+  );
+}
+
+/**
+ * The scope your assessor recorded for this assessment.
+ *
+ * The admin form labels this field as shown to the client, and it is what the
+ * answers are about — the attestation is worth nothing if the signatory cannot
+ * see which systems and locations it covers. It was being sent to the browser
+ * and never rendered.
+ */
+function ScopeSummary({ text }: { text: string }) {
+  return (
+    <div className="callout callout-info" style={{ marginTop: 14, marginBottom: 14 }}>
+      <h3>Scope of this assessment</h3>
+      <p className="small" style={{ marginBottom: 0, whiteSpace: 'pre-wrap' }}>
+        {text}
+      </p>
+    </div>
   );
 }
 
