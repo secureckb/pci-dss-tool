@@ -54,6 +54,9 @@ CREATE TABLE IF NOT EXISTS answers (
   response      text NOT NULL CHECK (response IN ('yes', 'yes-ccw', 'yes-customized', 'no', 'na')),
   justification text NOT NULL DEFAULT '',
   evidence      text NOT NULL DEFAULT '',
+  -- Monotonic per client, so a write that arrives out of order can be
+  -- recognised as stale and discarded rather than overwriting a newer answer.
+  client_revision bigint NOT NULL DEFAULT 0,
   updated_at    timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY (assessment_id, question_id)
 );
@@ -67,6 +70,7 @@ ALTER TABLE assessments ADD COLUMN IF NOT EXISTS saq_type text;
 ALTER TABLE assessments ADD COLUMN IF NOT EXISTS eligibility jsonb;
 ALTER TABLE assessments ADD COLUMN IF NOT EXISTS eligibility_completed_at timestamptz;
 ALTER TABLE assessments ALTER COLUMN variant DROP NOT NULL;
+ALTER TABLE answers ADD COLUMN IF NOT EXISTS client_revision bigint NOT NULL DEFAULT 0;
 
 -- Assessments created before the wizard already had their variant chosen by the
 -- assessor; record the equivalent SAQ type so every row reads the same way.

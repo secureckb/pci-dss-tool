@@ -136,7 +136,11 @@ router.post('/:token/eligibility', withAssessment, async (req, res) => {
       'SELECT COUNT(*)::int AS count FROM answers WHERE assessment_id = $1',
       [req.assessment.id]
     );
-    if (current.eligibility_completed_at && counted[0].count > 0) {
+    // Any saved answer means a questionnaire is under way, whether the SAQ type
+    // came from the wizard or was preset by the assessor. Gating on
+    // `eligibility_completed_at` missed the preset case, where that field is
+    // null but answers exist, and the change would have deleted them.
+    if (counted[0].count > 0) {
       return {
         status: 409,
         body: {
@@ -144,11 +148,6 @@ router.post('/:token/eligibility', withAssessment, async (req, res) => {
             'The questionnaire has already been started, so the SAQ type cannot be changed here. Ask your assessor to reset it.',
         },
       };
-    }
-    // An answer recorded without a determination cannot belong to the SAQ about
-    // to be set, so it goes with the questionnaire it was answered against.
-    if (counted[0].count > 0) {
-      await client.query('DELETE FROM answers WHERE assessment_id = $1', [req.assessment.id]);
     }
 
     await client.query(
@@ -233,6 +232,15 @@ router.put('/:token/answers/:questionId', withAssessment, requireVariant, async 
     return res.status(400).json({ error: 'Invalid response value.' });
   }
 
+  // A write without a revision is opting out of ordering, not claiming to be
+  // newest: it applies unconditionally and stores revision 0, so a later
+  // revisioned write still wins. Treating it as newest instead would poison the
+  // row with a revision no real client could ever beat, silently discarding
+  // every subsequent edit.
+  const raw = req.body?.revision;
+  const hasRevision = Number.isSafeInteger(raw) && raw >= 0;
+  const revision = hasRevision ? raw : 0;
+
   const { status, body } = await withLockedAssessment(req.assessment.id, async (client, current) => {
     if (current.status === 'submitted') {
       return { status: 409, body: { error: 'This questionnaire has been submitted and can no longer be edited.' } };
@@ -259,26 +267,41 @@ router.put('/:token/answers/:questionId', withAssessment, requireVariant, async 
       };
     }
 
+    // Writes can reach here out of order: the page-hide flush sends with
+    // `keepalive` outside the client's per-question queue, so a request carrying
+    // older text can arrive after a newer one. The revision decides, not arrival
+    // order — a write is applied only if it is at least as new as what is stored.
+    let applied;
     if (clearing) {
-      await client.query('DELETE FROM answers WHERE assessment_id = $1 AND question_id = $2', [
-        req.assessment.id,
-        question.id,
-      ]);
+      const { rowCount } = await client.query(
+        hasRevision
+          ? `DELETE FROM answers
+              WHERE assessment_id = $1 AND question_id = $2 AND client_revision <= $3`
+          : `DELETE FROM answers WHERE assessment_id = $1 AND question_id = $2 AND $3 = $3`,
+        [req.assessment.id, question.id, revision]
+      );
+      applied = rowCount > 0;
     } else {
-      await client.query(
-        `INSERT INTO answers (assessment_id, question_id, response, justification, evidence)
-         VALUES ($1, $2, $3, $4, $5)
+      const { rows: written } = await client.query(
+        `INSERT INTO answers (assessment_id, question_id, response, justification, evidence, client_revision)
+         VALUES ($1, $2, $3, $4, $5, $6)
          ON CONFLICT (assessment_id, question_id)
          DO UPDATE SET response = EXCLUDED.response,
                        justification = EXCLUDED.justification,
                        evidence = EXCLUDED.evidence,
-                       updated_at = now()`,
-        [req.assessment.id, question.id, response, justification, evidence]
+                       client_revision = EXCLUDED.client_revision,
+                       updated_at = now()
+           WHERE $7::boolean IS FALSE OR answers.client_revision <= EXCLUDED.client_revision
+         RETURNING client_revision`,
+        [req.assessment.id, question.id, response, justification, evidence, revision, hasRevision]
       );
+      applied = written.length > 0;
     }
 
     await client.query('UPDATE assessments SET updated_at = now() WHERE id = $1', [req.assessment.id]);
-    return { status: 200, body: { ok: true, cleared: clearing } };
+    // A superseded write is not an error: a newer answer already won, which is
+    // the outcome the client wanted.
+    return { status: 200, body: { ok: true, cleared: clearing, applied, superseded: !applied } };
   });
 
   res.status(status).json(body);

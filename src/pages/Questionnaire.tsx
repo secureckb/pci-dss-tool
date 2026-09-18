@@ -62,7 +62,15 @@ export default function Questionnaire() {
   // wrote, or a slow earlier request would erase text typed while it was in
   // flight and the debounce would then find nothing to send.
   const pendingText = useRef<Record<string, { answer: Answer; rev: number }>>({});
+  // Revisions are wall-clock milliseconds, nudged forward on collision. A plain
+  // counter would restart at zero on reload, and the server would then discard
+  // the new session's edits as older than the previous session's.
   const revCounter = useRef(0);
+  const nextRevision = () => {
+    const now = Date.now();
+    revCounter.current = revCounter.current >= now ? revCounter.current + 1 : now;
+    return revCounter.current;
+  };
   const inFlight = useRef(0);
   // Which questions have an unsaved failure, and at which revision.
   //
@@ -119,6 +127,9 @@ export default function Questionnaire() {
               response: entry.answer.response,
               justification: entry.answer.justification,
               evidence: entry.answer.evidence,
+              // Carries its revision, so if the client returns and edits again
+              // before this lands, the server discards this one as superseded.
+              revision: entry.rev,
             }),
           });
         } catch {
@@ -163,6 +174,7 @@ export default function Questionnaire() {
               response: answer?.response ?? null,
               justification: answer?.justification ?? '',
               evidence: answer?.evidence ?? '',
+              revision: rev,
             });
             // Only clear the buffered edit if it is still the one just written.
             const buffered = pendingText.current[questionId];
@@ -208,7 +220,11 @@ export default function Questionnaire() {
         ? null
         : {
             response,
-            justification: current?.justification ?? '',
+            // A justification means something different under each response: an
+            // N/A exclusion, a compensating control, a remediation note. Carrying
+            // it across would let text written for one satisfy the mandatory
+            // description of another. Evidence is response-independent, so it stays.
+            justification: '',
             evidence: current?.evidence ?? '',
           };
 
@@ -222,7 +238,7 @@ export default function Questionnaire() {
     clearTimeout(timers.current[question.id]);
     delete timers.current[question.id];
 
-    const rev = ++revCounter.current;
+    const rev = nextRevision();
     if (next) pendingText.current[question.id] = { answer: next, rev };
     else delete pendingText.current[question.id];
 
@@ -237,7 +253,7 @@ export default function Questionnaire() {
     });
 
     clearTimeout(timers.current[question.id]);
-    const rev = ++revCounter.current;
+    const rev = nextRevision();
     setAnswers((latest) => {
       const answer = latest[question.id];
       // Buffer the value before the debounce fires, so an early submit or a
