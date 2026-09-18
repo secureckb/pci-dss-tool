@@ -1,7 +1,14 @@
 import { asyncRouter } from '../async-router.js';
 import crypto from 'node:crypto';
 import { query } from '../db.js';
-import { checkAdminPassword, clearSessionCookie, isAdmin, requireAdmin, setSessionCookie } from '../auth.js';
+import {
+  canAuthenticate,
+  checkAdminPassword,
+  clearSessionCookie,
+  isAdmin,
+  requireAdmin,
+  setSessionCookie,
+} from '../auth.js';
 import { scoreAssessment } from '../../shared/scoring.js';
 import { VARIANTS } from '../../shared/questions/index.js';
 import { SAQ_TYPES } from '../../shared/eligibility.js';
@@ -39,6 +46,14 @@ function recordLoginFailure() {
 }
 
 router.post('/login', async (req, res) => {
+  // Checked before the password, so a plaintext attempt never reaches it.
+  if (!canAuthenticate(req)) {
+    return res.status(403).json({
+      error:
+        'Signing in requires a secure (HTTPS) connection. This instance is reachable over plain HTTP, which would expose the admin session.',
+    });
+  }
+
   const lockedFor = loginLockRemainingMs();
   if (lockedFor > 0) {
     return res.status(429).json({
