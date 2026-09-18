@@ -41,7 +41,7 @@ export default function Results() {
 
   const { assessment, result } = data;
   const counts = result.totals.counts;
-  const reviewCount = counts['yes-ccw'] + counts['yes-customized'];
+  const reviewCount = counts['yes-ccw'];
 
   return (
     <>
@@ -96,7 +96,7 @@ export default function Results() {
         {result.reviewItems.length > 0 && (
           <GapList
             title="Requires assessor validation"
-            description="Compensating controls and customized approach implementations cannot be self-validated. A Qualified Security Assessor must review the supporting documentation."
+            description="A compensating control cannot be self-validated. A Qualified Security Assessor must review the Appendix C worksheet behind each one."
             tone="review"
             entries={result.reviewItems}
             notesLabel="Control description you provided"

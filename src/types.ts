@@ -1,4 +1,4 @@
-export type ResponseKey = 'yes' | 'yes-ccw' | 'yes-customized' | 'no' | 'na';
+export type ResponseKey = 'yes' | 'yes-ccw' | 'no' | 'na';
 export type Determination = 'incomplete' | 'non-compliant' | 'pending-review' | 'compliant';
 export type Variant = 'merchant' | 'service-provider';
 

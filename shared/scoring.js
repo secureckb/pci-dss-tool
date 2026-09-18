@@ -1,13 +1,20 @@
 import { getSections } from './questions/index.js';
 
 /**
- * The five responses a client may give to a SAQ question.
+ * The four responses a client may give to a SAQ question.
  *
  * PCI DSS validation is strictly pass/fail: a single "no" makes the whole
- * questionnaire non-compliant. "yes-ccw" and "yes-customized" do not fail the
- * assessment, but they cannot be self-validated either — they require a QSA
- * to review the compensating control worksheet or the customized approach
- * documentation, so they hold the result at "pending review".
+ * questionnaire non-compliant. "yes-ccw" does not fail the assessment, but it
+ * cannot be self-validated either — it requires a QSA to review the
+ * compensating control worksheet, so it holds the result at "pending review".
+ *
+ * The customized approach is deliberately absent. An SAQ cannot be used to
+ * document it: the customized approach objectives are not included in the SAQs,
+ * and an entity validating that way uses the ROC template instead. Offering it
+ * here would have let a client record an answer their SAQ cannot carry, and the
+ * tool would have called the result compliant. Requirement 12.3.2 still asks
+ * about the targeted risk analysis behind a customized approach, because it is
+ * part of SAQ D; an entity not using one marks it Not Applicable.
  */
 export const RESPONSES = {
   yes: {
@@ -28,16 +35,6 @@ export const RESPONSES = {
     needsReview: true,
     requiresText: true,
     textLabel: 'Describe the compensating control and the Appendix C worksheet reference',
-  },
-  'yes-customized': {
-    key: 'yes-customized',
-    label: 'Yes with Customized Approach',
-    short: 'Yes (Customized)',
-    hint: 'The requirement is met using the customized approach. Requires a targeted risk analysis (Req 12.3.2), a controls matrix, and assessor validation. Not permitted for requirements that have no stated customized approach objective.',
-    passes: true,
-    needsReview: true,
-    requiresText: true,
-    textLabel: 'Describe the customized approach and reference the controls matrix / targeted risk analysis',
   },
   no: {
     key: 'no',
@@ -84,7 +81,7 @@ export const DETERMINATIONS = {
     label: 'Compliant — Pending Assessor Review',
     headline: 'Passes, subject to assessor validation',
     summary:
-      'No requirement was answered "No", but one or more requirements rely on a compensating control or the customized approach. These cannot be self-validated — an assessor must review the supporting worksheets before compliance is confirmed.',
+      'No requirement was answered "No", but one or more requirements rely on a compensating control. A compensating control cannot be self-validated — an assessor must review the Appendix C worksheet before compliance is confirmed.',
   },
   compliant: {
     key: 'compliant',
@@ -123,7 +120,7 @@ export function scoreAssessment(variant, answers = {}) {
   const missingJustification = [];
 
   const sectionResults = sections.map((section) => {
-    const counts = { yes: 0, 'yes-ccw': 0, 'yes-customized': 0, no: 0, na: 0, unanswered: 0 };
+    const counts = { yes: 0, 'yes-ccw': 0, no: 0, na: 0, unanswered: 0 };
     // An answer whose mandatory justification is blank leaves the section
     // unfinished, exactly as an unanswered question does. Counting it here keeps
     // a section from reading "Pass" while the assessment reads "Incomplete".
@@ -181,7 +178,7 @@ export function scoreAssessment(variant, answers = {}) {
           ? 'incomplete'
           : counts.no > 0
             ? 'fail'
-            : counts['yes-ccw'] + counts['yes-customized'] > 0
+            : counts['yes-ccw'] > 0
               ? 'review'
               : 'pass',
     };
@@ -196,7 +193,7 @@ export function scoreAssessment(variant, answers = {}) {
       });
       return acc;
     },
-    { total: 0, answered: 0, counts: { yes: 0, 'yes-ccw': 0, 'yes-customized': 0, no: 0, na: 0, unanswered: 0 } }
+    { total: 0, answered: 0, counts: { yes: 0, 'yes-ccw': 0, no: 0, na: 0, unanswered: 0 } }
   );
 
   let determination;
@@ -204,7 +201,7 @@ export function scoreAssessment(variant, answers = {}) {
     determination = 'incomplete';
   } else if (totals.counts.no > 0) {
     determination = 'non-compliant';
-  } else if (totals.counts['yes-ccw'] + totals.counts['yes-customized'] > 0) {
+  } else if (totals.counts['yes-ccw'] > 0) {
     determination = 'pending-review';
   } else {
     determination = 'compliant';

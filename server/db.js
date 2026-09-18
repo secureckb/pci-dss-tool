@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS answers (
   -- NULL means the client cleared this answer. The row is kept so its
   -- version survives as a watermark; deleting it would let a write that is
   -- still in flight, carrying an older version, resurrect the answer.
-  response      text CHECK (response IN ('yes', 'yes-ccw', 'yes-customized', 'na', 'no')),
+  response      text CHECK (response IN ('yes', 'yes-ccw', 'na', 'no')),
   justification text NOT NULL DEFAULT '',
   evidence      text NOT NULL DEFAULT '',
   -- (client_epoch, client_seq) orders writes, so one that arrives out of order
@@ -98,6 +98,17 @@ BEGIN
     ALTER TABLE answers DROP COLUMN client_revision;
   END IF;
 END $$;
+
+-- The customized approach was offered as a response and should not have been: an
+-- SAQ cannot be used to document it. Any answer recorded that way is cleared
+-- rather than converted — turning it into a plain "Yes" would put an assertion
+-- in an attestation that the client never made — so the requirement goes back to
+-- unanswered and the client answers it again.
+UPDATE answers SET response = NULL, justification = '', updated_at = now()
+ WHERE response = 'yes-customized';
+ALTER TABLE answers DROP CONSTRAINT IF EXISTS answers_response_check;
+ALTER TABLE answers ADD CONSTRAINT answers_response_check
+  CHECK (response IN ('yes', 'yes-ccw', 'na', 'no'));
 
 -- Assessments created before the wizard already had their variant chosen by the
 -- assessor; record the equivalent SAQ type so every row reads the same way.

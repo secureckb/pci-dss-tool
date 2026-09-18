@@ -99,7 +99,7 @@ export function SectionTable({ sections }: { sections: SectionResult[] }) {
         </thead>
         <tbody>
           {sections.map((section) => {
-            const yes = section.counts.yes + section.counts['yes-ccw'] + section.counts['yes-customized'];
+            const yes = section.counts.yes + section.counts['yes-ccw'];
             return (
               <tr key={String(section.id)}>
                 <td>
