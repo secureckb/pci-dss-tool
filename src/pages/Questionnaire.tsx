@@ -32,6 +32,9 @@ type SaveState = 'idle' | 'saving' | 'saved' | 'error';
 /** Debounce delay for free-text fields, so typing does not hit the API on every keystroke. */
 const TEXT_SAVE_DELAY = 700;
 
+/** Matches MAX_TEXT_LENGTH on the server, which rejects anything longer. */
+const MAX_TEXT_LENGTH = 4000;
+
 export default function Questionnaire() {
   const { token = '' } = useParams();
   const navigate = useNavigate();
@@ -50,6 +53,16 @@ export default function Questionnaire() {
   const [eligibilityError, setEligibilityError] = useState<string | null>(null);
 
   const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  // One promise chain per question, so two saves for the same requirement can
+  // never land out of order and leave the older value stored.
+  const saveChains = useRef<Record<string, Promise<void>>>({});
+  // The latest value for a question whose debounce has not fired yet, so it can
+  // be flushed before submitting instead of being cancelled by navigation.
+  const pendingText = useRef<Record<string, Answer>>({});
+  const inFlight = useRef(0);
+  // Set when any save fails and cleared on the next success, so submission can
+  // refuse to proceed on answers the server never accepted.
+  const saveFailed = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -77,20 +90,40 @@ export default function Questionnaire() {
   }, []);
 
   const persist = useCallback(
-    async (questionId: string, answer: Answer | null) => {
+    (questionId: string, answer: Answer | null) => {
       setSaveState('saving');
       setSaveError(null);
-      try {
-        await api.put(`/api/assessment/${token}/answers/${questionId}`, {
-          response: answer?.response ?? null,
-          justification: answer?.justification ?? '',
-          evidence: answer?.evidence ?? '',
+      inFlight.current += 1;
+
+      // Queue behind any save already running for this question. The server's
+      // write is an unconditional upsert, so ordering has to be guaranteed here.
+      const chained = (saveChains.current[questionId] ?? Promise.resolve())
+        .catch(() => {})
+        .then(async () => {
+          try {
+            await api.put(`/api/assessment/${token}/answers/${questionId}`, {
+              response: answer?.response ?? null,
+              justification: answer?.justification ?? '',
+              evidence: answer?.evidence ?? '',
+            });
+            delete pendingText.current[questionId];
+            saveFailed.current = false;
+          } catch (err) {
+            saveFailed.current = true;
+            setSaveState('error');
+            setSaveError(err instanceof ApiError ? err.message : 'Could not save your answer.');
+            throw err;
+          }
+        })
+        .finally(() => {
+          inFlight.current -= 1;
+          // Only the last save still running may report success, so a fast
+          // early request cannot paint "Saved" over a later failure.
+          if (inFlight.current === 0) setSaveState((prev) => (prev === 'error' ? 'error' : 'saved'));
         });
-        setSaveState('saved');
-      } catch (err) {
-        setSaveState('error');
-        setSaveError(err instanceof ApiError ? err.message : 'Could not save your answer.');
-      }
+
+      saveChains.current[questionId] = chained.catch(() => {});
+      return chained;
     },
     [token]
   );
@@ -113,7 +146,13 @@ export default function Questionnaire() {
       else delete copy[question.id];
       return copy;
     });
-    persist(question.id, next);
+
+    clearTimeout(timers.current[question.id]);
+    delete timers.current[question.id];
+    if (next) pendingText.current[question.id] = next;
+    else delete pendingText.current[question.id];
+
+    persist(question.id, next).catch(() => {});
   };
 
   const setText = (question: Question, field: 'justification' | 'evidence', value: string) => {
@@ -124,14 +163,37 @@ export default function Questionnaire() {
     });
 
     clearTimeout(timers.current[question.id]);
+    setAnswers((latest) => {
+      const answer = latest[question.id];
+      // Remember the value even before the debounce fires, so submitting early
+      // flushes it rather than losing it to the cleanup that cancels timers.
+      if (answer) pendingText.current[question.id] = { ...answer, [field]: value };
+      return latest;
+    });
+
     timers.current[question.id] = setTimeout(() => {
-      setAnswers((latest) => {
-        const answer = latest[question.id];
-        if (answer) persist(question.id, answer);
-        return latest;
-      });
+      const answer = pendingText.current[question.id];
+      if (answer) persist(question.id, answer).catch(() => {});
     }, TEXT_SAVE_DELAY);
   };
+
+  /** Write out every debounced edit that has not been sent yet, and wait for it. */
+  const flushPendingSaves = useCallback(async () => {
+    Object.values(timers.current).forEach(clearTimeout);
+    timers.current = {};
+
+    const pending = Object.entries(pendingText.current);
+    pendingText.current = {};
+    await Promise.all(pending.map(([questionId, answer]) => persist(questionId, answer)));
+
+    // Saves started earlier may still be running. Those chains swallow their own
+    // rejections so they never surface as unhandled, so the failure flag is what
+    // reports whether any of them actually landed.
+    await Promise.all(Object.values(saveChains.current));
+    if (saveFailed.current) {
+      throw new Error('At least one answer failed to save.');
+    }
+  }, [persist]);
 
   const progress = useMemo(() => {
     if (!data?.sections) return { total: 0, answered: 0, percent: 0, blocking: [] as string[] };
@@ -163,14 +225,18 @@ export default function Questionnaire() {
       let done = 0;
       let failed = 0;
       let review = 0;
+      let missingText = 0;
       section.questions.forEach((q) => {
         const answer = answers[q.id];
         if (!answer) return;
         done += 1;
+        const meta = RESPONSES[answer.response];
+        // Mirrors the server: an answer owing a justification is not finished.
+        if (meta.requiresText && !answer.justification.trim()) missingText += 1;
         if (answer.response === 'no') failed += 1;
-        else if (RESPONSES[answer.response].needsReview) review += 1;
+        else if (meta.needsReview) review += 1;
       });
-      const complete = done === section.questions.length;
+      const complete = done === section.questions.length && missingText === 0;
       const dot = !complete ? 'todo' : failed ? 'fail' : review ? 'review' : 'pass';
       return { done, total: section.questions.length, dot };
     },
@@ -189,6 +255,16 @@ export default function Questionnaire() {
     if (!attestName.trim()) return;
 
     setSubmitting(true);
+    try {
+      // Everything typed must reach the server before the answers are locked,
+      // otherwise the attested set would not be what the client last saw.
+      await flushPendingSaves();
+    } catch {
+      setSaveError('Some of your answers could not be saved, so the questionnaire was not submitted. Check your connection and try again.');
+      setSubmitting(false);
+      return;
+    }
+
     try {
       await api.post(`/api/assessment/${token}/submit`, { name: attestName, title: attestTitle });
       navigate(`/q/${token}/results`);
@@ -544,6 +620,7 @@ function QuestionCard({
           </span>
           <textarea
             value={answer?.justification ?? ''}
+            maxLength={MAX_TEXT_LENGTH}
             onChange={(e) => onText('justification', e.target.value)}
             placeholder={meta.placeholder}
           />
@@ -556,6 +633,7 @@ function QuestionCard({
           <span>Planned remediation (optional)</span>
           <textarea
             value={answer.justification}
+            maxLength={MAX_TEXT_LENGTH}
             onChange={(e) => onText('justification', e.target.value)}
             placeholder="What is missing, and what is your plan and timeline to close the gap?"
           />
@@ -568,6 +646,7 @@ function QuestionCard({
           <input
             type="text"
             value={answer.evidence}
+            maxLength={MAX_TEXT_LENGTH}
             onChange={(e) => onText('evidence', e.target.value)}
             placeholder="e.g. Firewall standard v3.2, ticket CHG-1184, screenshot set B"
           />

@@ -10,15 +10,52 @@ import { loadAnswers, publicBaseUrl } from '../helpers.js';
 
 const router = asyncRouter();
 
-// Brute-force damping: a fixed small delay on every failed login attempt.
+// Brute-force damping. A per-request delay alone does not slow an attacker who
+// simply issues attempts in parallel, so failures are also counted and the
+// endpoint locks out once there have been too many within the window. One admin
+// password means one counter; there is no per-account state to track.
 const FAILED_LOGIN_DELAY_MS = 750;
+const MAX_FAILED_LOGINS = 10;
+const LOCKOUT_MS = 15 * 60 * 1000;
+
+const loginFailures = { count: 0, firstAt: 0, lockedUntil: 0 };
+
+function loginLockRemainingMs() {
+  const remaining = loginFailures.lockedUntil - Date.now();
+  return remaining > 0 ? remaining : 0;
+}
+
+function recordLoginFailure() {
+  const now = Date.now();
+  // Start a fresh window once the previous one has aged out.
+  if (now - loginFailures.firstAt > LOCKOUT_MS) {
+    loginFailures.count = 0;
+    loginFailures.firstAt = now;
+  }
+  loginFailures.count += 1;
+  if (loginFailures.count >= MAX_FAILED_LOGINS) {
+    loginFailures.lockedUntil = now + LOCKOUT_MS;
+  }
+}
 
 router.post('/login', async (req, res) => {
+  const lockedFor = loginLockRemainingMs();
+  if (lockedFor > 0) {
+    return res.status(429).json({
+      error: `Too many failed sign-in attempts. Try again in ${Math.ceil(lockedFor / 60000)} minute(s).`,
+      retryAfterSeconds: Math.ceil(lockedFor / 1000),
+    });
+  }
+
   if (!checkAdminPassword(req.body?.password)) {
+    recordLoginFailure();
     await new Promise((r) => setTimeout(r, FAILED_LOGIN_DELAY_MS));
     return res.status(401).json({ error: 'Incorrect password.' });
   }
-  setSessionCookie(res);
+
+  loginFailures.count = 0;
+  loginFailures.lockedUntil = 0;
+  setSessionCookie(req, res);
   res.json({ ok: true });
 });
 

@@ -14,13 +14,38 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DIST = path.join(__dirname, '..', 'dist');
 const PORT = Number(process.env.PORT) || 8080;
 
+// Values that appear in .env.example or in documentation are public, so treat
+// them as unset: copying the template must not yield a deployable admin console.
+const PLACEHOLDER_PASSWORDS = new Set([
+  'change-me-before-deploying',
+  'change-me',
+  'changeme',
+  'password',
+  'admin',
+  'secret',
+  'test',
+]);
+const MIN_ADMIN_PASSWORD_LENGTH = 12;
+
 if (!process.env.ADMIN_PASSWORD) {
   console.error('ADMIN_PASSWORD is not set. Refusing to start with an unprotected admin console.');
   process.exit(1);
 }
-if (!process.env.SESSION_SECRET) {
+if (PLACEHOLDER_PASSWORDS.has(process.env.ADMIN_PASSWORD.trim().toLowerCase())) {
   console.error(
-    'SESSION_SECRET is not set. Generate one with:\n' +
+    'ADMIN_PASSWORD is still the placeholder from .env.example. That value is public. Set a real password before starting.'
+  );
+  process.exit(1);
+}
+if (process.env.ADMIN_PASSWORD.length < MIN_ADMIN_PASSWORD_LENGTH) {
+  console.error(
+    `ADMIN_PASSWORD must be at least ${MIN_ADMIN_PASSWORD_LENGTH} characters. It is the only credential protecting client compliance data.`
+  );
+  process.exit(1);
+}
+if (!process.env.SESSION_SECRET || process.env.SESSION_SECRET.length < 32) {
+  console.error(
+    'SESSION_SECRET is not set, or is shorter than 32 characters. Generate one with:\n' +
       '  node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"'
   );
   process.exit(1);

@@ -124,6 +124,10 @@ export function scoreAssessment(variant, answers = {}) {
 
   const sectionResults = sections.map((section) => {
     const counts = { yes: 0, 'yes-ccw': 0, 'yes-customized': 0, no: 0, na: 0, unanswered: 0 };
+    // An answer whose mandatory justification is blank leaves the section
+    // unfinished, exactly as an unanswered question does. Counting it here keeps
+    // a section from reading "Pass" while the assessment reads "Incomplete".
+    let sectionMissingJustification = 0;
 
     section.questions.forEach((question) => {
       const answer = answers[question.id];
@@ -155,6 +159,7 @@ export function scoreAssessment(variant, answers = {}) {
       }
 
       if (isMissingJustification(question, answer)) {
+        sectionMissingJustification += 1;
         missingJustification.push({ ...entry, response: answer.response });
       }
     });
@@ -168,9 +173,11 @@ export function scoreAssessment(variant, answers = {}) {
       total,
       answered,
       counts,
-      // A section passes when nothing in it was answered "No" and nothing is left blank.
+      missingJustification: sectionMissingJustification,
+      // A section passes only when nothing in it was answered "No", nothing is
+      // left blank, and every answer that owes a justification has one.
       status:
-        counts.unanswered > 0
+        counts.unanswered > 0 || sectionMissingJustification > 0
           ? 'incomplete'
           : counts.no > 0
             ? 'fail'

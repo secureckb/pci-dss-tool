@@ -38,6 +38,7 @@ export interface SectionResult {
   total: number;
   answered: number;
   counts: Record<ResponseKey | 'unanswered', number>;
+  missingJustification: number;
   status: 'pass' | 'fail' | 'review' | 'incomplete';
 }
 
