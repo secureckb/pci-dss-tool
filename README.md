@@ -144,6 +144,17 @@ the Not Applicable option disabled, and the server rejects it too.
 Any host that runs Node 20+ with a Postgres database works the same way — there is nothing
 Railway-specific in the application code.
 
+### The Vercel check on pull requests
+
+This repository also has a Vercel integration, left over from the static prototype this tool
+replaced. **It is kept deliberately as a build gate, not as a deployment.** A green Vercel check
+means `npm run build` succeeded — the question-bank invariants in `scripts/verify-bank.mjs` passed,
+the TypeScript typechecks, and the front end bundles. That is worth having on every push.
+
+It does not mean the application ran. This is an Express server over Postgres: on Vercel the static
+front end would be served with no API behind it and no database, so read the check as "it builds",
+never as "it works". The deployment that matters is the Railway service above.
+
 ## Running locally
 
 ```bash
