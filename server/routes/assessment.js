@@ -4,7 +4,7 @@ import { scoreAssessment, RESPONSES } from '../../shared/scoring.js';
 import { getSections, getQuestion, VARIANTS } from '../../shared/questions/index.js';
 import { determineSaq, prunedAnswers, ELIGIBILITY_STEPS, FIRST_STEP, SAQ_TYPES } from '../../shared/eligibility.js';
 import { buildGapReport, buildAttestation } from '../pdf.js';
-import { loadAnswers, withLockedAssessment } from '../helpers.js';
+import { issueEpoch, loadAnswers, withLockedAssessment } from '../helpers.js';
 
 const router = asyncRouter();
 
@@ -83,6 +83,9 @@ router.get('/:token', withAssessment, async (req, res) => {
     sections: getSections(req.assessment.variant),
     answers,
     result: scoreAssessment(req.assessment.variant, answers),
+    // The ordering epoch for this page load. The client tags each write with it
+    // and a per-page counter; see issueEpoch().
+    session: { epoch: await issueEpoch() },
   });
 });
 
@@ -232,14 +235,17 @@ router.put('/:token/answers/:questionId', withAssessment, requireVariant, async 
     return res.status(400).json({ error: 'Invalid response value.' });
   }
 
-  // A write without a revision is opting out of ordering, not claiming to be
-  // newest: it applies unconditionally and stores revision 0, so a later
-  // revisioned write still wins. Treating it as newest instead would poison the
-  // row with a revision no real client could ever beat, silently discarding
-  // every subsequent edit.
-  const raw = req.body?.revision;
-  const hasRevision = Number.isSafeInteger(raw) && raw >= 0;
-  const revision = hasRevision ? raw : 0;
+  // Writes are ordered by (epoch, seq): the epoch is issued by the database when
+  // the page loads, the sequence counts that page's writes. A write that carries
+  // neither is opting out of ordering rather than claiming to be newest: it
+  // applies unconditionally but leaves any higher watermark alone, so a write
+  // still in flight from another page cannot use it to slip in afterwards.
+  const rawEpoch = req.body?.epoch;
+  const rawSeq = req.body?.seq;
+  const ordered =
+    Number.isSafeInteger(rawEpoch) && rawEpoch > 0 && Number.isSafeInteger(rawSeq) && rawSeq >= 0;
+  const epoch = ordered ? rawEpoch : 0;
+  const seq = ordered ? rawSeq : 0;
 
   const { status, body } = await withLockedAssessment(req.assessment.id, async (client, current) => {
     if (current.status === 'submitted') {
@@ -269,39 +275,74 @@ router.put('/:token/answers/:questionId', withAssessment, requireVariant, async 
 
     // Writes can reach here out of order: the page-hide flush sends with
     // `keepalive` outside the client's per-question queue, so a request carrying
-    // older text can arrive after a newer one. The revision decides, not arrival
-    // order — a write is applied only if it is at least as new as what is stored.
-    // Clearing is an upsert too, storing a NULL response rather than removing the
-    // row. Deleting it would take the revision watermark with it, and a write
-    // still in flight carrying an older revision would then find no conflict and
+    // older text can arrive after a newer one. The (epoch, seq) pair decides, not
+    // arrival order — a write is applied only if it is at least as new as what is
+    // stored. Clearing is an upsert too, storing a NULL response rather than
+    // removing the row. Deleting it would take the watermark with it, and a write
+    // still in flight carrying an older pair would then find no conflict and
     // resurrect the answer the client had just cleared.
+    //
+    // The stored pair only moves forward. An unordered write still overwrites the
+    // answer, but it must not drag the watermark back to (0, 0) — that would
+    // reopen the row to every stale write that the real watermark was excluding.
     const { rows: written } = await client.query(
-      `INSERT INTO answers (assessment_id, question_id, response, justification, evidence, client_revision)
-       VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO answers (assessment_id, question_id, response, justification, evidence, client_epoch, client_seq)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        ON CONFLICT (assessment_id, question_id)
        DO UPDATE SET response = EXCLUDED.response,
                      justification = EXCLUDED.justification,
                      evidence = EXCLUDED.evidence,
-                     client_revision = EXCLUDED.client_revision,
+                     client_epoch = CASE
+                       WHEN (EXCLUDED.client_epoch, EXCLUDED.client_seq)
+                          >= (answers.client_epoch, answers.client_seq)
+                       THEN EXCLUDED.client_epoch ELSE answers.client_epoch END,
+                     client_seq = CASE
+                       WHEN (EXCLUDED.client_epoch, EXCLUDED.client_seq)
+                          >= (answers.client_epoch, answers.client_seq)
+                       THEN EXCLUDED.client_seq ELSE answers.client_seq END,
                      updated_at = now()
-         WHERE $7::boolean IS FALSE OR answers.client_revision <= EXCLUDED.client_revision
-       RETURNING client_revision`,
+         WHERE $8::boolean IS FALSE
+            OR (answers.client_epoch, answers.client_seq) <= (EXCLUDED.client_epoch, EXCLUDED.client_seq)
+       RETURNING client_epoch`,
       [
         req.assessment.id,
         question.id,
         clearing ? null : response,
         clearing ? '' : justification,
         clearing ? '' : evidence,
-        revision,
-        hasRevision,
+        epoch,
+        seq,
+        ordered,
       ]
     );
     const applied = written.length > 0;
 
+    // Which page's write is stored. The client compares this with its own epoch:
+    // being superseded by itself is the ordinary case of a page-hide flush losing
+    // to the edit that followed it, but being superseded by another epoch means a
+    // second window is editing the same assessment and this page is now stale.
+    let storedEpoch = written[0]?.client_epoch;
+    if (!applied) {
+      const { rows: stored } = await client.query(
+        'SELECT client_epoch FROM answers WHERE assessment_id = $1 AND question_id = $2',
+        [req.assessment.id, question.id]
+      );
+      storedEpoch = stored[0]?.client_epoch;
+    }
+
     await client.query('UPDATE assessments SET updated_at = now() WHERE id = $1', [req.assessment.id]);
     // A superseded write is not an error: a newer answer already won, which is
     // the outcome the client wanted.
-    return { status: 200, body: { ok: true, cleared: clearing, applied, superseded: !applied } };
+    return {
+      status: 200,
+      body: {
+        ok: true,
+        cleared: clearing,
+        applied,
+        superseded: !applied,
+        storedEpoch: storedEpoch === undefined || storedEpoch === null ? null : Number(storedEpoch),
+      },
+    };
   });
 
   res.status(status).json(body);

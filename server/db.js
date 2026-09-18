@@ -52,14 +52,17 @@ CREATE TABLE IF NOT EXISTS answers (
   assessment_id uuid NOT NULL REFERENCES assessments(id) ON DELETE CASCADE,
   question_id   text NOT NULL,
   -- NULL means the client cleared this answer. The row is kept so its
-  -- client_revision survives as a watermark; deleting it would let a write
-  -- that is still in flight, carrying an older revision, resurrect the answer.
+  -- version survives as a watermark; deleting it would let a write that is
+  -- still in flight, carrying an older version, resurrect the answer.
   response      text CHECK (response IN ('yes', 'yes-ccw', 'yes-customized', 'na', 'no')),
   justification text NOT NULL DEFAULT '',
   evidence      text NOT NULL DEFAULT '',
-  -- Monotonic per client, so a write that arrives out of order can be
-  -- recognised as stale and discarded rather than overwriting a newer answer.
-  client_revision bigint NOT NULL DEFAULT 0,
+  -- (client_epoch, client_seq) orders writes, so one that arrives out of order
+  -- is recognised as stale and discarded rather than overwriting a newer answer.
+  -- The epoch is issued by the database when a page loads and the sequence
+  -- counts writes within that page, so ordering never depends on a device clock.
+  client_epoch  bigint NOT NULL DEFAULT 0,
+  client_seq    bigint NOT NULL DEFAULT 0,
   updated_at    timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY (assessment_id, question_id)
 );
@@ -73,8 +76,28 @@ ALTER TABLE assessments ADD COLUMN IF NOT EXISTS saq_type text;
 ALTER TABLE assessments ADD COLUMN IF NOT EXISTS eligibility jsonb;
 ALTER TABLE assessments ADD COLUMN IF NOT EXISTS eligibility_completed_at timestamptz;
 ALTER TABLE assessments ALTER COLUMN variant DROP NOT NULL;
-ALTER TABLE answers ADD COLUMN IF NOT EXISTS client_revision bigint NOT NULL DEFAULT 0;
+ALTER TABLE answers ADD COLUMN IF NOT EXISTS client_epoch bigint NOT NULL DEFAULT 0;
+ALTER TABLE answers ADD COLUMN IF NOT EXISTS client_seq bigint NOT NULL DEFAULT 0;
 ALTER TABLE answers ALTER COLUMN response DROP NOT NULL;
+
+-- Answer ordering used to be a wall-clock millisecond taken from the client's
+-- own device. Devices disagree, so one fast clock could set a watermark no
+-- other device could beat and every later edit from them was discarded. The
+-- epoch now comes from this sequence, which is the one clock every session
+-- shares. Rows written under the old scheme are reset to epoch 0 rather than
+-- carrying their millisecond value across: the two are not comparable, and
+-- anything written after this migration is by definition newer than they are.
+CREATE SEQUENCE IF NOT EXISTS client_epoch_seq AS bigint START WITH 1;
+
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+     WHERE table_name = 'answers' AND column_name = 'client_revision'
+  ) THEN
+    ALTER TABLE answers DROP COLUMN client_revision;
+  END IF;
+END $$;
 
 -- Assessments created before the wizard already had their variant chosen by the
 -- assessor; record the equivalent SAQ type so every row reads the same way.
