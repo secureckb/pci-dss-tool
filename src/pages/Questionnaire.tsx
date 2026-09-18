@@ -257,8 +257,12 @@ export default function Questionnaire() {
     Object.values(timers.current).forEach(clearTimeout);
     timers.current = {};
 
+    // The map is deliberately not cleared here. A successful save removes its own
+    // entry (matched on revision), so anything left afterwards is an edit that
+    // failed — and is still there to be resent when the client retries. Clearing
+    // upfront lost the failed edit and left submission permanently blocked on a
+    // failure it could no longer do anything about.
     const pending = Object.entries(pendingText.current);
-    pendingText.current = {};
     // Swallow individual rejections here: each one is already recorded against
     // its question, and letting the first to fail reject this Promise.all would
     // surface that request's message instead of naming the requirements.

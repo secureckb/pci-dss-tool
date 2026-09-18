@@ -53,15 +53,34 @@ export function checkAdminPassword(candidate) {
  * `trust proxy` is set, which is how it runs behind Railway's edge. Any request
  * that did not arrive over HTTPS is treated as local development.
  */
-function useSecureCookie(req) {
+function isHttps(req) {
   return req.secure || (req.get('x-forwarded-proto') || '').split(',')[0].trim() === 'https';
+}
+
+/** Local development, where there is no TLS to have and nothing to intercept. */
+function isLocalRequest(req) {
+  const host = (req.get('host') || '').split(':')[0].toLowerCase();
+  return host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '[::1]';
+}
+
+/**
+ * Whether a sign-in may proceed at all.
+ *
+ * Marking the cookie Secure only when the request arrived over HTTPS leaves a
+ * deployment that also answers plain HTTP handing out admin sessions in clear
+ * text. Rather than issue a weaker cookie in that case, refuse the sign-in:
+ * there is no legitimate reason to authenticate to a deployed instance over
+ * plaintext, and local development is exempt because it has no TLS to use.
+ */
+export function canAuthenticate(req) {
+  return isHttps(req) || isLocalRequest(req);
 }
 
 export function setSessionCookie(req, res) {
   res.cookie(COOKIE_NAME, createSessionToken(), {
     httpOnly: true,
     sameSite: 'lax',
-    secure: useSecureCookie(req),
+    secure: isHttps(req),
     maxAge: SESSION_TTL_MS,
     path: '/',
   });

@@ -205,3 +205,8 @@ completed, and signed before submission to an acquirer or payment brand.
 Client links are unguessable (128 bits of entropy) but are bearer credentials: anyone holding a
 link can read and answer that questionnaire. Send them directly to the intended contact, and
 delete assessments you no longer need.
+
+Admin sign-in requires HTTPS. If the deployment is reachable over plain HTTP the login is
+refused rather than issuing a session cookie in clear text; `localhost` is exempt so local
+development still works. Railway terminates TLS and forwards `X-Forwarded-Proto`, so a normal
+deployment is unaffected.
