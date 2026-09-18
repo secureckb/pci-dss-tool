@@ -8,6 +8,7 @@ import { migrate } from './db.js';
 import adminRoutes from './routes/admin.js';
 import assessmentRoutes from './routes/assessment.js';
 import requirementsRoutes from './routes/requirements.js';
+import eligibilityRoutes from './routes/eligibility.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DIST = path.join(__dirname, '..', 'dist');
@@ -36,6 +37,7 @@ app.get('/api/health', (req, res) => res.json({ ok: true }));
 app.use('/api/admin', adminRoutes);
 app.use('/api/assessment', assessmentRoutes);
 app.use('/api/requirements', requirementsRoutes);
+app.use('/api/eligibility', eligibilityRoutes);
 
 app.use('/api', (req, res) => res.status(404).json({ error: 'Not found.' }));
 

@@ -32,7 +32,7 @@ const SCHEMA = `
 CREATE TABLE IF NOT EXISTS assessments (
   id             uuid PRIMARY KEY,
   token          text NOT NULL UNIQUE,
-  variant        text NOT NULL CHECK (variant IN ('merchant', 'service-provider')),
+  variant        text CHECK (variant IN ('merchant', 'service-provider')),
   client_name    text NOT NULL,
   contact_name   text,
   contact_email  text,
@@ -60,6 +60,19 @@ CREATE TABLE IF NOT EXISTS answers (
 
 CREATE INDEX IF NOT EXISTS answers_assessment_idx ON answers (assessment_id);
 CREATE INDEX IF NOT EXISTS assessments_created_idx ON assessments (created_at DESC);
+
+-- Upgrades for databases created before the eligibility wizard existed. Each
+-- statement is a no-op once applied, so this runs safely on every boot.
+ALTER TABLE assessments ADD COLUMN IF NOT EXISTS saq_type text;
+ALTER TABLE assessments ADD COLUMN IF NOT EXISTS eligibility jsonb;
+ALTER TABLE assessments ADD COLUMN IF NOT EXISTS eligibility_completed_at timestamptz;
+ALTER TABLE assessments ALTER COLUMN variant DROP NOT NULL;
+
+-- Assessments created before the wizard already had their variant chosen by the
+-- assessor; record the equivalent SAQ type so every row reads the same way.
+UPDATE assessments
+   SET saq_type = CASE WHEN variant = 'service-provider' THEN 'D-ServiceProvider' ELSE 'D-Merchant' END
+ WHERE saq_type IS NULL AND variant IS NOT NULL;
 `;
 
 export async function migrate() {

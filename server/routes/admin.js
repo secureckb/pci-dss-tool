@@ -4,6 +4,7 @@ import { query } from '../db.js';
 import { checkAdminPassword, clearSessionCookie, isAdmin, requireAdmin, setSessionCookie } from '../auth.js';
 import { scoreAssessment } from '../../shared/scoring.js';
 import { VARIANTS } from '../../shared/questions/index.js';
+import { SAQ_TYPES } from '../../shared/eligibility.js';
 import { buildGapReport, buildAttestation } from '../pdf.js';
 import { loadAnswers, publicBaseUrl } from '../helpers.js';
 
@@ -34,8 +35,8 @@ router.use(requireAdmin);
 
 router.get('/assessments', async (req, res) => {
   const { rows } = await query(
-    `SELECT a.id, a.token, a.variant, a.client_name, a.contact_name, a.contact_email,
-            a.status, a.created_at, a.updated_at, a.submitted_at,
+    `SELECT a.id, a.token, a.variant, a.saq_type, a.client_name, a.contact_name, a.contact_email,
+            a.status, a.created_at, a.updated_at, a.submitted_at, a.eligibility_completed_at,
             COUNT(ans.question_id)::int AS answered
        FROM assessments a
        LEFT JOIN answers ans ON ans.assessment_id = a.id
@@ -48,7 +49,11 @@ router.get('/assessments', async (req, res) => {
       id: row.id,
       token: row.token,
       variant: row.variant,
-      variantLabel: VARIANTS[row.variant].label,
+      variantLabel: row.variant ? VARIANTS[row.variant].label : null,
+      saqType: row.saq_type,
+      saqName: row.saq_type ? SAQ_TYPES[row.saq_type]?.name ?? row.saq_type : null,
+      administered: Boolean(row.variant),
+      eligibilityCompletedAt: row.eligibility_completed_at,
       clientName: row.client_name,
       contactName: row.contact_name,
       contactEmail: row.contact_email,
@@ -68,21 +73,25 @@ router.post('/assessments', async (req, res) => {
   if (!clientName || !String(clientName).trim()) {
     return res.status(400).json({ error: 'A client name is required.' });
   }
-  if (!VARIANTS[variant]) {
-    return res.status(400).json({ error: 'Choose either the merchant or service provider edition.' });
+  // An empty variant is the normal case: the client's eligibility answers set it.
+  if (variant && !VARIANTS[variant]) {
+    return res.status(400).json({ error: 'Choose either the merchant or service provider edition, or let the client determine it.' });
   }
 
   const id = crypto.randomUUID();
   // 32 hex characters of entropy: the link is the only credential a client has.
   const token = crypto.randomBytes(16).toString('hex');
 
+  const presetSaqType = variant === 'service-provider' ? 'D-ServiceProvider' : variant === 'merchant' ? 'D-Merchant' : null;
+
   await query(
-    `INSERT INTO assessments (id, token, variant, client_name, contact_name, contact_email, dba, scope_summary, internal_notes)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+    `INSERT INTO assessments (id, token, variant, saq_type, client_name, contact_name, contact_email, dba, scope_summary, internal_notes)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
     [
       id,
       token,
-      variant,
+      variant || null,
+      presetSaqType,
       String(clientName).trim(),
       contactName || null,
       contactEmail || null,
@@ -110,7 +119,13 @@ router.get('/assessments/:id', async (req, res) => {
       id: assessment.id,
       token: assessment.token,
       variant: assessment.variant,
-      variantLabel: VARIANTS[assessment.variant].label,
+      variantLabel: assessment.variant ? VARIANTS[assessment.variant].label : null,
+      saqType: assessment.saq_type,
+      saqName: assessment.saq_type ? SAQ_TYPES[assessment.saq_type]?.name ?? assessment.saq_type : null,
+      saq: assessment.saq_type ? SAQ_TYPES[assessment.saq_type] ?? null : null,
+      administered: Boolean(assessment.variant),
+      eligibility: assessment.eligibility,
+      eligibilityCompletedAt: assessment.eligibility_completed_at,
       clientName: assessment.client_name,
       contactName: assessment.contact_name,
       contactEmail: assessment.contact_email,
@@ -126,7 +141,7 @@ router.get('/assessments/:id', async (req, res) => {
       link: `${publicBaseUrl(req)}/q/${assessment.token}`,
     },
     answers,
-    result: scoreAssessment(assessment.variant, answers),
+    result: assessment.variant ? scoreAssessment(assessment.variant, answers) : null,
   });
 });
 
@@ -142,6 +157,29 @@ router.patch('/assessments/:id', async (req, res) => {
             updated_at     = now()
       WHERE id = $1`,
     [assessment.id, internalNotes ?? null, scopeSummary ?? null]
+  );
+  res.json({ ok: true });
+});
+
+/**
+ * Clear a client's SAQ determination so they can run the wizard again.
+ *
+ * Any recorded answers belong to the old questionnaire and would be orphaned by
+ * a change of SAQ type, so they are removed with it. The client is told this in
+ * the UI before the request is made.
+ */
+router.post('/assessments/:id/reset-eligibility', async (req, res) => {
+  const assessment = await getAssessmentById(req.params.id);
+  if (!assessment) return res.status(404).json({ error: 'Assessment not found.' });
+
+  await query('DELETE FROM answers WHERE assessment_id = $1', [assessment.id]);
+  await query(
+    `UPDATE assessments
+        SET saq_type = NULL, variant = NULL, eligibility = NULL, eligibility_completed_at = NULL,
+            status = 'in-progress', submitted_at = NULL, submitted_by = NULL, submitted_title = NULL,
+            updated_at = now()
+      WHERE id = $1`,
+    [assessment.id]
   );
   res.json({ ok: true });
 });
@@ -169,6 +207,7 @@ router.delete('/assessments/:id', async (req, res) => {
 router.get('/assessments/:id/report.pdf', async (req, res) => {
   const assessment = await getAssessmentById(req.params.id);
   if (!assessment) return res.status(404).json({ error: 'Assessment not found.' });
+  if (!assessment.variant) return res.status(409).json({ error: 'This assessment has no questionnaire to report on yet.' });
 
   const answers = await loadAnswers(assessment.id);
   const result = scoreAssessment(assessment.variant, answers);
@@ -178,6 +217,7 @@ router.get('/assessments/:id/report.pdf', async (req, res) => {
 router.get('/assessments/:id/aoc.pdf', async (req, res) => {
   const assessment = await getAssessmentById(req.params.id);
   if (!assessment) return res.status(404).json({ error: 'Assessment not found.' });
+  if (!assessment.variant) return res.status(409).json({ error: 'This assessment has no questionnaire to attest to yet.' });
 
   const answers = await loadAnswers(assessment.id);
   const result = scoreAssessment(assessment.variant, answers);

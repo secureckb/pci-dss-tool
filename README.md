@@ -23,6 +23,40 @@ requirements marked "Additional requirement for service providers only" — 3.3.
 Each question carries the official requirement text and a summary of what an assessor would
 examine, so clients can answer without a copy of the standard open beside them.
 
+## Choosing the right SAQ
+
+Clients do not pick their own questionnaire. Which SAQ applies is decided by how an organisation
+takes payments and what account data it holds, so the first thing a client sees is a short
+eligibility wizard, and their answers set the SAQ type for the assessment.
+
+The wizard is at most six questions deep and routes to any of the eleven outcomes: SAQ A, A-EP, B,
+B-IP, C, C-VT, P2PE, SPoC, D for Merchants, D for Service Providers, or "needs review with your
+assessor" when the answers genuinely do not settle it. Every result explains why it was reached,
+lists what that SAQ assumes about the client, and shows the trail of answers that produced it.
+
+**This tool administers SAQ D only.** A client routed to any other SAQ is told which one applies
+and that you will follow up; the questionnaire does not start, and the server refuses every
+questionnaire route for that assessment. Adding another bank later means setting `variant` on that
+type in `shared/eligibility.js` and building the matching question modules — the decision tree does
+not change.
+
+Three things are worth knowing about how it behaves:
+
+- **The server decides, not the browser.** The outcome is always recomputed from the recorded
+  answers, so a client cannot select their own questionnaire by posting a result. Answers to
+  questions that are no longer on the path are pruned before storage.
+- **Changing the SAQ type is deliberate.** A client can re-run the wizard freely until they answer
+  their first questionnaire question. After that the type is fixed, because changing it would
+  orphan their answers — you reset it from the admin page, which deletes those answers with it.
+- **The determination is kept.** The client's answers and the resulting path are stored with the
+  assessment as a record of how the scope was set, and shown on the admin page.
+
+You can still pre-select SAQ D for Merchants or Service Providers when creating an assessment,
+which skips the wizard entirely.
+
+A public version runs at `/which-saq` with nothing recorded and no link required — useful for
+scoping calls and for prospects.
+
 ## The requirement catalogue
 
 `/requirements` is a public, read-only reference for everything in the question bank — useful for
@@ -67,13 +101,18 @@ the Not Applicable option disabled, and the server rejects it too.
 ## How you use it
 
 1. Sign in at `/admin` with your admin password.
-2. Create an assessment: client name, contact, and whether they are a merchant or a service provider.
+2. Create an assessment with the client's name and contact. Leave the SAQ type for the client to
+   determine, or pre-select SAQ D for Merchants or Service Providers.
 3. Send the client the generated link. There is no client login — the link is the credential, so
    send it directly to the intended contact.
-4. The client answers at their own pace; every answer saves as they go.
-5. On submit, answers lock and the result is generated. You see it on the assessment page, and you
+4. The client answers the eligibility questions, which set the SAQ type. If that is SAQ D they
+   continue straight into the questionnaire; if it is any other SAQ they are told which one applies
+   and stop there.
+5. The client answers at their own pace; every answer saves as they go.
+6. On submit, answers lock and the result is generated. You see it on the assessment page, and you
    or the client can download the PDFs.
-6. If they need to change something, reopen the assessment from the admin page.
+7. If they need to change something, reopen the assessment from the admin page. To change the SAQ
+   type itself, reset the determination — which also deletes the answers it would orphan.
 
 ## Deploying on Railway
 
@@ -116,10 +155,11 @@ npm run build && npm start    # serves the built SPA and the API on :8080
 ## Project layout
 
 ```
-shared/questions/   The SAQ D question bank, one module per requirement, plus Appendix A
-shared/scoring.js   Response semantics and the pass/fail engine — used by both server and client
-server/             Express API, Postgres access, PDF generation
-src/                React SPA: landing, requirement catalogue, questionnaire, results, admin console
+shared/questions/     The SAQ D question bank, one module per requirement, plus Appendix A
+shared/scoring.js     Response semantics and the pass/fail engine — used by server and client
+shared/eligibility.js The SAQ decision tree and the eleven outcomes it routes to
+server/               Express API, Postgres access, PDF generation
+src/                  React SPA: landing, SAQ wizard, requirement catalogue, questionnaire, results, admin
 ```
 
 The scoring engine and the question bank are shared by the server and the browser, so the progress

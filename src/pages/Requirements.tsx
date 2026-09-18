@@ -151,6 +151,9 @@ export default function Requirements() {
   return (
     <>
       <Header>
+        <Link className="btn btn-secondary btn-sm" to="/which-saq">
+          Which SAQ?
+        </Link>
         <Link className="btn btn-secondary btn-sm" to="/">
           Home
         </Link>

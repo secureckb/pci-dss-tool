@@ -1,12 +1,15 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, ClipboardList, FileCheck2, ShieldCheck } from 'lucide-react';
+import { BookOpen, ClipboardList, Compass, FileCheck2, ShieldCheck } from 'lucide-react';
 import { Header } from '../components/ui';
 
 export default function Landing() {
   return (
     <>
       <Header>
+        <Link className="btn btn-secondary btn-sm" to="/which-saq">
+          Which SAQ?
+        </Link>
         <Link className="btn btn-secondary btn-sm" to="/requirements">
           Requirements
         </Link>
@@ -24,6 +27,11 @@ export default function Landing() {
           </p>
 
           <div className="stack" style={{ marginTop: 22 }}>
+            <Feature
+              icon={<Compass size={18} />}
+              title="Find the right questionnaire first"
+              body="A short set of questions about how you take payments identifies which SAQ applies to you — A, A-EP, B, B-IP, C, C-VT, P2PE, SPoC or D. Answering the wrong questionnaire is wasted work, so this comes first."
+            />
             <Feature
               icon={<ClipboardList size={18} />}
               title="Complete the questionnaire"
@@ -46,7 +54,10 @@ export default function Landing() {
             />
           </div>
 
-          <p style={{ marginTop: 18 }}>
+          <p className="row" style={{ marginTop: 18 }}>
+            <Link className="btn" to="/which-saq">
+              Find out which SAQ I need
+            </Link>
             <Link className="btn btn-secondary" to="/requirements">
               Browse the requirement catalogue
             </Link>
