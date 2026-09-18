@@ -51,7 +51,10 @@ CREATE TABLE IF NOT EXISTS assessments (
 CREATE TABLE IF NOT EXISTS answers (
   assessment_id uuid NOT NULL REFERENCES assessments(id) ON DELETE CASCADE,
   question_id   text NOT NULL,
-  response      text NOT NULL CHECK (response IN ('yes', 'yes-ccw', 'yes-customized', 'no', 'na')),
+  -- NULL means the client cleared this answer. The row is kept so its
+  -- client_revision survives as a watermark; deleting it would let a write
+  -- that is still in flight, carrying an older revision, resurrect the answer.
+  response      text CHECK (response IN ('yes', 'yes-ccw', 'yes-customized', 'na', 'no')),
   justification text NOT NULL DEFAULT '',
   evidence      text NOT NULL DEFAULT '',
   -- Monotonic per client, so a write that arrives out of order can be
@@ -71,6 +74,7 @@ ALTER TABLE assessments ADD COLUMN IF NOT EXISTS eligibility jsonb;
 ALTER TABLE assessments ADD COLUMN IF NOT EXISTS eligibility_completed_at timestamptz;
 ALTER TABLE assessments ALTER COLUMN variant DROP NOT NULL;
 ALTER TABLE answers ADD COLUMN IF NOT EXISTS client_revision bigint NOT NULL DEFAULT 0;
+ALTER TABLE answers ALTER COLUMN response DROP NOT NULL;
 
 -- Assessments created before the wizard already had their variant chosen by the
 -- assessor; record the equivalent SAQ type so every row reads the same way.

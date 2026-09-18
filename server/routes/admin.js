@@ -94,7 +94,7 @@ router.get('/assessments', async (req, res) => {
             a.status, a.created_at, a.updated_at, a.submitted_at, a.eligibility_completed_at,
             COUNT(ans.question_id)::int AS answered
        FROM assessments a
-       LEFT JOIN answers ans ON ans.assessment_id = a.id
+       LEFT JOIN answers ans ON ans.assessment_id = a.id AND ans.response IS NOT NULL
       GROUP BY a.id
       ORDER BY a.created_at DESC`
   );
