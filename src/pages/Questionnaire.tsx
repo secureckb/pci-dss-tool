@@ -64,9 +64,14 @@ export default function Questionnaire() {
   const pendingText = useRef<Record<string, { answer: Answer; rev: number }>>({});
   const revCounter = useRef(0);
   const inFlight = useRef(0);
-  // Set when any save fails and cleared on the next success, so submission can
-  // refuse to proceed on answers the server never accepted.
-  const saveFailed = useRef(false);
+  // Which questions have an unsaved failure, and at which revision.
+  //
+  // A single boolean would be cleared by any later success: a failed change to
+  // one requirement would be masked by a successful save of another, and the
+  // submission would then attest the older value still on the server. Keyed by
+  // question, a failure clears only when that same question saves successfully
+  // at the revision that failed or a later one.
+  const failedSaves = useRef<Map<string, number>>(new Map());
   // Lets the unmount cleanup reach the current persist without re-running the
   // effect (and so re-registering the unload listeners) on every render.
   const persistRef = useRef<
@@ -164,9 +169,14 @@ export default function Questionnaire() {
             if (buffered && (rev === undefined || buffered.rev === rev)) {
               delete pendingText.current[questionId];
             }
-            saveFailed.current = false;
+            // Saves are chained per question, so a success here supersedes any
+            // earlier failure for the same question.
+            const failedRev = failedSaves.current.get(questionId);
+            if (failedRev !== undefined && (rev === undefined || failedRev <= rev)) {
+              failedSaves.current.delete(questionId);
+            }
           } catch (err) {
-            saveFailed.current = true;
+            failedSaves.current.set(questionId, rev ?? Number.MAX_SAFE_INTEGER);
             setSaveState('error');
             setSaveError(err instanceof ApiError ? err.message : 'Could not save your answer.');
             throw err;
@@ -174,9 +184,12 @@ export default function Questionnaire() {
         })
         .finally(() => {
           inFlight.current -= 1;
-          // Only the last save still running may report success, so a fast
-          // early request cannot paint "Saved" over a later failure.
-          if (inFlight.current === 0) setSaveState((prev) => (prev === 'error' ? 'error' : 'saved'));
+          // Report "Saved" only when nothing is still running and nothing is
+          // outstanding, so one quick success cannot paint over another
+          // question's failure.
+          if (inFlight.current === 0) {
+            setSaveState(failedSaves.current.size > 0 ? 'error' : 'saved');
+          }
         });
 
       saveChains.current[questionId] = chained.catch(() => {});
@@ -246,14 +259,23 @@ export default function Questionnaire() {
 
     const pending = Object.entries(pendingText.current);
     pendingText.current = {};
-    await Promise.all(pending.map(([questionId, entry]) => persist(questionId, entry.answer, entry.rev)));
+    // Swallow individual rejections here: each one is already recorded against
+    // its question, and letting the first to fail reject this Promise.all would
+    // surface that request's message instead of naming the requirements.
+    await Promise.all(
+      pending.map(([questionId, entry]) => persist(questionId, entry.answer, entry.rev).catch(() => {}))
+    );
 
     // Saves started earlier may still be running. Those chains swallow their own
-    // rejections so they never surface as unhandled, so the failure flag is what
+    // rejections so they never surface as unhandled, so the failure map is what
     // reports whether any of them actually landed.
     await Promise.all(Object.values(saveChains.current));
-    if (saveFailed.current) {
-      throw new Error('At least one answer failed to save.');
+    if (failedSaves.current.size > 0) {
+      throw new Error(
+        [...failedSaves.current.keys()]
+          .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+          .join(', ')
+      );
     }
   }, [persist]);
 
@@ -321,8 +343,12 @@ export default function Questionnaire() {
       // Everything typed must reach the server before the answers are locked,
       // otherwise the attested set would not be what the client last saw.
       await flushPendingSaves();
-    } catch {
-      setSaveError('Some of your answers could not be saved, so the questionnaire was not submitted. Check your connection and try again.');
+    } catch (err) {
+      const which = err instanceof Error && err.message ? `: ${err.message}` : '';
+      setSaveError(
+        `These answers could not be saved${which}. The questionnaire was not submitted — ` +
+          'check your connection, re-enter those answers, and try again.'
+      );
       setSubmitting(false);
       return;
     }

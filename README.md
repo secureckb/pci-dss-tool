@@ -150,7 +150,14 @@ Open http://localhost:5173. For a production-style run:
 npm run build && npm start    # serves the built SPA and the API on :8080
 ```
 
-`npm run build` runs `tsc --noEmit` first, so a type error fails the build.
+`npm run build` runs `npm run verify` and `tsc --noEmit` first, so a type error or a
+broken question bank fails the build.
+
+`npm run verify` asserts the invariants a reader would otherwise have to check by hand:
+that each edition holds exactly the number of requirements the tool claims (234 and 260),
+that no requirement id is duplicated, that every N/A-eligible requirement says when N/A
+applies, that every eligibility step is reachable and every SAQ outcome can actually be
+reached from the tree.
 
 ## Project layout
 

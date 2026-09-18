@@ -10,9 +10,10 @@
     "dev": "concurrently -n api,web -c blue,green \"npm:dev:api\" \"npm:dev:web\"",
     "dev:api": "node --watch server/index.js",
     "dev:web": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "npm run verify && tsc --noEmit && vite build",
     "start": "node server/index.js",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "verify": "node scripts/verify-bank.mjs"
   },
   "dependencies": {
     "compression": "^1.8.2",
