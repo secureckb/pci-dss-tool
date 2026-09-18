@@ -13,14 +13,19 @@ import { scoreAssessment } from '../../shared/scoring.js';
 import { VARIANTS } from '../../shared/questions/index.js';
 import { SAQ_TYPES } from '../../shared/eligibility.js';
 import { buildGapReport, buildAttestation } from '../pdf.js';
-import { linkBaseIsFromRequest, loadAnswers, publicBaseUrl, withLockedAssessment } from '../helpers.js';
+import { linkBaseIsFromRequest, readSnapshot, publicBaseUrl, withLockedAssessment } from '../helpers.js';
 
 const router = asyncRouter();
 
-// Brute-force damping. A per-request delay alone does not slow an attacker who
-// simply issues attempts in parallel, so failures are also counted and the
-// endpoint locks out once there have been too many within the window. One admin
-// password means one counter; there is no per-account state to track.
+// Brute-force damping, counted per client address.
+//
+// A single global counter locked the endpoint for everyone once it tripped, so
+// any unauthenticated caller could keep the assessor out of their own console
+// indefinitely: ten wrong guesses every fifteen minutes, forever. The lockout is
+// now the caller's own. That does not stop an attacker with many addresses, but
+// the password is long by policy and every attempt still costs them the delay
+// below; locking out the one person who can do anything about it was the worse
+// trade.
 const FAILED_LOGIN_DELAY_MS = 750;
 const MAX_FAILED_LOGINS = 10;
 const LOCKOUT_MS = 15 * 60 * 1000;
@@ -30,26 +35,55 @@ const LOCKOUT_MS = 15 * 60 * 1000;
 // endpoint that is reachable without a session. Past the ceiling the answer is
 // immediate and cheap, which is also the answer an attacker least wants.
 const MAX_CONCURRENT_LOGINS = 8;
+// Bounded so a caller rotating addresses cannot grow this without limit. Once it
+// is full the oldest windows are dropped, which only ever forgives attempts.
+const MAX_TRACKED_CLIENTS = 10_000;
 
-const loginFailures = { count: 0, firstAt: 0, lockedUntil: 0 };
+const loginFailures = new Map();
 let loginsInFlight = 0;
 
-function loginLockRemainingMs() {
-  const remaining = loginFailures.lockedUntil - Date.now();
+/** Who is attempting to sign in. Behind a proxy this is the forwarded client
+ *  address, which Express resolves; it is a header, so it is only ever used to
+ *  scope a lockout, never to grant anything. */
+function loginClientKey(req) {
+  return req.ip || req.socket?.remoteAddress || 'unknown';
+}
+
+function pruneLoginFailures(now) {
+  for (const [key, entry] of loginFailures) {
+    if (entry.lockedUntil <= now && now - entry.firstAt > LOCKOUT_MS) loginFailures.delete(key);
+  }
+  // Still oversized after pruning: drop the oldest windows first.
+  if (loginFailures.size > MAX_TRACKED_CLIENTS) {
+    const oldest = [...loginFailures.entries()]
+      .sort((a, b) => a[1].firstAt - b[1].firstAt)
+      .slice(0, loginFailures.size - MAX_TRACKED_CLIENTS);
+    for (const [key] of oldest) loginFailures.delete(key);
+  }
+}
+
+function loginLockRemainingMs(req) {
+  const entry = loginFailures.get(loginClientKey(req));
+  if (!entry) return 0;
+  const remaining = entry.lockedUntil - Date.now();
   return remaining > 0 ? remaining : 0;
 }
 
-function recordLoginFailure() {
+function recordLoginFailure(req) {
   const now = Date.now();
+  const key = loginClientKey(req);
+  let entry = loginFailures.get(key);
   // Start a fresh window once the previous one has aged out.
-  if (now - loginFailures.firstAt > LOCKOUT_MS) {
-    loginFailures.count = 0;
-    loginFailures.firstAt = now;
+  if (!entry || now - entry.firstAt > LOCKOUT_MS) {
+    entry = { count: 0, firstAt: now, lockedUntil: 0 };
+    loginFailures.set(key, entry);
   }
-  loginFailures.count += 1;
-  if (loginFailures.count >= MAX_FAILED_LOGINS) {
-    loginFailures.lockedUntil = now + LOCKOUT_MS;
+  entry.count += 1;
+  if (entry.count >= MAX_FAILED_LOGINS) {
+    entry.lockedUntil = now + LOCKOUT_MS;
+    console.warn(`Admin sign-in locked out for ${key} after ${entry.count} failed attempts.`);
   }
+  pruneLoginFailures(now);
 }
 
 router.post('/login', async (req, res) => {
@@ -68,7 +102,7 @@ router.post('/login', async (req, res) => {
     });
   }
 
-  const lockedFor = loginLockRemainingMs();
+  const lockedFor = loginLockRemainingMs(req);
   if (lockedFor > 0) {
     return res.status(429).json({
       error: `Too many failed sign-in attempts. Try again in ${Math.ceil(lockedFor / 60000)} minute(s).`,
@@ -77,7 +111,7 @@ router.post('/login', async (req, res) => {
   }
 
   if (!checkAdminPassword(req.body?.password)) {
-    recordLoginFailure();
+    recordLoginFailure(req);
     loginsInFlight += 1;
     try {
       await new Promise((r) => setTimeout(r, FAILED_LOGIN_DELAY_MS));
@@ -87,11 +121,10 @@ router.post('/login', async (req, res) => {
     return res.status(401).json({ error: 'Incorrect password.' });
   }
 
-  // Nothing about the lockout is cleared on success. The counter is global
-  // because there is one shared password, so resetting it would let an
-  // attacker's attempts be wiped by the admin's own routine sign-ins; and an
-  // active lockout is never reached here, since it returns 429 above. The
-  // window ages out on its own.
+  // Nothing about the lockout is cleared on success. Clearing this caller's
+  // window on a correct password would let an attacker who also knows it wipe
+  // their own record; an active lockout is never reached here, since it returns
+  // 429 above, and the window ages out on its own.
   setSessionCookie(req, res);
   res.json({ ok: true });
 });
@@ -213,10 +246,11 @@ async function getAssessmentById(id) {
 }
 
 router.get('/assessments/:id', async (req, res) => {
-  const assessment = await getAssessmentById(req.params.id);
+  // One snapshot, so a reset landing mid-read cannot pair the old questionnaire
+  // with the answers it has just deleted.
+  const { assessment, answers } = await readSnapshot({ id: req.params.id });
   if (!assessment) return res.status(404).json({ error: 'Assessment not found.' });
 
-  const answers = await loadAnswers(assessment.id);
   res.json({
     assessment: {
       id: assessment.id,
@@ -311,10 +345,15 @@ router.post('/assessments/:id/reopen', async (req, res) => {
       return { status: 409, body: { error: 'This assessment is not submitted, so there is nothing to reopen.' } };
     }
 
+    // Reopening makes the questionnaire writable again, which revives every page
+    // that was open when it was submitted. Those pages never saw the answers
+    // that were attested to, and one of them can hold a higher epoch than the
+    // page that did the submitting, so its writes would win. Moving the
+    // generation shuts them out until they reload.
     await client.query(
       `UPDATE assessments
           SET status = 'in-progress', submitted_at = NULL, submitted_by = NULL,
-              submitted_title = NULL, updated_at = now()
+              submitted_title = NULL, generation = generation + 1, updated_at = now()
         WHERE id = $1`,
       [req.params.id]
     );
@@ -331,23 +370,19 @@ router.delete('/assessments/:id', async (req, res) => {
 });
 
 router.get('/assessments/:id/report.pdf', async (req, res) => {
-  const assessment = await getAssessmentById(req.params.id);
+  const { assessment, answers } = await readSnapshot({ id: req.params.id });
   if (!assessment) return res.status(404).json({ error: 'Assessment not found.' });
   if (!assessment.variant) return res.status(409).json({ error: 'This assessment has no questionnaire to report on yet.' });
 
-  const answers = await loadAnswers(assessment.id);
-  const result = scoreAssessment(assessment.variant, answers);
-  buildGapReport(res, assessment, result, answers);
+  buildGapReport(res, assessment, scoreAssessment(assessment.variant, answers), answers);
 });
 
 router.get('/assessments/:id/aoc.pdf', async (req, res) => {
-  const assessment = await getAssessmentById(req.params.id);
+  const { assessment, answers } = await readSnapshot({ id: req.params.id });
   if (!assessment) return res.status(404).json({ error: 'Assessment not found.' });
   if (!assessment.variant) return res.status(409).json({ error: 'This assessment has no questionnaire to attest to yet.' });
 
-  const answers = await loadAnswers(assessment.id);
-  const result = scoreAssessment(assessment.variant, answers);
-  buildAttestation(res, assessment, result);
+  buildAttestation(res, assessment, scoreAssessment(assessment.variant, answers));
 });
 
 export default router;
