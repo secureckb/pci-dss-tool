@@ -155,6 +155,27 @@ It does not mean the application ran. This is an Express server over Postgres: o
 front end would be served with no API behind it and no database, so read the check as "it builds",
 never as "it works". The deployment that matters is the Railway service above.
 
+## Tests
+
+Around two dozen suites, one per defect found while building this — API, unit and
+Chromium — run against a real server and a real Postgres.
+
+```bash
+createdb pci_saq_test
+npm run build     # the browser suites need the built front end
+npx playwright install chromium
+TEST_DATABASE_URL=postgres://postgres@localhost:5432/pci_saq_test npm test
+```
+
+`TEST_DATABASE_URL` is required and is truncated between suites; it is
+deliberately not `DATABASE_URL`. The runner starts a fresh server and empties the
+database before each suite, because sign-in lockouts live in server memory and
+the browser suites find assessments by client name.
+
+Narrow it down with `npm test -- api` or `npm test -- second-window`. See
+[`tests/README.md`](tests/README.md) for what each suite covers. They run on
+every push and pull request via `.github/workflows/tests.yml`.
+
 ## Running locally
 
 ```bash
@@ -186,6 +207,7 @@ shared/scoring.js     Response semantics and the pass/fail engine — used by se
 shared/eligibility.js The SAQ decision tree and the eleven outcomes it routes to
 server/               Express API, Postgres access, PDF generation
 src/                  React SPA: landing, SAQ wizard, requirement catalogue, questionnaire, results, admin
+tests/                API, unit and Chromium suites, with a runner that gives each a clean server
 ```
 
 The scoring engine and the question bank are shared by the server and the browser, so the progress
