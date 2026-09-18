@@ -53,11 +53,11 @@ router.post('/login', async (req, res) => {
     return res.status(401).json({ error: 'Incorrect password.' });
   }
 
-  // Deliberately not clearing the failure count here. With a single shared
-  // password the counter is global, so resetting it on success would let an
-  // attacker's attempts be wiped by the admin's own routine sign-ins. The
-  // window ages out on its own instead.
-  loginFailures.lockedUntil = 0;
+  // Nothing about the lockout is cleared on success. The counter is global
+  // because there is one shared password, so resetting it would let an
+  // attacker's attempts be wiped by the admin's own routine sign-ins; and an
+  // active lockout is never reached here, since it returns 429 above. The
+  // window ages out on its own.
   setSessionCookie(req, res);
   res.json({ ok: true });
 });
