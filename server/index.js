@@ -64,26 +64,54 @@ app.use(cookieParser());
  * A client link is a bearer credential: the token in the URL is all anyone needs
  * to read and answer that questionnaire. Over plain HTTP both the token and the
  * answers cross the network in the clear, so a deployment that answers HTTP at
- * all is a deployment where the link can be lifted in transit.
+ * all is one where a link can be lifted in transit and the assessment read or
+ * altered by whoever lifted it.
+ *
+ * So plaintext is refused by default rather than on request. The earlier version
+ * of this made it opt-in, to avoid a redirect loop on an instance whose proxy
+ * terminates TLS but does not set X-Forwarded-Proto — such an instance cannot be
+ * told apart from a plaintext one, and would bounce a request straight back to
+ * itself. That was the wrong way round: it made every correctly deployed
+ * instance insecure by default to protect a misconfigured one.
+ *
+ * The loop is instead broken directly. A redirect carries a marker, and a
+ * request that comes back still on plaintext carrying that marker is served
+ * with a loud warning naming the fix, rather than bounced again. At most one
+ * redirect per request either way, so the site cannot be taken down by this.
+ * Local development is exempt, since there is no TLS to have.
  *
  * HSTS is sent whenever the request did arrive over TLS, so a browser that has
- * been here once will not be talked down to HTTP afterwards. Forcing the
- * redirect is opt-in via REQUIRE_HTTPS rather than automatic: an instance whose
- * proxy terminates TLS but does not set X-Forwarded-Proto would redirect to a
- * URL that comes back through the same proxy, and the loop would take the whole
- * site down. Local development is exempt, since there is no TLS to have.
+ * been here once will not be talked down to HTTP afterwards.
  */
-const REQUIRE_HTTPS = /^(1|true|yes)$/i.test(process.env.REQUIRE_HTTPS || '');
+const REQUIRE_HTTPS = !/^(0|false|no|off)$/i.test(process.env.REQUIRE_HTTPS ?? '');
+const HTTPS_RETRY_MARKER = '__https_retry';
+let warnedAboutProxy = false;
+
 app.use((req, res, next) => {
   if (isSecureRequest(req)) {
     res.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
     return next();
   }
-  if (REQUIRE_HTTPS && !isLocalRequest(req)) {
-    // 308 keeps the method and body, so a save in flight is not turned into a GET.
-    return res.redirect(308, `https://${req.get('host')}${req.originalUrl}`);
+  if (!REQUIRE_HTTPS || isLocalRequest(req)) return next();
+
+  if (req.query[HTTPS_RETRY_MARKER] !== undefined) {
+    // The redirect did not take, so this deployment is either genuinely
+    // plaintext or is behind a proxy that does not say otherwise. Serve the
+    // request — an unreachable site helps nobody — but say so once, clearly.
+    if (!warnedAboutProxy) {
+      warnedAboutProxy = true;
+      console.warn(
+        'Serving over plain HTTP: a redirect to HTTPS came straight back. Client links are bearer ' +
+          'credentials and are exposed in transit. Either set X-Forwarded-Proto on the proxy in front ' +
+          'of this service, or set REQUIRE_HTTPS=0 to acknowledge that this instance is plaintext.'
+      );
+    }
+    return next();
   }
-  next();
+
+  const separator = req.originalUrl.includes('?') ? '&' : '?';
+  // 308 keeps the method and body, so a save in flight is not turned into a GET.
+  return res.redirect(308, `https://${req.get('host')}${req.originalUrl}${separator}${HTTPS_RETRY_MARKER}=1`);
 });
 
 /**
