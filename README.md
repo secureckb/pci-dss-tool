@@ -23,6 +23,23 @@ requirements marked "Additional requirement for service providers only" — 3.3.
 Each question carries the official requirement text and a summary of what an assessor would
 examine, so clients can answer without a copy of the standard open beside them.
 
+## The requirement catalogue
+
+`/requirements` is a public, read-only reference for everything in the question bank — useful for
+scoping a client before you send them a link, and for clients who want to see what they will be
+asked. It lists every requirement with its PCI DSS text, the testing procedures an assessor would
+follow, whether Not Applicable is permitted and on what condition, and whether the requirement is
+service-provider-only.
+
+- Search by requirement number (`8.4`) or by text (`multi-factor`).
+- Filter to one edition, or to only the requirements where N/A is permitted.
+- Browse one requirement at a time, or show all 260 at once for printing.
+- Deep link to any requirement with a hash, e.g. `/requirements#8.4.2`.
+
+It exposes no client data. The page is served from `GET /api/requirements`, which returns the
+question bank together with the response options and determinations from `shared/scoring.js`, so
+the documented rules cannot drift from the ones the server applies.
+
 ## How the determination works
 
 PCI DSS validation is strictly pass/fail — there is no partial credit and no percentage score.
@@ -102,7 +119,7 @@ npm run build && npm start    # serves the built SPA and the API on :8080
 shared/questions/   The SAQ D question bank, one module per requirement, plus Appendix A
 shared/scoring.js   Response semantics and the pass/fail engine — used by both server and client
 server/             Express API, Postgres access, PDF generation
-src/                React SPA: landing, questionnaire, results, admin console
+src/                React SPA: landing, requirement catalogue, questionnaire, results, admin console
 ```
 
 The scoring engine and the question bank are shared by the server and the browser, so the progress
@@ -126,7 +143,8 @@ Edit the relevant `shared/questions/reqNN.js`. Each question is:
 ```
 
 Existing answers are stored by requirement id, so renaming an id orphans previously recorded
-answers for that requirement.
+answers for that requirement. The requirement catalogue at `/requirements` is generated from these
+modules, so it updates with them and needs no separate edit.
 
 ## Scope and limitations
 

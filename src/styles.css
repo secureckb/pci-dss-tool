@@ -281,6 +281,54 @@ details.req-detail ul { margin: 0; padding-left: 18px; }
   display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap;
 }
 
+.filter-bar {
+  display: flex; gap: 12px; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; margin-bottom: 14px;
+  position: sticky; top: 63px; z-index: 10;
+}
+
+.search-field { position: relative; flex: 1; min-width: 260px; }
+.search-field input { padding-left: 34px; padding-right: 32px; }
+.search-field .search-icon {
+  position: absolute; left: 11px; top: 50%; transform: translateY(-50%);
+  color: var(--muted); pointer-events: none;
+}
+.search-clear {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  border: none; background: none; color: var(--muted);
+  display: grid; place-items: center; padding: 3px; border-radius: 5px;
+}
+.search-clear:hover { background: var(--line); color: var(--ink); }
+
+.filter-bar select { width: auto; min-width: 180px; }
+
+.checkbox-field {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 0.88rem; color: var(--ink-soft); white-space: nowrap;
+}
+.checkbox-field input { accent-color: var(--brand); margin: 0; }
+
+/* Badge keeps its width; the summary shrinks and wraps rather than overflowing. */
+.determination-row { display: flex; align-items: flex-start; gap: 12px; }
+.determination-row > .badge { flex-shrink: 0; margin-top: 2px; }
+.determination-row > .small { flex: 1; min-width: 0; }
+@media (max-width: 520px) { .determination-row { flex-direction: column; gap: 5px; } }
+
+.requirement-card { border-left: 3px solid var(--line-strong); }
+.requirement-card .question-text { font-weight: 500; margin: 12px 0 14px; }
+
+.section-goal {
+  font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.07em; color: var(--brand); margin: 0 0 4px;
+}
+
+h4.detail-label {
+  font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--muted); margin: 0 0 4px; font-weight: 600;
+}
+
+.saq-nav button:disabled { opacity: 1; cursor: default; }
+
 .spinner {
   width: 18px; height: 18px; border-radius: 50%;
   border: 2px solid var(--line-strong); border-top-color: var(--brand);
@@ -296,7 +344,8 @@ details.req-detail ul { margin: 0; padding-left: 18px; }
 }
 
 @media print {
-  .app-header, .saq-nav, .saq-footer, .btn { display: none !important; }
+  .app-header, .saq-nav, .saq-footer, .btn, .filter-bar { display: none !important; }
   body { background: #fff; }
   .card, .question { box-shadow: none; break-inside: avoid; }
+  .saq-layout { grid-template-columns: 1fr; }
 }

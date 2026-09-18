@@ -1,12 +1,15 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ClipboardList, FileCheck2, ShieldCheck } from 'lucide-react';
+import { BookOpen, ClipboardList, FileCheck2, ShieldCheck } from 'lucide-react';
 import { Header } from '../components/ui';
 
 export default function Landing() {
   return (
     <>
       <Header>
+        <Link className="btn btn-secondary btn-sm" to="/requirements">
+          Requirements
+        </Link>
         <Link className="btn btn-secondary btn-sm" to="/admin">
           Assessor sign-in
         </Link>
@@ -36,7 +39,18 @@ export default function Landing() {
               title="Download your report"
               body="A gap remediation report listing every failed requirement, and an attestation summary you can use to complete the official AOC."
             />
+            <Feature
+              icon={<BookOpen size={18} />}
+              title="See what you will be asked"
+              body="The requirement catalogue lists every question in the questionnaire, with the PCI DSS text behind it and what an assessor would examine."
+            />
           </div>
+
+          <p style={{ marginTop: 18 }}>
+            <Link className="btn btn-secondary" to="/requirements">
+              Browse the requirement catalogue
+            </Link>
+          </p>
 
           <div className="callout callout-info" style={{ marginTop: 22 }}>
             <p className="small" style={{ marginBottom: 0 }}>

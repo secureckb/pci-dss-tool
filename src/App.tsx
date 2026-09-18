@@ -6,6 +6,7 @@ import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminAssessment from './pages/AdminAssessment';
 import Questionnaire from './pages/Questionnaire';
+import Requirements from './pages/Requirements';
 import Results from './pages/Results';
 import { Header, Loading } from './components/ui';
 
@@ -38,6 +39,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
+      <Route path="/requirements" element={<Requirements />} />
       <Route path="/q/:token" element={<Questionnaire />} />
       <Route path="/q/:token/results" element={<Results />} />
       <Route path="/admin/login" element={<AdminLogin />} />
