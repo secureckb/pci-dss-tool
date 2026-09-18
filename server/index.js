@@ -3,9 +3,11 @@ import { fileURLToPath } from 'node:url';
 import fs from 'node:fs';
 import express from 'express';
 import cookieParser from 'cookie-parser';
+import compression from 'compression';
 import { migrate } from './db.js';
 import adminRoutes from './routes/admin.js';
 import assessmentRoutes from './routes/assessment.js';
+import requirementsRoutes from './routes/requirements.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DIST = path.join(__dirname, '..', 'dist');
@@ -25,6 +27,7 @@ if (!process.env.SESSION_SECRET) {
 
 const app = express();
 app.set('trust proxy', 1);
+app.use(compression());
 app.use(express.json({ limit: '256kb' }));
 app.use(cookieParser());
 
@@ -32,6 +35,7 @@ app.get('/api/health', (req, res) => res.json({ ok: true }));
 
 app.use('/api/admin', adminRoutes);
 app.use('/api/assessment', assessmentRoutes);
+app.use('/api/requirements', requirementsRoutes);
 
 app.use('/api', (req, res) => res.status(404).json({ error: 'Not found.' }));
 

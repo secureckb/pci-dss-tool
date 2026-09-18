@@ -34,6 +34,9 @@ export default function AdminDashboard() {
   return (
     <>
       <Header>
+        <Link className="btn btn-secondary btn-sm" to="/requirements">
+          Requirements
+        </Link>
         <button className="btn btn-secondary btn-sm" onClick={signOut}>
           Sign out
         </button>
