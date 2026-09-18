@@ -1,0 +1,495 @@
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { Check, CircleAlert, Save } from 'lucide-react';
+import { api, ApiError } from '../api';
+import { RESPONSES, RESPONSE_ORDER } from '../responses';
+import { Header, Loading, ErrorCard, Progress, sectionLabel } from '../components/ui';
+import type { Answer, AnswerMap, ClientAssessment, Question, Result, Section } from '../types';
+
+interface LoadPayload {
+  assessment: ClientAssessment;
+  sections: Section[];
+  answers: AnswerMap;
+  result: Result;
+}
+
+type SaveState = 'idle' | 'saving' | 'saved' | 'error';
+
+/** Debounce delay for free-text fields, so typing does not hit the API on every keystroke. */
+const TEXT_SAVE_DELAY = 700;
+
+export default function Questionnaire() {
+  const { token = '' } = useParams();
+  const navigate = useNavigate();
+
+  const [data, setData] = useState<LoadPayload | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [answers, setAnswers] = useState<AnswerMap>({});
+  const [activeSection, setActiveSection] = useState<string>('');
+  const [saveState, setSaveState] = useState<SaveState>('idle');
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [showIncomplete, setShowIncomplete] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [attestName, setAttestName] = useState('');
+  const [attestTitle, setAttestTitle] = useState('');
+
+  const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .get<LoadPayload>(`/api/assessment/${token}`)
+      .then((payload) => {
+        if (cancelled) return;
+        if (payload.assessment.status === 'submitted') {
+          navigate(`/q/${token}/results`, { replace: true });
+          return;
+        }
+        setData(payload);
+        setAnswers(payload.answers);
+        setActiveSection(String(payload.sections[0]?.id ?? ''));
+      })
+      .catch((err) => !cancelled && setLoadError(err.message));
+    return () => {
+      cancelled = true;
+    };
+  }, [token, navigate]);
+
+  useEffect(() => {
+    const pending = timers.current;
+    return () => Object.values(pending).forEach(clearTimeout);
+  }, []);
+
+  const persist = useCallback(
+    async (questionId: string, answer: Answer | null) => {
+      setSaveState('saving');
+      setSaveError(null);
+      try {
+        await api.put(`/api/assessment/${token}/answers/${questionId}`, {
+          response: answer?.response ?? null,
+          justification: answer?.justification ?? '',
+          evidence: answer?.evidence ?? '',
+        });
+        setSaveState('saved');
+      } catch (err) {
+        setSaveState('error');
+        setSaveError(err instanceof ApiError ? err.message : 'Could not save your answer.');
+      }
+    },
+    [token]
+  );
+
+  const setResponse = (question: Question, response: Answer['response']) => {
+    const current = answers[question.id];
+    // Clicking the selected option again clears it.
+    const next: Answer | null =
+      current?.response === response
+        ? null
+        : {
+            response,
+            justification: current?.justification ?? '',
+            evidence: current?.evidence ?? '',
+          };
+
+    setAnswers((prev) => {
+      const copy = { ...prev };
+      if (next) copy[question.id] = next;
+      else delete copy[question.id];
+      return copy;
+    });
+    persist(question.id, next);
+  };
+
+  const setText = (question: Question, field: 'justification' | 'evidence', value: string) => {
+    setAnswers((prev) => {
+      const existing = prev[question.id];
+      if (!existing) return prev;
+      return { ...prev, [question.id]: { ...existing, [field]: value } };
+    });
+
+    clearTimeout(timers.current[question.id]);
+    timers.current[question.id] = setTimeout(() => {
+      setAnswers((latest) => {
+        const answer = latest[question.id];
+        if (answer) persist(question.id, answer);
+        return latest;
+      });
+    }, TEXT_SAVE_DELAY);
+  };
+
+  const progress = useMemo(() => {
+    if (!data) return { total: 0, answered: 0, percent: 0, blocking: [] as string[] };
+    const all = data.sections.flatMap((s) => s.questions);
+    const blocking: string[] = [];
+    let answered = 0;
+
+    all.forEach((q) => {
+      const answer = answers[q.id];
+      if (!answer) {
+        blocking.push(q.id);
+        return;
+      }
+      answered += 1;
+      const meta = RESPONSES[answer.response];
+      if (meta.requiresText && !answer.justification.trim()) blocking.push(q.id);
+    });
+
+    return {
+      total: all.length,
+      answered,
+      percent: all.length ? Math.round((answered / all.length) * 100) : 0,
+      blocking,
+    };
+  }, [data, answers]);
+
+  const sectionStatus = useCallback(
+    (section: Section) => {
+      let done = 0;
+      let failed = 0;
+      let review = 0;
+      section.questions.forEach((q) => {
+        const answer = answers[q.id];
+        if (!answer) return;
+        done += 1;
+        if (answer.response === 'no') failed += 1;
+        else if (RESPONSES[answer.response].needsReview) review += 1;
+      });
+      const complete = done === section.questions.length;
+      const dot = !complete ? 'todo' : failed ? 'fail' : review ? 'review' : 'pass';
+      return { done, total: section.questions.length, dot };
+    },
+    [answers]
+  );
+
+  const submit = async () => {
+    if (progress.blocking.length > 0) {
+      setShowIncomplete(true);
+      const first = progress.blocking[0];
+      const section = data?.sections.find((s) => s.questions.some((q) => q.id === first));
+      if (section) setActiveSection(String(section.id));
+      setTimeout(() => document.getElementById(`q-${first}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 60);
+      return;
+    }
+    if (!attestName.trim()) return;
+
+    setSubmitting(true);
+    try {
+      await api.post(`/api/assessment/${token}/submit`, { name: attestName, title: attestTitle });
+      navigate(`/q/${token}/results`);
+    } catch (err) {
+      setSaveError(err instanceof ApiError ? err.message : 'Could not submit the questionnaire.');
+      setSubmitting(false);
+    }
+  };
+
+  if (loadError) {
+    return (
+      <>
+        <Header />
+        <main className="page page-narrow">
+          <ErrorCard message={loadError} />
+        </main>
+      </>
+    );
+  }
+  if (!data) {
+    return (
+      <>
+        <Header />
+        <main className="page">
+          <Loading label="Loading your questionnaire…" />
+        </main>
+      </>
+    );
+  }
+
+  const section = data.sections.find((s) => String(s.id) === activeSection) ?? data.sections[0];
+  const sectionIndex = data.sections.findIndex((s) => String(s.id) === String(section.id));
+
+  return (
+    <>
+      <Header>
+        <span className="save-state">
+          {saveState === 'saving' && (
+            <>
+              <span className="spinner" style={{ width: 13, height: 13 }} /> Saving
+            </>
+          )}
+          {saveState === 'saved' && (
+            <>
+              <Save size={13} /> Saved
+            </>
+          )}
+          {saveState === 'error' && (
+            <span style={{ color: 'var(--fail)' }}>
+              <CircleAlert size={13} /> Not saved
+            </span>
+          )}
+        </span>
+      </Header>
+
+      <main className="page">
+        <div className="page-head">
+          <h1>{data.assessment.clientName}</h1>
+          <p>
+            {data.assessment.variantLabel} &middot; PCI DSS v4.0.1 &middot; {progress.answered} of {progress.total} requirements
+            answered
+          </p>
+          <div style={{ marginTop: 12, maxWidth: 420 }}>
+            <Progress percent={progress.percent} />
+          </div>
+        </div>
+
+        {saveError && <p className="error-text">{saveError}</p>}
+
+        <div className="saq-layout">
+          <nav className="saq-nav" aria-label="Requirements">
+            {data.sections.map((s) => {
+              const status = sectionStatus(s);
+              return (
+                <button
+                  key={String(s.id)}
+                  type="button"
+                  className={String(s.id) === String(section.id) ? 'active' : ''}
+                  onClick={() => {
+                    setActiveSection(String(s.id));
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                >
+                  <span className="row" style={{ gap: 7, flexWrap: 'nowrap' }}>
+                    <span className={`nav-dot nav-dot-${status.dot}`} />
+                    {typeof s.id === 'number' ? `Req ${s.id}` : s.id}
+                  </span>
+                  <span className="nav-count">
+                    {status.done}/{status.total}
+                  </span>
+                </button>
+              );
+            })}
+          </nav>
+
+          <div>
+            <div className="card card-tight" style={{ marginBottom: 14 }}>
+              <h2 style={{ marginBottom: 2 }}>
+                {sectionLabel(section.id)}: {section.title}
+              </h2>
+              <p className="small muted" style={{ marginBottom: 0 }}>
+                {section.intro}
+              </p>
+            </div>
+
+            {section.questions.map((question) => (
+              <QuestionCard
+                key={question.id}
+                question={question}
+                answer={answers[question.id]}
+                highlight={showIncomplete && progress.blocking.includes(question.id)}
+                onRespond={(response) => setResponse(question, response)}
+                onText={(field, value) => setText(question, field, value)}
+              />
+            ))}
+
+            <div className="row-between" style={{ marginTop: 18 }}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                disabled={sectionIndex === 0}
+                onClick={() => {
+                  setActiveSection(String(data.sections[sectionIndex - 1].id));
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+              >
+                Previous
+              </button>
+              <button
+                type="button"
+                className="btn"
+                disabled={sectionIndex === data.sections.length - 1}
+                onClick={() => {
+                  setActiveSection(String(data.sections[sectionIndex + 1].id));
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+              >
+                Next requirement
+              </button>
+            </div>
+
+            {sectionIndex === data.sections.length - 1 && (
+              <div className="card" style={{ marginTop: 20 }}>
+                <h2>Submit your self-assessment</h2>
+                <p className="small muted">
+                  Once submitted, your answers are locked and the result is generated. Contact your assessor if you need it
+                  reopened.
+                </p>
+
+                {progress.blocking.length > 0 ? (
+                  <div className="callout callout-fail" style={{ marginBottom: 14 }}>
+                    <h3>{progress.blocking.length} item(s) still need attention</h3>
+                    <p className="small" style={{ marginBottom: 0 }}>
+                      Every requirement needs a response, and answers of Not Applicable, Yes with Compensating Control, or
+                      Yes with Customized Approach need written justification.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="callout callout-info" style={{ marginBottom: 14 }}>
+                    <p className="small" style={{ marginBottom: 0 }}>
+                      By submitting, you confirm that these responses accurately reflect your cardholder data environment and
+                      that supporting evidence is available for each requirement marked as in place.
+                    </p>
+                  </div>
+                )}
+
+                <div className="grid grid-2">
+                  <label className="field">
+                    <span>Your name</span>
+                    <input type="text" value={attestName} onChange={(e) => setAttestName(e.target.value)} />
+                  </label>
+                  <label className="field">
+                    <span>Your title</span>
+                    <input type="text" value={attestTitle} onChange={(e) => setAttestTitle(e.target.value)} />
+                  </label>
+                </div>
+
+                <button
+                  type="button"
+                  className="btn"
+                  disabled={submitting || (progress.blocking.length === 0 && !attestName.trim())}
+                  onClick={submit}
+                >
+                  {submitting ? 'Submitting…' : 'Submit self-assessment'}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </main>
+    </>
+  );
+}
+
+function QuestionCard({
+  question,
+  answer,
+  highlight,
+  onRespond,
+  onText,
+}: {
+  question: Question;
+  answer?: Answer;
+  highlight: boolean;
+  onRespond: (response: Answer['response']) => void;
+  onText: (field: 'justification' | 'evidence', value: string) => void;
+}) {
+  const meta = answer ? RESPONSES[answer.response] : null;
+  const needsText = !!meta?.requiresText && !answer?.justification.trim();
+
+  const stateClass = !answer
+    ? 'unanswered'
+    : answer.response === 'no'
+      ? 'answered-no'
+      : answer.response === 'na'
+        ? 'answered-na'
+        : meta?.needsReview
+          ? 'answered-review'
+          : 'answered-yes';
+
+  return (
+    <article id={`q-${question.id}`} className={`question ${stateClass} ${highlight && needsText ? 'needs-text' : ''}`}>
+      <div className="row" style={{ gap: 9 }}>
+        <span className="question-id">{question.id}</span>
+        <strong className="small">{question.title}</strong>
+      </div>
+
+      <p className="question-text">{question.question}</p>
+
+      <div className="response-options" role="group" aria-label={`Response for requirement ${question.id}`}>
+        {RESPONSE_ORDER.map((key) => {
+          const option = RESPONSES[key];
+          const disabled = key === 'na' && !question.allowNA;
+          const selected = answer?.response === key;
+          const tone = selected ? (key === 'no' ? ' selected-no' : option.needsReview ? ' selected-review' : ' selected') : '';
+          return (
+            <label key={key} className={`response-option${tone}${disabled ? ' disabled' : ''}`} title={option.hint}>
+              <input
+                type="radio"
+                name={`q-${question.id}`}
+                checked={selected}
+                disabled={disabled}
+                onChange={() => onRespond(key)}
+                onClick={() => selected && onRespond(key)}
+              />
+              {option.label}
+              {selected && <Check size={14} />}
+            </label>
+          );
+        })}
+      </div>
+
+      {!question.allowNA && (
+        <p className="hint">This requirement applies to every entity completing SAQ D and cannot be marked Not Applicable.</p>
+      )}
+      {question.allowNA && question.condition && <p className="hint">{question.condition}</p>}
+
+      {meta?.requiresText && (
+        <label className="field" style={{ marginTop: 12, marginBottom: 6 }}>
+          <span>
+            {meta.textLabel} <span style={{ color: 'var(--fail)' }}>required</span>
+          </span>
+          <textarea
+            value={answer?.justification ?? ''}
+            onChange={(e) => onText('justification', e.target.value)}
+            placeholder={meta.placeholder}
+          />
+          {highlight && needsText && <p className="error-text" style={{ margin: '6px 0 0' }}>This justification is required before you can submit.</p>}
+        </label>
+      )}
+
+      {answer && answer.response === 'no' && (
+        <label className="field" style={{ marginTop: 12, marginBottom: 6 }}>
+          <span>Planned remediation (optional)</span>
+          <textarea
+            value={answer.justification}
+            onChange={(e) => onText('justification', e.target.value)}
+            placeholder="What is missing, and what is your plan and timeline to close the gap?"
+          />
+        </label>
+      )}
+
+      {answer && (
+        <label className="field" style={{ marginBottom: 0 }}>
+          <span>Evidence reference (optional)</span>
+          <input
+            type="text"
+            value={answer.evidence}
+            onChange={(e) => onText('evidence', e.target.value)}
+            placeholder="e.g. Firewall standard v3.2, ticket CHG-1184, screenshot set B"
+          />
+        </label>
+      )}
+
+      <details className="req-detail">
+        <summary>Requirement text and testing procedures</summary>
+        <div className="detail-body">
+          <h4>PCI DSS v4.0.1 requirement</h4>
+          <p style={{ marginBottom: 0 }}>{question.requirement}</p>
+          {question.testing?.length > 0 && (
+            <>
+              <h4>What an assessor would examine</h4>
+              <ul>
+                {question.testing.map((item, i) => (
+                  <li key={i}>{item}</li>
+                ))}
+              </ul>
+            </>
+          )}
+          {question.guidance && (
+            <>
+              <h4>Guidance</h4>
+              <p style={{ marginBottom: 0 }}>{question.guidance}</p>
+            </>
+          )}
+        </div>
+      </details>
+    </article>
+  );
+}
