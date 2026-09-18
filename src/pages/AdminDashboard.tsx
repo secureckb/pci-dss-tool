@@ -34,6 +34,9 @@ export default function AdminDashboard() {
   return (
     <>
       <Header>
+        <Link className="btn btn-secondary btn-sm" to="/which-saq">
+          Which SAQ?
+        </Link>
         <Link className="btn btn-secondary btn-sm" to="/requirements">
           Requirements
         </Link>
@@ -92,7 +95,7 @@ export default function AdminDashboard() {
                 <thead>
                   <tr>
                     <th>Client</th>
-                    <th>Edition</th>
+                    <th>SAQ</th>
                     <th>Status</th>
                     <th className="num">Answered</th>
                     <th>Created</th>
@@ -106,7 +109,17 @@ export default function AdminDashboard() {
                         <strong>{a.clientName}</strong>
                         {a.contactEmail && <div className="small muted">{a.contactEmail}</div>}
                       </td>
-                      <td className="small">{a.variantLabel}</td>
+                      <td className="small">
+                        {a.saqName ? (
+                          a.administered ? (
+                            a.saqName
+                          ) : (
+                            <span className="badge badge-review">{a.saqName}</span>
+                          )
+                        ) : (
+                          <span className="muted">Awaiting eligibility</span>
+                        )}
+                      </td>
                       <td>
                         {a.status === 'submitted' ? (
                           <span className="badge badge-pass">Submitted {formatDate(a.submittedAt)}</span>
@@ -141,7 +154,7 @@ function NewAssessmentForm({ onCreated, onCancel }: { onCreated: (link: string) 
     contactEmail: '',
     scopeSummary: '',
     internalNotes: '',
-    variant: 'merchant' as Variant,
+    variant: '' as '' | Variant,
   });
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -186,15 +199,17 @@ function NewAssessmentForm({ onCreated, onCancel }: { onCreated: (link: string) 
         </div>
 
         <label className="field">
-          <span>SAQ D edition</span>
+          <span>Which SAQ</span>
           <select value={form.variant} onChange={update('variant')}>
+            <option value="">Let the client's answers decide (recommended)</option>
             <option value="merchant">SAQ D for Merchants</option>
             <option value="service-provider">SAQ D for Service Providers</option>
           </select>
         </label>
         <p className="hint" style={{ marginTop: -8, marginBottom: 14 }}>
-          The service provider edition adds the requirements that apply only to service providers, including Appendix A1 for
-          multi-tenant providers.
+          {form.variant === ''
+            ? 'The client answers a short set of eligibility questions first, and their answers set the SAQ type. If those answers point to an SAQ other than D, they are told which one applies and the questionnaire does not start.'
+            : 'Skips the eligibility questions and starts this client straight on the chosen questionnaire.'}
         </p>
 
         <label className="field">

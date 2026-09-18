@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Download, FileText, RotateCcw, Trash2 } from 'lucide-react';
+import { SaqResult } from '../components/SaqResult';
 import { api } from '../api';
 import { RESPONSES } from '../responses';
 import {
@@ -19,7 +20,7 @@ import type { AdminAssessmentDetail, AnswerMap, GapEntry, Result } from '../type
 interface Payload {
   assessment: AdminAssessmentDetail;
   answers: AnswerMap;
-  result: Result;
+  result: Result | null;
 }
 
 export default function AdminAssessment() {
@@ -69,8 +70,8 @@ export default function AdminAssessment() {
   }
 
   const { assessment, result } = data;
-  const counts = result.totals.counts;
-  const reviewCount = counts['yes-ccw'] + counts['yes-customized'];
+  const counts = result?.totals.counts;
+  const reviewCount = counts ? counts['yes-ccw'] + counts['yes-customized'] : 0;
 
   const saveNotes = async () => {
     await api.patch(`/api/admin/assessments/${id}`, { internalNotes: notes });
@@ -81,6 +82,17 @@ export default function AdminAssessment() {
   const reopen = async () => {
     if (!confirm('Reopen this questionnaire so the client can edit their answers again?')) return;
     await api.post(`/api/admin/assessments/${id}/reopen`);
+    load();
+  };
+
+  const resetEligibility = async () => {
+    if (
+      !confirm(
+        `Reset the SAQ determination for ${assessment.clientName}? They will answer the eligibility questions again, and any answers already recorded will be deleted. This cannot be undone.`
+      )
+    )
+      return;
+    await api.post(`/api/admin/assessments/${id}/reset-eligibility`);
     load();
   };
 
@@ -103,11 +115,55 @@ export default function AdminAssessment() {
         <div className="page-head">
           <h1>{assessment.clientName}</h1>
           <p>
-            {assessment.variantLabel} &middot; PCI DSS v4.0.1 &middot; Created {formatDate(assessment.createdAt)}
+            {assessment.saqName ?? 'SAQ not yet determined'} &middot; PCI DSS v4.0.1 &middot; Created{' '}
+            {formatDate(assessment.createdAt)}
             {assessment.dba && <> &middot; DBA {assessment.dba}</>}
           </p>
         </div>
 
+        {!result && (
+          <div className="card">
+            {assessment.saq && assessment.eligibility ? (
+              <>
+                <div className="callout callout-review">
+                  <h3>Routed to {assessment.saq.name}</h3>
+                  <p className="small" style={{ marginBottom: 0 }}>
+                    The client's eligibility answers point to a questionnaire this tool does not administer, so there is
+                    nothing for them to complete here. They have been shown this result and told you will follow up.
+                  </p>
+                </div>
+                <div style={{ marginTop: 16 }}>
+                  <SaqResult
+                    saq={assessment.saq}
+                    path={assessment.eligibility.path}
+                    notes={assessment.eligibility.notes}
+                  />
+                </div>
+              </>
+            ) : (
+              <div className="callout callout-info">
+                <h3>Waiting on the client</h3>
+                <p className="small" style={{ marginBottom: 0 }}>
+                  They have not yet answered the eligibility questions, so the SAQ type is not settled. Send them their
+                  link to begin.
+                </p>
+              </div>
+            )}
+
+            <div className="row" style={{ marginTop: 18 }}>
+              {assessment.eligibilityCompletedAt && (
+                <button className="btn btn-secondary" onClick={resetEligibility}>
+                  <RotateCcw size={15} /> Reset determination
+                </button>
+              )}
+              <button className="btn btn-danger btn-sm" onClick={remove} style={{ marginLeft: 'auto' }}>
+                <Trash2 size={14} /> Delete
+              </button>
+            </div>
+          </div>
+        )}
+
+        {result && (
         <div className="card">
           <DeterminationCallout result={result} />
 
@@ -122,11 +178,11 @@ export default function AdminAssessment() {
           </div>
 
           <div className="grid grid-stats" style={{ marginTop: 18 }}>
-            <Stat label="In place" value={counts.yes} tone="pass" />
-            <Stat label="Not in place" value={counts.no} tone={counts.no ? 'fail' : undefined} />
-            <Stat label="Not applicable" value={counts.na} />
+            <Stat label="In place" value={counts!.yes} tone="pass" />
+            <Stat label="Not in place" value={counts!.no} tone={counts!.no ? 'fail' : undefined} />
+            <Stat label="Not applicable" value={counts!.na} />
             <Stat label="Needs review" value={reviewCount} tone={reviewCount ? 'review' : undefined} />
-            <Stat label="Unanswered" value={counts.unanswered} />
+            <Stat label="Unanswered" value={counts!.unanswered} />
             <Stat label="Applicable" value={result.totals.total} />
           </div>
 
@@ -147,6 +203,7 @@ export default function AdminAssessment() {
             </button>
           </div>
         </div>
+        )}
 
         <div className="card">
           <h2>Client link</h2>
@@ -164,15 +221,17 @@ export default function AdminAssessment() {
           )}
         </div>
 
-        <div className="card">
-          <h2>Result by requirement</h2>
-          <SectionTable sections={result.sections} />
-        </div>
+        {result && (
+          <div className="card">
+            <h2>Result by requirement</h2>
+            <SectionTable sections={result.sections} />
+          </div>
+        )}
 
-        {result.gaps.length > 0 && (
+        {result && result.gaps.length > 0 && (
           <EntryList title="Failed requirements" tone="fail" entries={result.gaps} notesLabel="Client notes" />
         )}
-        {result.reviewItems.length > 0 && (
+        {result && result.reviewItems.length > 0 && (
           <EntryList
             title="Compensating controls and customized approach"
             tone="review"
@@ -181,10 +240,10 @@ export default function AdminAssessment() {
             showResponse
           />
         )}
-        {result.naItems.length > 0 && (
+        {result && result.naItems.length > 0 && (
           <EntryList title="Marked Not Applicable" tone="muted" entries={result.naItems} notesLabel="Justification" />
         )}
-        {result.unanswered.length > 0 && (
+        {result && result.unanswered.length > 0 && (
           <div className="card">
             <h2>
               Unanswered <span className="badge badge-muted">{result.unanswered.length}</span>
@@ -192,6 +251,32 @@ export default function AdminAssessment() {
             <p className="small muted">
               {result.unanswered.map((q) => q.id).join(', ')}
             </p>
+          </div>
+        )}
+
+        {result && assessment.eligibility && (
+          <div className="card">
+            <h2>How the SAQ type was determined</h2>
+            <p className="small muted">
+              The client's own answers on {formatDate(assessment.eligibilityCompletedAt)}. Kept as a record of how the
+              scope was set.
+            </p>
+            <ol className="answer-summary">
+              {assessment.eligibility.path.map((entry) => (
+                <li key={entry.stepId}>
+                  <span className="trail-question">{entry.question}</span>
+                  <span className="small" style={{ fontWeight: 600 }}>
+                    {entry.label}
+                  </span>
+                </li>
+              ))}
+            </ol>
+            <div className="row" style={{ marginTop: 14 }}>
+              <button className="btn btn-secondary btn-sm" onClick={resetEligibility}>
+                <RotateCcw size={14} /> Reset determination
+              </button>
+              <span className="small muted">Deletes their answers and returns them to the eligibility questions.</span>
+            </div>
           </div>
         )}
 

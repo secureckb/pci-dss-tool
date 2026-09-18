@@ -2,15 +2,29 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom';
 import { Check, CircleAlert, Save } from 'lucide-react';
 import { api, ApiError } from '../api';
+import { EligibilityWizard } from '../components/EligibilityWizard';
+import { SaqResult } from '../components/SaqResult';
 import { RESPONSES, RESPONSE_ORDER } from '../responses';
 import { Header, Loading, ErrorCard, Progress, sectionLabel } from '../components/ui';
-import type { Answer, AnswerMap, ClientAssessment, Question, Result, Section } from '../types';
+import type {
+  Answer,
+  AnswerMap,
+  ClientAssessment,
+  EligibilityAnswers,
+  EligibilityOutcome,
+  Question,
+  Result,
+  SaqType,
+  Section,
+} from '../types';
 
 interface LoadPayload {
+  stage: 'eligibility' | 'not-administered' | 'questionnaire';
   assessment: ClientAssessment;
-  sections: Section[];
+  sections: Section[] | null;
   answers: AnswerMap;
-  result: Result;
+  result: Result | null;
+  eligibility?: { steps: Record<string, unknown>; firstStep: string; saqTypes: Record<string, SaqType> };
 }
 
 type SaveState = 'idle' | 'saving' | 'saved' | 'error';
@@ -32,6 +46,8 @@ export default function Questionnaire() {
   const [submitting, setSubmitting] = useState(false);
   const [attestName, setAttestName] = useState('');
   const [attestTitle, setAttestTitle] = useState('');
+  const [eligibilityBusy, setEligibilityBusy] = useState(false);
+  const [eligibilityError, setEligibilityError] = useState<string | null>(null);
 
   const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
@@ -47,7 +63,7 @@ export default function Questionnaire() {
         }
         setData(payload);
         setAnswers(payload.answers);
-        setActiveSection(String(payload.sections[0]?.id ?? ''));
+        setActiveSection(String(payload.sections?.[0]?.id ?? ''));
       })
       .catch((err) => !cancelled && setLoadError(err.message));
     return () => {
@@ -118,7 +134,7 @@ export default function Questionnaire() {
   };
 
   const progress = useMemo(() => {
-    if (!data) return { total: 0, answered: 0, percent: 0, blocking: [] as string[] };
+    if (!data?.sections) return { total: 0, answered: 0, percent: 0, blocking: [] as string[] };
     const all = data.sections.flatMap((s) => s.questions);
     const blocking: string[] = [];
     let answered = 0;
@@ -165,7 +181,7 @@ export default function Questionnaire() {
     if (progress.blocking.length > 0) {
       setShowIncomplete(true);
       const first = progress.blocking[0];
-      const section = data?.sections.find((s) => s.questions.some((q) => q.id === first));
+      const section = data?.sections?.find((s) => s.questions.some((q) => q.id === first));
       if (section) setActiveSection(String(section.id));
       setTimeout(() => document.getElementById(`q-${first}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 60);
       return;
@@ -179,6 +195,37 @@ export default function Questionnaire() {
     } catch (err) {
       setSaveError(err instanceof ApiError ? err.message : 'Could not submit the questionnaire.');
       setSubmitting(false);
+    }
+  };
+
+  const submitEligibility = async (eligibilityAnswers: EligibilityAnswers, outcome: EligibilityOutcome) => {
+    setEligibilityBusy(true);
+    setEligibilityError(null);
+    try {
+      // The server recomputes the outcome from these answers; the local one is
+      // only what the client was shown while answering.
+      await api.post(`/api/assessment/${token}/eligibility`, { answers: eligibilityAnswers });
+      const refreshed = await api.get<LoadPayload>(`/api/assessment/${token}`);
+      setData(refreshed);
+      setAnswers(refreshed.answers);
+      setActiveSection(String(refreshed.sections?.[0]?.id ?? ''));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err) {
+      setEligibilityError(err instanceof ApiError ? err.message : 'Could not record your answers.');
+    } finally {
+      setEligibilityBusy(false);
+    }
+    void outcome;
+  };
+
+  const restartEligibility = async () => {
+    setEligibilityError(null);
+    try {
+      await api.post(`/api/assessment/${token}/eligibility/reset`);
+      const refreshed = await api.get<LoadPayload>(`/api/assessment/${token}`);
+      setData(refreshed);
+    } catch (err) {
+      setEligibilityError(err instanceof ApiError ? err.message : 'Could not restart the questions.');
     }
   };
 
@@ -203,8 +250,68 @@ export default function Questionnaire() {
     );
   }
 
-  const section = data.sections.find((s) => String(s.id) === activeSection) ?? data.sections[0];
-  const sectionIndex = data.sections.findIndex((s) => String(s.id) === String(section.id));
+  if (data.stage === 'eligibility') {
+    return (
+      <>
+        <Header />
+        <main className="page page-narrow">
+          <div className="page-head">
+            <h1>{data.assessment.clientName}</h1>
+            <p>
+              Before you start, a few questions about how you take payments will identify which PCI DSS v4.0.1
+              self-assessment questionnaire applies to you.
+            </p>
+          </div>
+          <EligibilityWizard
+            onComplete={submitEligibility}
+            busy={eligibilityBusy}
+            error={eligibilityError}
+            completeLabel="Confirm and continue"
+          />
+        </main>
+      </>
+    );
+  }
+
+  if (data.stage === 'not-administered') {
+    const record = data.assessment.eligibility;
+    const saq = record ? data.eligibility?.saqTypes?.[record.saqType] : undefined;
+    return (
+      <>
+        <Header />
+        <main className="page page-narrow">
+          <div className="page-head">
+            <h1>{data.assessment.clientName}</h1>
+            <p>Your answers determine which questionnaire you need.</p>
+          </div>
+
+          {saq && record ? (
+            <SaqResult saq={saq} path={record.path} notes={record.notes}>
+              <div className="callout callout-info" style={{ marginTop: 16 }}>
+                <p className="small" style={{ marginBottom: 0 }}>
+                  This tool administers SAQ D only, so there is nothing further for you to complete here. Your assessor
+                  has been notified of this result and will send you {saq.name} and take it from here.
+                </p>
+              </div>
+            </SaqResult>
+          ) : (
+            <ErrorCard message="This assessment was routed to a questionnaire that is not available here. Contact your assessor." />
+          )}
+
+          {eligibilityError && <p className="error-text">{eligibilityError}</p>}
+          <div className="row">
+            <button type="button" className="btn btn-secondary" onClick={restartEligibility}>
+              I answered something incorrectly — start again
+            </button>
+          </div>
+        </main>
+      </>
+    );
+  }
+
+  const sections = data.sections ?? [];
+  const section = sections.find((s) => String(s.id) === activeSection) ?? sections[0];
+  const sectionIndex = sections.findIndex((s) => String(s.id) === String(section.id));
 
   return (
     <>
@@ -244,7 +351,7 @@ export default function Questionnaire() {
 
         <div className="saq-layout">
           <nav className="saq-nav" aria-label="Requirements">
-            {data.sections.map((s) => {
+            {sections.map((s) => {
               const status = sectionStatus(s);
               return (
                 <button
@@ -295,7 +402,7 @@ export default function Questionnaire() {
                 className="btn btn-secondary"
                 disabled={sectionIndex === 0}
                 onClick={() => {
-                  setActiveSection(String(data.sections[sectionIndex - 1].id));
+                  setActiveSection(String(sections[sectionIndex - 1].id));
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
               >
@@ -304,9 +411,9 @@ export default function Questionnaire() {
               <button
                 type="button"
                 className="btn"
-                disabled={sectionIndex === data.sections.length - 1}
+                disabled={sectionIndex === sections.length - 1}
                 onClick={() => {
-                  setActiveSection(String(data.sections[sectionIndex + 1].id));
+                  setActiveSection(String(sections[sectionIndex + 1].id));
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
               >
@@ -314,7 +421,7 @@ export default function Questionnaire() {
               </button>
             </div>
 
-            {sectionIndex === data.sections.length - 1 && (
+            {sectionIndex === sections.length - 1 && (
               <div className="card" style={{ marginTop: 20 }}>
                 <h2>Submit your self-assessment</h2>
                 <p className="small muted">

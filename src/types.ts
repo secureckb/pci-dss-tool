@@ -70,8 +70,12 @@ export interface Result {
 }
 
 export interface ClientAssessment {
-  variant: Variant;
-  variantLabel: string;
+  variant: Variant | null;
+  variantLabel: string | null;
+  saqType: string | null;
+  saqName: string | null;
+  eligibility: EligibilityRecord | null;
+  eligibilityCompletedAt: string | null;
   clientName: string;
   contactName: string | null;
   dba: string | null;
@@ -85,8 +89,12 @@ export interface ClientAssessment {
 export interface AdminAssessmentSummary {
   id: string;
   token: string;
-  variant: Variant;
-  variantLabel: string;
+  variant: Variant | null;
+  variantLabel: string | null;
+  saqType: string | null;
+  saqName: string | null;
+  administered: boolean;
+  eligibilityCompletedAt: string | null;
   clientName: string;
   contactName: string | null;
   contactEmail: string | null;
@@ -104,4 +112,62 @@ export interface AdminAssessmentDetail extends AdminAssessmentSummary {
   internalNotes: string | null;
   submittedBy: string | null;
   submittedTitle: string | null;
+  saq: SaqType | null;
+  eligibility: EligibilityRecord | null;
+}
+
+export type EligibilityAnswers = Record<string, string>;
+
+export interface EligibilityOption {
+  value: string;
+  label: string;
+  description: string;
+  next?: string;
+  outcome?: string;
+  note?: string;
+}
+
+export interface EligibilityStep {
+  id: string;
+  question: string;
+  help?: string;
+  options: EligibilityOption[];
+}
+
+export interface SaqType {
+  key: string;
+  name: string;
+  headline: string;
+  summary: string;
+  eligibility: string[];
+  scope: string;
+  variant: Variant | null;
+}
+
+export interface EligibilityPathEntry {
+  stepId: string;
+  question: string;
+  value: string;
+  label: string;
+  description: string;
+}
+
+export interface EligibilityOutcome {
+  complete: boolean;
+  nextStep?: EligibilityStep;
+  path: EligibilityPathEntry[];
+  saqType?: string;
+  saq?: SaqType;
+  variant?: Variant | null;
+  administered?: boolean;
+  notes?: { stepId: string; note: string }[];
+  determinedAt?: string;
+}
+
+export interface EligibilityRecord {
+  answers: EligibilityAnswers;
+  saqType: string;
+  path: EligibilityPathEntry[];
+  notes: { stepId: string; note: string }[];
+  determinedAt: string;
 }
