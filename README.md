@@ -133,6 +133,8 @@ the Not Applicable option disabled, and the server rejects it too.
    | `DATABASE_URL` | yes | Provided by the Postgres plugin. |
    | `PUBLIC_BASE_URL` | recommended | e.g. `https://your-app.up.railway.app`. Used to build client links. Without it, links are built from the request host. |
    | `REQUIRE_HTTPS` | no | Plain HTTP is redirected to HTTPS by default, since a client link is a bearer credential. Set to `0` only for an instance you accept is plaintext. Localhost is exempt, and a redirect that comes straight back is served with a warning rather than looping. |
+   | `DATABASE_SSL` | no | Remote Postgres connections verify the server certificate by default. Set `no-verify` to encrypt without verifying (the connection is then not authenticated), or `off` for a private network with no TLS. |
+   | `DATABASE_CA` | no | PEM for a private root certificate, if your provider publishes one. |
    | `PORT` | no | Railway sets this. |
 
 4. Generate a domain under **Settings → Networking**, then set `PUBLIC_BASE_URL` to it and redeploy

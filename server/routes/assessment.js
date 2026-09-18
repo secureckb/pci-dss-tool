@@ -4,7 +4,7 @@ import { scoreAssessment, RESPONSES } from '../../shared/scoring.js';
 import { getSections, getQuestion, VARIANTS } from '../../shared/questions/index.js';
 import { determineSaq, prunedAnswers, ELIGIBILITY_STEPS, FIRST_STEP, SAQ_TYPES } from '../../shared/eligibility.js';
 import { buildGapReport, buildAttestation } from '../pdf.js';
-import { issueEpoch, loadAnswers, withLockedAssessment } from '../helpers.js';
+import { issueEpoch, loadAnswers, readSnapshot, withLockedAssessment } from '../helpers.js';
 
 const router = asyncRouter();
 
@@ -76,18 +76,43 @@ router.get('/:token', withAssessment, async (req, res) => {
     });
   }
 
-  const answers = await loadAnswers(req.assessment.id);
+  // One snapshot, so the answers below and the revision reported with them are
+  // from the same moment. Read separately, a write landing in between produced a
+  // payload whose answers were newer than its revision, and the client would be
+  // refused at submission over a change it was already looking at.
+  const { assessment, answers } = await readSnapshot(req.params.token);
+  if (!assessment) {
+    return res.status(404).json({ error: 'This questionnaire link is not valid. Check the link or ask for a new one.' });
+  }
+  if (!assessment.variant) {
+    // Eligibility was reset between the middleware's read and this one.
+    return res.json({
+      stage: assessment.saq_type ? 'not-administered' : 'eligibility',
+      assessment: publicView(assessment),
+      eligibility: { steps: ELIGIBILITY_STEPS, firstStep: FIRST_STEP, saqTypes: SAQ_TYPES },
+      sections: null,
+      answers: {},
+      result: null,
+    });
+  }
+
   res.json({
     stage: 'questionnaire',
-    assessment: publicView(req.assessment),
-    sections: getSections(req.assessment.variant),
+    assessment: publicView(assessment),
+    sections: getSections(assessment.variant),
     answers,
-    result: scoreAssessment(req.assessment.variant, answers),
-    // The ordering epoch for this page load, and the revision of the answer set
-    // it is showing. The client tags each write with the epoch and a per-page
-    // counter (see issueEpoch()), and sends the revision back when it submits so
-    // the server can refuse to attest an answer set the client never saw.
-    session: { epoch: await issueEpoch(), revision: Number(req.assessment.answers_revision ?? 0) },
+    result: scoreAssessment(assessment.variant, answers),
+    // The ordering epoch for this page load, the revision of the answer set it is
+    // showing, and the generation of the questionnaire itself. The client tags
+    // each write with the epoch and a per-page counter (see issueEpoch()), sends
+    // the generation so a write cannot land on a questionnaire that has since
+    // been replaced, and sends the revision back when it submits so the server
+    // can refuse to attest an answer set the client never saw.
+    session: {
+      epoch: await issueEpoch(),
+      revision: Number(assessment.answers_revision ?? 0),
+      generation: Number(assessment.generation ?? 0),
+    },
   });
 });
 
@@ -161,6 +186,9 @@ router.post('/:token/eligibility', withAssessment, async (req, res) => {
               variant = $3,
               eligibility = $4,
               eligibility_completed_at = now(),
+              -- A different questionnaire from here on, so writes still in
+              -- flight against the previous one are no longer valid.
+              generation = generation + 1,
               updated_at = now()
         WHERE id = $1`,
       [req.assessment.id, outcome.saqType, outcome.variant, JSON.stringify(record)]
@@ -202,7 +230,8 @@ router.post('/:token/eligibility/reset', withAssessment, async (req, res) => {
     await client.query(
       `UPDATE assessments
           SET saq_type = NULL, variant = NULL, eligibility = NULL,
-              eligibility_completed_at = NULL, updated_at = now()
+              eligibility_completed_at = NULL, generation = generation + 1,
+              updated_at = now()
         WHERE id = $1`,
       [req.assessment.id]
     );
@@ -242,6 +271,8 @@ router.put('/:token/answers/:questionId', withAssessment, requireVariant, async 
   // neither is opting out of ordering rather than claiming to be newest: it
   // applies unconditionally but leaves any higher watermark alone, so a write
   // still in flight from another page cannot use it to slip in afterwards.
+  const rawGeneration = req.body?.generation;
+  const hasGeneration = Number.isSafeInteger(rawGeneration) && rawGeneration >= 0;
   const rawEpoch = req.body?.epoch;
   const rawSeq = req.body?.seq;
   const ordered =
@@ -257,6 +288,22 @@ router.put('/:token/answers/:questionId', withAssessment, requireVariant, async 
     // assessment, so the requirement is resolved against the locked row.
     if (!current.variant) {
       return { status: 409, body: { error: 'The eligibility questions have not been completed yet.' } };
+    }
+
+    // A reset deletes the answers, and with them the per-question watermarks
+    // that would otherwise have caught a write still in flight from the page
+    // that was filling in the old questionnaire. Once eligibility is settled
+    // again that write would find a valid variant and an empty row, and restore
+    // an answer the reset had deleted — into somebody's reassessment. The
+    // generation says which questionnaire a write was written against.
+    if (hasGeneration && Number(current.generation ?? 0) !== rawGeneration) {
+      return {
+        status: 409,
+        body: {
+          error: 'This questionnaire was reset or its SAQ type changed. Reload the page to continue.',
+          stage: 'generation',
+        },
+      };
     }
 
     const question = getQuestion(current.variant, req.params.questionId);

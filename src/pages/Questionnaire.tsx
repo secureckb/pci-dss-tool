@@ -27,7 +27,7 @@ interface LoadPayload {
   eligibility?: { steps: Record<string, unknown>; firstStep: string; saqTypes: Record<string, SaqType> };
   /** Ordering epoch issued by the server for this page load (see `nextSeq`), and
    *  the revision of the answer set this payload is showing. */
-  session?: { epoch: number; revision: number };
+  session?: { epoch: number; revision: number; generation: number };
 }
 
 /** What a write returns, so the client can tell a superseded write from a saved one. */
@@ -49,6 +49,10 @@ const MAX_TEXT_LENGTH = 4000;
 
 /** Raised when the server declined a write because another page holds the answer. */
 class StaleWindowError extends Error {}
+
+const RESET_MESSAGE =
+  'This questionnaire was reset, or its SAQ type was changed, while this page was open. Nothing ' +
+  'typed here since then has been saved. Reload the page to start from the current questionnaire.';
 
 const STALE_MESSAGE =
   'This questionnaire is open in another window or on another device, and that copy has ' +
@@ -102,13 +106,22 @@ export default function Questionnaire() {
   // requirement. One editing a different requirement conflicts with nothing, so
   // this page would never hear about it and could attest an answer its signatory
   // has never seen. The revision counts every applied write to the whole answer
-  // set: if it has moved further than this page's own writes account for, the
-  // difference came from somewhere else.
-  const revision = useRef(0);
-  const writesSent = useRef(0);
-  // The furthest revision this page has been told about, which is what it
-  // attests to when it submits.
-  const latestRevision = useRef(0);
+  // set, and this page knows exactly which of those writes were its own.
+  //
+  // Counting *attempts* instead was wrong: a request that failed before reaching
+  // the server left a spare unit in the count, and a later response could then
+  // carry one foreign write without ever exceeding it. So only writes the server
+  // reports as applied are counted, and the page claims nothing more than
+  // `base + applied` when it submits. If the server holds more than that, the
+  // difference is somebody else's and the submission is refused.
+  const baseRevision = useRef(0);
+  const appliedByUs = useRef(0);
+  // The highest revision any response has mentioned. Compared against what this
+  // page can account for, but only once nothing is in flight: responses to this
+  // page's own parallel writes arrive in any order, and mid-flight one of them
+  // can legitimately name a revision the others have not caught up with.
+  const highestSeen = useRef(0);
+  const generation = useRef<number | null>(null);
   // Set once another page is found to be writing to this assessment: this page's
   // view is behind, so it stops claiming to have saved and asks for a reload.
   // The ref is what the save bookkeeping reads, since it has to be current
@@ -145,9 +158,10 @@ export default function Questionnaire() {
   const adoptPayload = useCallback((payload: LoadPayload) => {
     epoch.current = payload.session?.epoch ?? null;
     seqCounter.current = 0;
-    revision.current = payload.session?.revision ?? 0;
-    latestRevision.current = revision.current;
-    writesSent.current = 0;
+    baseRevision.current = payload.session?.revision ?? 0;
+    highestSeen.current = baseRevision.current;
+    appliedByUs.current = 0;
+    generation.current = payload.session?.generation ?? null;
     setData(payload);
     setAnswers(payload.answers);
   }, []);
@@ -197,6 +211,7 @@ export default function Questionnaire() {
               // superseded rather than undoing the newer edit.
               epoch: epoch.current,
               seq: entry.rev,
+              generation: generation.current,
             }),
           });
         } catch {
@@ -230,7 +245,6 @@ export default function Questionnaire() {
       setSaveState('saving');
       setSaveError(null);
       inFlight.current += 1;
-      writesSent.current += 1;
 
       // Queue behind any save already running for this question. The server's
       // write is an unconditional upsert, so ordering has to be guaranteed here.
@@ -244,6 +258,7 @@ export default function Questionnaire() {
               evidence: answer?.evidence ?? '',
               epoch: epoch.current,
               seq: rev,
+              generation: generation.current,
             });
             // HTTP 200 does not mean this text was stored. The server declines a
             // write that a newer one has already superseded, and if the newer one
@@ -259,16 +274,12 @@ export default function Questionnaire() {
               markStale();
               throw new StaleWindowError(questionId);
             }
-            // The answer set can only have advanced by this page's own writes.
-            // Anything past that is another window's work on some other
-            // requirement, which nothing else here would catch.
+            // The answer set can only have advanced by the writes this page has
+            // had applied. Anything past that is another window's work on some
+            // other requirement, which nothing else here would catch.
             if (typeof outcome?.revision === 'number') {
-              const ours = revision.current + writesSent.current;
-              if (outcome.revision > ours) {
-                markStale();
-                throw new StaleWindowError(questionId);
-              }
-              latestRevision.current = Math.max(latestRevision.current, outcome.revision);
+              if (outcome.applied) appliedByUs.current += 1;
+              highestSeen.current = Math.max(highestSeen.current, outcome.revision);
             }
             // Only clear the buffered edit if it is still the one just written.
             const buffered = pendingText.current[questionId];
@@ -283,13 +294,26 @@ export default function Questionnaire() {
             }
           } catch (err) {
             failedSaves.current.set(questionId, rev ?? Number.MAX_SAFE_INTEGER);
-            setSaveState(err instanceof StaleWindowError ? 'stale' : 'error');
+            // A write refused for belonging to a replaced questionnaire is the
+            // same situation for the client as a second window: this page is no
+            // longer current and reloading is the only way forward. The server
+            // reports that three ways — the generation no longer matches, or
+            // there is no questionnaire at all any more, or the SAQ type moved
+            // to one this tool does not administer — and all three mean the same
+            // thing to someone sitting in front of the old one.
+            const replaced =
+              err instanceof ApiError &&
+              ['generation', 'eligibility', 'not-administered'].includes(err.payload?.stage);
+            if (replaced) markStale();
+            setSaveState(err instanceof StaleWindowError || replaced ? 'stale' : 'error');
             setSaveError(
-              err instanceof StaleWindowError
-                ? STALE_MESSAGE
-                : err instanceof ApiError
-                  ? err.message
-                  : 'Could not save your answer.'
+              replaced
+                ? RESET_MESSAGE
+                : err instanceof StaleWindowError
+                  ? STALE_MESSAGE
+                  : err instanceof ApiError
+                    ? err.message
+                    : 'Could not save your answer.'
             );
             throw err;
           }
@@ -300,6 +324,9 @@ export default function Questionnaire() {
           // outstanding, so one quick success cannot paint over another
           // question's failure.
           if (inFlight.current === 0) {
+            // Nothing outstanding, so every write of this page's is accounted
+            // for and the comparison is meaningful.
+            if (highestSeen.current > baseRevision.current + appliedByUs.current) markStale();
             setSaveState(
               staleWindowRef.current ? 'stale' : failedSaves.current.size > 0 ? 'error' : 'saved'
             );
@@ -511,9 +538,11 @@ export default function Questionnaire() {
       await api.post(`/api/assessment/${token}/submit`, {
         name: attestName,
         title: attestTitle,
-        // What this page believes it is attesting to. The server refuses if the
-        // answers have moved on, rather than signing a set nobody has read.
-        revision: latestRevision.current,
+        // What this page can account for: the revision it loaded, plus the
+        // writes of its own the server confirmed. Never a revision it merely
+        // heard about. The server refuses if its own count differs, rather than
+        // signing a set nobody has read.
+        revision: baseRevision.current + appliedByUs.current,
       });
       navigate(`/q/${token}/results`);
     } catch (err) {
