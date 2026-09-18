@@ -5,6 +5,7 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import { migrate, query } from './db.js';
+import { isSecureRequest, isLocalRequest } from './auth.js';
 import adminRoutes from './routes/admin.js';
 import assessmentRoutes from './routes/assessment.js';
 import requirementsRoutes from './routes/requirements.js';
@@ -56,6 +57,48 @@ app.set('trust proxy', 1);
 app.use(compression());
 app.use(express.json({ limit: '256kb' }));
 app.use(cookieParser());
+
+/**
+ * Transport.
+ *
+ * A client link is a bearer credential: the token in the URL is all anyone needs
+ * to read and answer that questionnaire. Over plain HTTP both the token and the
+ * answers cross the network in the clear, so a deployment that answers HTTP at
+ * all is a deployment where the link can be lifted in transit.
+ *
+ * HSTS is sent whenever the request did arrive over TLS, so a browser that has
+ * been here once will not be talked down to HTTP afterwards. Forcing the
+ * redirect is opt-in via REQUIRE_HTTPS rather than automatic: an instance whose
+ * proxy terminates TLS but does not set X-Forwarded-Proto would redirect to a
+ * URL that comes back through the same proxy, and the loop would take the whole
+ * site down. Local development is exempt, since there is no TLS to have.
+ */
+const REQUIRE_HTTPS = /^(1|true|yes)$/i.test(process.env.REQUIRE_HTTPS || '');
+app.use((req, res, next) => {
+  if (isSecureRequest(req)) {
+    res.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    return next();
+  }
+  if (REQUIRE_HTTPS && !isLocalRequest(req)) {
+    // 308 keeps the method and body, so a save in flight is not turned into a GET.
+    return res.redirect(308, `https://${req.get('host')}${req.originalUrl}`);
+  }
+  next();
+});
+
+/**
+ * Nothing behind a client link or an admin session may be cached.
+ *
+ * These responses carry the client's identity, their answers and their gaps,
+ * and they are reached through a URL that is itself the credential. A shared
+ * browser or an intermediary holding a copy would disclose all of it to whoever
+ * comes next. The public requirement catalogue is deliberately not covered: it
+ * is the same for everyone and is cached for an hour on purpose.
+ */
+app.use(['/api/assessment', '/api/admin'], (req, res, next) => {
+  res.set('Cache-Control', 'no-store, private');
+  next();
+});
 
 /**
  * Health check.

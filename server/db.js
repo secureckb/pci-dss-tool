@@ -45,7 +45,11 @@ CREATE TABLE IF NOT EXISTS assessments (
   updated_at     timestamptz NOT NULL DEFAULT now(),
   submitted_at   timestamptz,
   submitted_by   text,
-  submitted_title text
+  submitted_title text,
+  -- Counts applied answer writes. A client that loaded the questionnaire, and
+  -- then finds this has moved further than its own writes account for, is
+  -- looking at answers that are no longer what the server holds.
+  answers_revision bigint NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS answers (
@@ -76,6 +80,7 @@ ALTER TABLE assessments ADD COLUMN IF NOT EXISTS saq_type text;
 ALTER TABLE assessments ADD COLUMN IF NOT EXISTS eligibility jsonb;
 ALTER TABLE assessments ADD COLUMN IF NOT EXISTS eligibility_completed_at timestamptz;
 ALTER TABLE assessments ALTER COLUMN variant DROP NOT NULL;
+ALTER TABLE assessments ADD COLUMN IF NOT EXISTS answers_revision bigint NOT NULL DEFAULT 0;
 ALTER TABLE answers ADD COLUMN IF NOT EXISTS client_epoch bigint NOT NULL DEFAULT 0;
 ALTER TABLE answers ADD COLUMN IF NOT EXISTS client_seq bigint NOT NULL DEFAULT 0;
 ALTER TABLE answers ALTER COLUMN response DROP NOT NULL;

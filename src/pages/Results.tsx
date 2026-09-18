@@ -54,6 +54,16 @@ export default function Results() {
             {assessment.submittedAt && <> &middot; Submitted {formatDate(assessment.submittedAt)}</>}
             {assessment.submittedBy && <> by {assessment.submittedBy}{assessment.submittedTitle ? `, ${assessment.submittedTitle}` : ''}</>}
           </p>
+          {/* The scope these answers were given against, which is what the
+              determination below actually covers. */}
+          {assessment.scopeSummary && (
+            <div className="callout callout-info" style={{ marginTop: 14 }}>
+              <h3>Scope of this assessment</h3>
+              <p className="small" style={{ marginBottom: 0, whiteSpace: 'pre-wrap' }}>
+                {assessment.scopeSummary}
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="card">

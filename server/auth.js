@@ -78,8 +78,14 @@ function isHttps(req) {
   return (req.get('x-forwarded-proto') || '').split(',')[0].trim() === 'https';
 }
 
+/** Whether this request reached the process over TLS. Exported for the transport
+ *  middleware, which decides HSTS and any redirect from the same signal. */
+export function isSecureRequest(req) {
+  return isHttps(req);
+}
+
 /** Local development, where there is no TLS to have and nothing to intercept. */
-function isLocalRequest(req) {
+export function isLocalRequest(req) {
   const host = (req.get('host') || '').split(':')[0].toLowerCase();
   return host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '[::1]';
 }
