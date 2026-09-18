@@ -32,7 +32,7 @@ interface Catalogue {
 
 type VariantFilter = 'all' | Variant;
 
-const RESPONSE_ORDER = ['yes', 'no', 'na', 'yes-ccw', 'yes-customized'];
+const RESPONSE_ORDER = ['yes', 'no', 'na', 'yes-ccw'];
 const DETERMINATION_ORDER = ['compliant', 'pending-review', 'non-compliant', 'incomplete'];
 
 const DETERMINATION_TONE: Record<string, string> = {

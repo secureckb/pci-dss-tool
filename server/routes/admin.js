@@ -24,8 +24,15 @@ const router = asyncRouter();
 const FAILED_LOGIN_DELAY_MS = 750;
 const MAX_FAILED_LOGINS = 10;
 const LOCKOUT_MS = 15 * 60 * 1000;
+// Each failed attempt is held open for the delay above, so attempts issued in
+// parallel accumulate rather than queue. Without a ceiling a burst would tie up
+// sockets and heap for as long as the attacker keeps sending, on the one
+// endpoint that is reachable without a session. Past the ceiling the answer is
+// immediate and cheap, which is also the answer an attacker least wants.
+const MAX_CONCURRENT_LOGINS = 8;
 
 const loginFailures = { count: 0, firstAt: 0, lockedUntil: 0 };
+let loginsInFlight = 0;
 
 function loginLockRemainingMs() {
   const remaining = loginFailures.lockedUntil - Date.now();
@@ -46,6 +53,13 @@ function recordLoginFailure() {
 }
 
 router.post('/login', async (req, res) => {
+  if (loginsInFlight >= MAX_CONCURRENT_LOGINS) {
+    return res.status(429).json({
+      error: 'Too many sign-in attempts are being processed. Try again in a moment.',
+      retryAfterSeconds: 1,
+    });
+  }
+
   // Checked before the password, so a plaintext attempt never reaches it.
   if (!canAuthenticate(req)) {
     return res.status(403).json({
@@ -64,7 +78,12 @@ router.post('/login', async (req, res) => {
 
   if (!checkAdminPassword(req.body?.password)) {
     recordLoginFailure();
-    await new Promise((r) => setTimeout(r, FAILED_LOGIN_DELAY_MS));
+    loginsInFlight += 1;
+    try {
+      await new Promise((r) => setTimeout(r, FAILED_LOGIN_DELAY_MS));
+    } finally {
+      loginsInFlight -= 1;
+    }
     return res.status(401).json({ error: 'Incorrect password.' });
   }
 

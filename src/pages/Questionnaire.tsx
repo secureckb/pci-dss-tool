@@ -64,6 +64,12 @@ export default function Questionnaire() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [showIncomplete, setShowIncomplete] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  // Read synchronously by the edit handlers. Submission freezes the controls,
+  // but a click already in the same tick would not see the re-render, and an
+  // edit accepted after the flush has taken its snapshot is an edit the
+  // submission never sends — the client would then be attesting to the value it
+  // had just replaced on screen.
+  const submittingRef = useRef(false);
   const [attestName, setAttestName] = useState('');
   const [attestTitle, setAttestTitle] = useState('');
   const [eligibilityBusy, setEligibilityBusy] = useState(false);
@@ -114,6 +120,21 @@ export default function Questionnaire() {
     ((questionId: string, answer: Answer | null, rev?: number) => Promise<void>) | null
   >(null);
 
+  /**
+   * Takes a freshly loaded payload, including the ordering epoch that came with
+   * it. Every path that reloads the assessment goes through here: the epoch
+   * arrives only with the questionnaire stage, so the wizard's own load carries
+   * none, and a refresh that forgot to pick it up left the page saving without
+   * any ordering at all — unable to be superseded, and unable to notice that a
+   * second window had moved ahead.
+   */
+  const adoptPayload = useCallback((payload: LoadPayload) => {
+    epoch.current = payload.session?.epoch ?? null;
+    seqCounter.current = 0;
+    setData(payload);
+    setAnswers(payload.answers);
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     api
@@ -124,16 +145,14 @@ export default function Questionnaire() {
           navigate(`/q/${token}/results`, { replace: true });
           return;
         }
-        epoch.current = payload.session?.epoch ?? null;
-        setData(payload);
-        setAnswers(payload.answers);
+        adoptPayload(payload);
         setActiveSection(String(payload.sections?.[0]?.id ?? ''));
       })
       .catch((err) => !cancelled && setLoadError(err.message));
     return () => {
       cancelled = true;
     };
-  }, [token, navigate]);
+  }, [token, navigate, adoptPayload]);
 
   /**
    * Nothing typed should be lost by leaving the page.
@@ -267,6 +286,7 @@ export default function Questionnaire() {
   persistRef.current = persist;
 
   const setResponse = (question: Question, response: Answer['response']) => {
+    if (submittingRef.current) return;
     const current = answers[question.id];
     // Clicking the selected option again clears it.
     const next: Answer | null =
@@ -300,6 +320,7 @@ export default function Questionnaire() {
   };
 
   const setText = (question: Question, field: 'justification' | 'evidence', value: string) => {
+    if (submittingRef.current) return;
     setAnswers((prev) => {
       const existing = prev[question.id];
       if (!existing) return prev;
@@ -324,26 +345,42 @@ export default function Questionnaire() {
 
   /** Write out every debounced edit that has not been sent yet, and wait for it. */
   const flushPendingSaves = useCallback(async () => {
-    Object.values(timers.current).forEach(clearTimeout);
-    timers.current = {};
+    // One pass is not enough. Awaiting the requests yields to the event loop, and
+    // a debounce that fires in that window buffers an edit the pass has already
+    // looked past — so the submission would lock answers that did not include it.
+    // Drain until a pass finds nothing new outstanding. Edits are frozen before
+    // this runs, so this settles immediately in practice; the cap is only there
+    // so a pathological case ends rather than spins.
+    for (let pass = 0; pass < 5; pass += 1) {
+      Object.values(timers.current).forEach(clearTimeout);
+      timers.current = {};
 
-    // The map is deliberately not cleared here. A successful save removes its own
-    // entry (matched on revision), so anything left afterwards is an edit that
-    // failed — and is still there to be resent when the client retries. Clearing
-    // upfront lost the failed edit and left submission permanently blocked on a
-    // failure it could no longer do anything about.
-    const pending = Object.entries(pendingText.current);
-    // Swallow individual rejections here: each one is already recorded against
-    // its question, and letting the first to fail reject this Promise.all would
-    // surface that request's message instead of naming the requirements.
-    await Promise.all(
-      pending.map(([questionId, entry]) => persist(questionId, entry.answer, entry.rev).catch(() => {}))
-    );
+      // The map is deliberately not cleared here. A successful save removes its own
+      // entry (matched on revision), so anything left afterwards is an edit that
+      // failed — and is still there to be resent when the client retries. Clearing
+      // upfront lost the failed edit and left submission permanently blocked on a
+      // failure it could no longer do anything about.
+      const pending = Object.entries(pendingText.current);
+      // Swallow individual rejections here: each one is already recorded against
+      // its question, and letting the first to fail reject this Promise.all would
+      // surface that request's message instead of naming the requirements.
+      await Promise.all(
+        pending.map(([questionId, entry]) => persist(questionId, entry.answer, entry.rev).catch(() => {}))
+      );
 
-    // Saves started earlier may still be running. Those chains swallow their own
-    // rejections so they never surface as unhandled, so the failure map is what
-    // reports whether any of them actually landed.
-    await Promise.all(Object.values(saveChains.current));
+      // Saves started earlier may still be running. Those chains swallow their own
+      // rejections so they never surface as unhandled, so the failure map is what
+      // reports whether any of them actually landed.
+      await Promise.all(Object.values(saveChains.current));
+
+      // What is left that has not already been reported as failed? A failed entry
+      // stays buffered on purpose and retrying it here would loop.
+      const outstanding = Object.keys(pendingText.current).filter(
+        (questionId) => !failedSaves.current.has(questionId)
+      );
+      if (outstanding.length === 0 && Object.keys(timers.current).length === 0) break;
+    }
+
     if (failedSaves.current.size > 0) {
       throw new Error(
         [...failedSaves.current.keys()]
@@ -419,6 +456,12 @@ export default function Questionnaire() {
       return;
     }
 
+    // Freeze the answers first, then flush. Leaving the controls live during
+    // submission let an edit land after the flush had passed it by: the server
+    // locked the older value and the late save came back rejected, leaving the
+    // client looking at a results page that disagreed with what they had just
+    // selected.
+    submittingRef.current = true;
     setSubmitting(true);
     try {
       // Everything typed must reach the server before the answers are locked,
@@ -430,6 +473,7 @@ export default function Questionnaire() {
         `These answers could not be saved${which}. The questionnaire was not submitted — ` +
           'check your connection, re-enter those answers, and try again.'
       );
+      submittingRef.current = false;
       setSubmitting(false);
       return;
     }
@@ -439,6 +483,7 @@ export default function Questionnaire() {
       navigate(`/q/${token}/results`);
     } catch (err) {
       setSaveError(err instanceof ApiError ? err.message : 'Could not submit the questionnaire.');
+      submittingRef.current = false;
       setSubmitting(false);
     }
   };
@@ -451,8 +496,9 @@ export default function Questionnaire() {
       // only what the client was shown while answering.
       await api.post(`/api/assessment/${token}/eligibility`, { answers: eligibilityAnswers });
       const refreshed = await api.get<LoadPayload>(`/api/assessment/${token}`);
-      setData(refreshed);
-      setAnswers(refreshed.answers);
+      // Including the epoch: the questionnaire starts here, and until this
+      // payload there was none to adopt.
+      adoptPayload(refreshed);
       setActiveSection(String(refreshed.sections?.[0]?.id ?? ''));
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
@@ -468,7 +514,7 @@ export default function Questionnaire() {
     try {
       await api.post(`/api/assessment/${token}/eligibility/reset`);
       const refreshed = await api.get<LoadPayload>(`/api/assessment/${token}`);
-      setData(refreshed);
+      adoptPayload(refreshed);
     } catch (err) {
       setEligibilityError(err instanceof ApiError ? err.message : 'Could not restart the questions.');
     }
@@ -641,6 +687,7 @@ export default function Questionnaire() {
                 question={question}
                 answer={answers[question.id]}
                 highlight={showIncomplete && progress.blocking.includes(question.id)}
+                frozen={submitting}
                 onRespond={(response) => setResponse(question, response)}
                 onText={(field, value) => setText(question, field, value)}
               />
@@ -683,8 +730,8 @@ export default function Questionnaire() {
                   <div className="callout callout-fail" style={{ marginBottom: 14 }}>
                     <h3>{progress.blocking.length} item(s) still need attention</h3>
                     <p className="small" style={{ marginBottom: 0 }}>
-                      Every requirement needs a response, and answers of Not Applicable, Yes with Compensating Control, or
-                      Yes with Customized Approach need written justification.
+                      Every requirement needs a response, and answers of Not Applicable or Yes with Compensating
+                      Control need written justification.
                     </p>
                   </div>
                 ) : (
@@ -728,12 +775,15 @@ function QuestionCard({
   question,
   answer,
   highlight,
+  frozen,
   onRespond,
   onText,
 }: {
   question: Question;
   answer?: Answer;
   highlight: boolean;
+  /** Set while the questionnaire is being submitted, when nothing may change. */
+  frozen: boolean;
   onRespond: (response: Answer['response']) => void;
   onText: (field: 'justification' | 'evidence', value: string) => void;
 }) {
@@ -762,7 +812,7 @@ function QuestionCard({
       <div className="response-options" role="group" aria-label={`Response for requirement ${question.id}`}>
         {RESPONSE_ORDER.map((key) => {
           const option = RESPONSES[key];
-          const disabled = key === 'na' && !question.allowNA;
+          const disabled = frozen || (key === 'na' && !question.allowNA);
           const selected = answer?.response === key;
           const tone = selected ? (key === 'no' ? ' selected-no' : option.needsReview ? ' selected-review' : ' selected') : '';
           return (
@@ -795,6 +845,7 @@ function QuestionCard({
           <textarea
             value={answer?.justification ?? ''}
             maxLength={MAX_TEXT_LENGTH}
+            disabled={frozen}
             onChange={(e) => onText('justification', e.target.value)}
             placeholder={meta.placeholder}
           />
@@ -808,6 +859,7 @@ function QuestionCard({
           <textarea
             value={answer.justification}
             maxLength={MAX_TEXT_LENGTH}
+            disabled={frozen}
             onChange={(e) => onText('justification', e.target.value)}
             placeholder="What is missing, and what is your plan and timeline to close the gap?"
           />
@@ -821,6 +873,7 @@ function QuestionCard({
             type="text"
             value={answer.evidence}
             maxLength={MAX_TEXT_LENGTH}
+            disabled={frozen}
             onChange={(e) => onText('evidence', e.target.value)}
             placeholder="e.g. Firewall standard v3.2, ticket CHG-1184, screenshot set B"
           />

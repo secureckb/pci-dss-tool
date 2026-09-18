@@ -85,14 +85,19 @@ The tool scores exactly that way:
 | **No** | **Fails the whole assessment.** Appears on the gap remediation plan. |
 | **Not Applicable** | Passes, but a written justification is **required**. Only offered on requirements where N/A is legitimate. |
 | **Yes with Compensating Control** | Passes, but holds the result at *pending assessor review*. Description required. |
-| **Yes with Customized Approach** | Same as above. Description required. |
+
+There is deliberately no customized-approach response. An SAQ cannot be used to document the
+customized approach — the customized approach objectives are not included in the SAQs, and an entity
+validating that way uses the ROC template instead. Requirement 12.3.2 still asks about the targeted
+risk analysis behind a customized approach, because it is part of SAQ D; an entity not using one
+marks it Not Applicable.
 
 That produces one of four determinations:
 
 - **Incomplete** — something is unanswered, or a required justification is missing. Submission is blocked.
 - **Non-Compliant** — at least one requirement answered No.
-- **Compliant — Pending Assessor Review** — nothing failed, but compensating controls or the
-  customized approach are in play. These cannot be self-validated; a QSA must review the worksheets.
+- **Compliant — Pending Assessor Review** — nothing failed, but compensating controls are in play.
+  A compensating control cannot be self-validated; a QSA must review the Appendix C worksheet.
 - **Compliant** — every applicable requirement is in place or justifiably N/A.
 
 Requirements where N/A is never legitimate (documented policies, assigned roles, and similar) have

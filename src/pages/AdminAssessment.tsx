@@ -71,7 +71,7 @@ export default function AdminAssessment() {
 
   const { assessment, result } = data;
   const counts = result?.totals.counts;
-  const reviewCount = counts ? counts['yes-ccw'] + counts['yes-customized'] : 0;
+  const reviewCount = counts ? counts['yes-ccw'] : 0;
 
   const saveNotes = async () => {
     await api.patch(`/api/admin/assessments/${id}`, { internalNotes: notes });
@@ -231,7 +231,7 @@ export default function AdminAssessment() {
         )}
         {result && result.reviewItems.length > 0 && (
           <EntryList
-            title="Compensating controls and customized approach"
+            title="Compensating controls"
             tone="review"
             entries={result.reviewItems}
             notesLabel="Control description"

@@ -103,7 +103,6 @@ function countsTable(doc, result) {
   const rows = [
     ['In place (Yes)', result.totals.counts.yes],
     ['Yes with compensating control', result.totals.counts['yes-ccw']],
-    ['Yes with customized approach', result.totals.counts['yes-customized']],
     ['Not in place (No)', result.totals.counts.no],
     ['Not applicable', result.totals.counts.na],
     ['Unanswered', result.totals.counts.unanswered],
@@ -152,7 +151,7 @@ function sectionSummaryTable(doc, result) {
     const y = doc.y;
     const label = `${typeof section.id === 'number' ? `Req ${section.id}` : section.id}: ${section.title}`;
     doc.fillColor(INK).font('Helvetica').fontSize(9).text(label, left, y, { width: width - 210, lineBreak: false, ellipsis: true });
-    const yesTotal = section.counts.yes + section.counts['yes-ccw'] + section.counts['yes-customized'];
+    const yesTotal = section.counts.yes + section.counts['yes-ccw'];
     doc.fillColor(INK).font('Helvetica').fontSize(9);
     doc.text(String(yesTotal), left + width - 200, y, { width: 40, align: 'right' });
     doc.fillColor(section.counts.no ? FAIL : INK).text(String(section.counts.no), left + width - 160, y, { width: 40, align: 'right' });
@@ -289,7 +288,7 @@ export function buildGapReport(res, assessment, result) {
     heading(
       doc,
       'Items requiring assessor validation',
-      'Compensating controls and customized approach implementations cannot be self-validated. A QSA must review the supporting documentation.'
+      'Compensating controls cannot be self-validated. A QSA must review the Appendix C worksheet behind each one.'
     );
     result.reviewItems.forEach((item, i) => {
       gapEntry(doc, item, i + 1, {
@@ -424,8 +423,8 @@ export function buildAttestation(res, assessment, result) {
     doc.moveDown(0.8);
   } else if (result.determination === 'pending-review') {
     doc.fillColor(REVIEW).font('Helvetica-Bold').fontSize(10).text(
-      `${result.totals.counts['yes-ccw'] + result.totals.counts['yes-customized']} requirement(s) rely on a compensating control or ` +
-        'the customized approach. A Qualified Security Assessor must validate the supporting worksheets before this attestation is signed.',
+      `${result.totals.counts['yes-ccw']} requirement(s) rely on a compensating control. A Qualified Security ` +
+        'Assessor must validate the Appendix C worksheets before this attestation is signed.',
       { width, align: 'justify' }
     );
     doc.moveDown(0.8);

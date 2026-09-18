@@ -44,17 +44,38 @@ export function checkAdminPassword(candidate) {
   return crypto.timingSafeEqual(a, b);
 }
 
+/** Loopback and private ranges: where a TLS-terminating proxy in front of this
+ *  process connects from. A request arriving from anywhere else reached the
+ *  application directly. */
+function isPrivatePeer(address) {
+  if (!address) return false;
+  const ip = address.startsWith('::ffff:') ? address.slice(7) : address;
+  if (ip === '127.0.0.1' || ip === '::1') return true;
+  if (/^10\./.test(ip) || /^192\.168\./.test(ip)) return true;
+  if (/^172\.(1[6-9]|2\d|3[01])\./.test(ip)) return true;
+  if (/^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./.test(ip)) return true; // CGNAT
+  if (/^f[cd]/i.test(ip)) return true; // fc00::/7
+  return false;
+}
+
 /**
- * Whether to mark the session cookie Secure.
+ * Whether the request reached this process over TLS.
  *
- * Keying this off NODE_ENV alone is unreliable: a platform may not set it at
- * runtime, and the cookie would then be sent over plaintext. Decide from the
- * request instead — Express resolves `req.secure` from X-Forwarded-Proto when
- * `trust proxy` is set, which is how it runs behind Railway's edge. Any request
- * that did not arrive over HTTPS is treated as local development.
+ * Direct TLS is decided from the socket. X-Forwarded-Proto is only believed
+ * when the connection came from a proxy — that is, from a loopback or private
+ * address — because the header is set by whoever opened the connection. Trusting
+ * it unconditionally (which is what `req.secure` does under `trust proxy`) let
+ * any client on the internet send `X-Forwarded-Proto: https` over plain HTTP and
+ * satisfy the check below, which exists precisely to stop the admin password
+ * crossing the network in clear text.
+ *
+ * The platform's edge always reaches the application over its private network,
+ * so this costs a correctly deployed instance nothing.
  */
 function isHttps(req) {
-  return req.secure || (req.get('x-forwarded-proto') || '').split(',')[0].trim() === 'https';
+  if (req.socket?.encrypted) return true;
+  if (!isPrivatePeer(req.socket?.remoteAddress)) return false;
+  return (req.get('x-forwarded-proto') || '').split(',')[0].trim() === 'https';
 }
 
 /** Local development, where there is no TLS to have and nothing to intercept. */
