@@ -37,14 +37,89 @@ export async function issueEpoch() {
 }
 
 /**
- * Base URL for client invite links. PUBLIC_BASE_URL wins so links stay stable
- * behind a proxy; otherwise fall back to the request's own origin.
+ * Reads an assessment and its answers from one database snapshot.
+ *
+ * The two used to be read separately, so a write committing between them
+ * produced a payload holding the new answers under the old revision. The client
+ * would then be refused at submission over a change it was already looking at,
+ * and could only get out of it by reloading. A repeatable-read transaction
+ * gives both from the same point in time.
+ */
+export async function readSnapshot(token) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN TRANSACTION READ ONLY ISOLATION LEVEL REPEATABLE READ');
+    const { rows } = await client.query('SELECT * FROM assessments WHERE token = $1', [token]);
+    const assessment = rows[0] || null;
+    if (!assessment) {
+      await client.query('COMMIT');
+      return { assessment: null, answers: {} };
+    }
+
+    const { rows: answerRows } = await client.query(
+      `SELECT question_id, response, justification, evidence, updated_at
+         FROM answers
+        WHERE assessment_id = $1 AND response IS NOT NULL`,
+      [assessment.id]
+    );
+    await client.query('COMMIT');
+
+    const answers = {};
+    for (const row of answerRows) {
+      answers[row.question_id] = {
+        response: row.response,
+        justification: row.justification,
+        evidence: row.evidence,
+        updatedAt: row.updated_at,
+      };
+    }
+    return { assessment, answers };
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+const warnedHosts = new Set();
+
+/**
+ * Base URL for client invite links.
+ *
+ * PUBLIC_BASE_URL wins, so links stay stable behind a proxy. The fallback is the
+ * requesting host, which is a header: a request reaching this service with a
+ * Host that is not really this deployment produces a link carrying a live bearer
+ * token on somebody else's origin, and an assessor would have no way to tell
+ * from looking at it. That is fine for local development and not fine in
+ * production, so the fallback says so — in the log and to the admin UI, which
+ * shows the warning beside the link it just generated.
  */
 export function publicBaseUrl(req) {
   const configured = process.env.PUBLIC_BASE_URL;
   if (configured) return configured.replace(/\/+$/, '');
   const proto = req.get('x-forwarded-proto') || req.protocol;
-  return `${proto}://${req.get('host')}`;
+  const host = req.get('host');
+  if (!isLocalHost(host) && !warnedHosts.has(host)) {
+    warnedHosts.add(host);
+    console.warn(
+      `PUBLIC_BASE_URL is not set, so client links are being built from the Host header ("${host}"). ` +
+        'Set PUBLIC_BASE_URL to this deployment\'s address: a request arriving with another host would ' +
+        'otherwise produce a link that puts a working client token on that host.'
+    );
+  }
+  return `${proto}://${host}`;
+}
+
+/** Whether generated links would point at a developer's own machine. */
+export function isLocalHost(host) {
+  const name = (host || '').split(':')[0].toLowerCase();
+  return name === 'localhost' || name === '127.0.0.1' || name === '::1' || name === '[::1]';
+}
+
+/** True when a link was built from the request rather than from configuration. */
+export function linkBaseIsFromRequest(req) {
+  return !process.env.PUBLIC_BASE_URL && !isLocalHost(req.get('host'));
 }
 
 /**

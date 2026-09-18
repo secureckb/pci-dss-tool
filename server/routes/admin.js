@@ -13,7 +13,7 @@ import { scoreAssessment } from '../../shared/scoring.js';
 import { VARIANTS } from '../../shared/questions/index.js';
 import { SAQ_TYPES } from '../../shared/eligibility.js';
 import { buildGapReport, buildAttestation } from '../pdf.js';
-import { loadAnswers, publicBaseUrl, withLockedAssessment } from '../helpers.js';
+import { linkBaseIsFromRequest, loadAnswers, publicBaseUrl, withLockedAssessment } from '../helpers.js';
 
 const router = asyncRouter();
 
@@ -196,7 +196,15 @@ router.post('/assessments', async (req, res) => {
     ]
   );
 
-  res.status(201).json({ id, token, link: `${publicBaseUrl(req)}/q/${token}` });
+  res.status(201).json({
+    id,
+    token,
+    link: `${publicBaseUrl(req)}/q/${token}`,
+    // Tells the admin UI to say where this link's address came from. A link
+    // built from the request's Host header is only as trustworthy as that
+    // header, and the assessor is the one about to send it to a client.
+    linkFromRequestHost: linkBaseIsFromRequest(req),
+  });
 });
 
 async function getAssessmentById(id) {
@@ -279,8 +287,12 @@ router.post('/assessments/:id/reset-eligibility', async (req, res) => {
               status = 'in-progress', submitted_at = NULL, submitted_by = NULL, submitted_title = NULL,
               -- Moving the revision tells a client still holding the old
               -- questionnaire that what it is showing is gone, rather than
-              -- letting it submit answers this reset has just deleted.
+              -- letting it submit answers this reset has just deleted. The
+              -- generation goes further: a write already in flight from that
+              -- page is refused outright, so it cannot restore a deleted answer
+              -- into the reassessment once eligibility is settled again.
               answers_revision = answers_revision + 1,
+              generation = generation + 1,
               updated_at = now()
         WHERE id = $1`,
       [req.params.id]

@@ -9,13 +9,38 @@ if (!process.env.DATABASE_URL) {
   process.exit(1);
 }
 
-// Railway's managed Postgres presents a certificate that does not chain to a
-// public root, so verification is disabled for non-local connections only.
+// A local socket has nothing to intercept; anything else is verified.
+//
+// This used to pass `rejectUnauthorized: false` for every remote connection,
+// because some managed Postgres certificates do not chain to a public root.
+// That turns TLS into encryption without authentication: anything on the path
+// can present its own certificate, take the connection, and read every
+// assessment and the credentials used to reach them. Providers whose
+// certificates cannot be verified now have to be declared, rather than every
+// deployment silently paying for them.
+//
+//   DATABASE_CA        PEM for a private root, if the provider publishes one.
+//   DATABASE_SSL=no-verify   Encrypt but do not verify. A deliberate choice.
+//   DATABASE_SSL=off   No TLS at all, for a private network that has none.
 const isLocal = /localhost|127\.0\.0\.1/.test(process.env.DATABASE_URL);
+const sslMode = (process.env.DATABASE_SSL || '').trim().toLowerCase();
+
+function sslConfig() {
+  if (isLocal || sslMode === 'off') return false;
+  if (sslMode === 'no-verify') {
+    console.warn(
+      'DATABASE_SSL=no-verify: the Postgres certificate is not being verified. The connection is ' +
+        'encrypted but not authenticated, so anything on the network path can impersonate the database.'
+    );
+    return { rejectUnauthorized: false };
+  }
+  if (process.env.DATABASE_CA) return { rejectUnauthorized: true, ca: process.env.DATABASE_CA };
+  return { rejectUnauthorized: true };
+}
 
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: isLocal ? false : { rejectUnauthorized: false },
+  ssl: sslConfig(),
   max: 10,
   idleTimeoutMillis: 30_000,
 });
@@ -49,7 +74,11 @@ CREATE TABLE IF NOT EXISTS assessments (
   -- Counts applied answer writes. A client that loaded the questionnaire, and
   -- then finds this has moved further than its own writes account for, is
   -- looking at answers that are no longer what the server holds.
-  answers_revision bigint NOT NULL DEFAULT 0
+  answers_revision bigint NOT NULL DEFAULT 0,
+  -- Bumped whenever the questionnaire itself is replaced: an eligibility change
+  -- or an assessor's reset. A write from a page that belongs to an earlier
+  -- generation is answering a questionnaire that no longer exists.
+  generation bigint NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS answers (
@@ -81,6 +110,7 @@ ALTER TABLE assessments ADD COLUMN IF NOT EXISTS eligibility jsonb;
 ALTER TABLE assessments ADD COLUMN IF NOT EXISTS eligibility_completed_at timestamptz;
 ALTER TABLE assessments ALTER COLUMN variant DROP NOT NULL;
 ALTER TABLE assessments ADD COLUMN IF NOT EXISTS answers_revision bigint NOT NULL DEFAULT 0;
+ALTER TABLE assessments ADD COLUMN IF NOT EXISTS generation bigint NOT NULL DEFAULT 0;
 ALTER TABLE answers ADD COLUMN IF NOT EXISTS client_epoch bigint NOT NULL DEFAULT 0;
 ALTER TABLE answers ADD COLUMN IF NOT EXISTS client_seq bigint NOT NULL DEFAULT 0;
 ALTER TABLE answers ALTER COLUMN response DROP NOT NULL;

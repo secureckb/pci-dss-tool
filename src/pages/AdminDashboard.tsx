@@ -11,6 +11,10 @@ export default function AdminDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [createdLink, setCreatedLink] = useState<string | null>(null);
+  // Whether that link's address came from the request's Host header rather than
+  // from PUBLIC_BASE_URL. The assessor is about to send it to a client, so they
+  // should know it is only as trustworthy as the host they reached this page on.
+  const [linkFromHost, setLinkFromHost] = useState(false);
 
   const load = () =>
     api
@@ -67,14 +71,22 @@ export default function AdminDashboard() {
                 the intended contact.
               </p>
               <CopyLink link={createdLink} />
+              {linkFromHost && (
+                <p className="small" style={{ marginTop: 10, marginBottom: 0, color: 'var(--fail)' }}>
+                  This address was taken from the host you are viewing this page on, because
+                  <code> PUBLIC_BASE_URL</code> is not set. Check it is the address your clients should use before
+                  sending the link.
+                </p>
+              )}
             </div>
           </div>
         )}
 
         {showForm && (
           <NewAssessmentForm
-            onCreated={(link) => {
+            onCreated={(link, fromHost) => {
               setCreatedLink(link);
+              setLinkFromHost(fromHost);
               setShowForm(false);
               load();
             }}
@@ -146,7 +158,13 @@ export default function AdminDashboard() {
   );
 }
 
-function NewAssessmentForm({ onCreated, onCancel }: { onCreated: (link: string) => void; onCancel: () => void }) {
+function NewAssessmentForm({
+  onCreated,
+  onCancel,
+}: {
+  onCreated: (link: string, linkFromRequestHost: boolean) => void;
+  onCancel: () => void;
+}) {
   const [form, setForm] = useState({
     clientName: '',
     dba: '',
@@ -167,8 +185,11 @@ function NewAssessmentForm({ onCreated, onCancel }: { onCreated: (link: string) 
     setBusy(true);
     setError(null);
     try {
-      const res = await api.post<{ link: string }>('/api/admin/assessments', form);
-      onCreated(res.link);
+      const res = await api.post<{ link: string; linkFromRequestHost?: boolean }>(
+        '/api/admin/assessments',
+        form
+      );
+      onCreated(res.link, Boolean(res.linkFromRequestHost));
     } catch (err: any) {
       setError(err.message);
       setBusy(false);
