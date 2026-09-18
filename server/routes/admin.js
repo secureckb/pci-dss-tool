@@ -53,7 +53,10 @@ router.post('/login', async (req, res) => {
     return res.status(401).json({ error: 'Incorrect password.' });
   }
 
-  loginFailures.count = 0;
+  // Deliberately not clearing the failure count here. With a single shared
+  // password the counter is global, so resetting it on success would let an
+  // attacker's attempts be wiped by the admin's own routine sign-ins. The
+  // window ages out on its own instead.
   loginFailures.lockedUntil = 0;
   setSessionCookie(req, res);
   res.json({ ok: true });
