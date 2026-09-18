@@ -1,10 +1,10 @@
 import { asyncRouter } from '../async-router.js';
-import { query, pool } from '../db.js';
+import { query } from '../db.js';
 import { scoreAssessment, RESPONSES } from '../../shared/scoring.js';
 import { getSections, getQuestion, VARIANTS } from '../../shared/questions/index.js';
 import { determineSaq, prunedAnswers, ELIGIBILITY_STEPS, FIRST_STEP, SAQ_TYPES } from '../../shared/eligibility.js';
 import { buildGapReport, buildAttestation } from '../pdf.js';
-import { loadAnswers } from '../helpers.js';
+import { loadAnswers, withLockedAssessment } from '../helpers.js';
 
 const router = asyncRouter();
 
@@ -96,10 +96,6 @@ router.get('/:token', withAssessment, async (req, res) => {
  * needs the assessor to reset it deliberately.
  */
 router.post('/:token/eligibility', withAssessment, async (req, res) => {
-  if (req.assessment.status === 'submitted') {
-    return res.status(409).json({ error: 'This assessment has been submitted and can no longer be changed.' });
-  }
-
   const submitted = req.body?.answers;
   if (!submitted || typeof submitted !== 'object' || Array.isArray(submitted)) {
     return res.status(400).json({ error: 'Eligibility answers are required.' });
@@ -127,32 +123,33 @@ router.post('/:token/eligibility', withAssessment, async (req, res) => {
     determinedAt: outcome.determinedAt,
   };
 
-  // The answer count and the SAQ change must be one atomic step under the same
-  // row lock that answer writes take. Otherwise a stale wizard tab could pass
-  // the zero-answer check while another tab saves the first answer, and the SAQ
-  // would change out from under an answer that survives.
-  const client = await pool.connect();
-  try {
-    await client.query('BEGIN');
-    await client.query('SELECT id FROM assessments WHERE id = $1 FOR UPDATE', [req.assessment.id]);
+  const { status, body } = await withLockedAssessment(req.assessment.id, async (client, current) => {
+    // Every guard below reads `current`, the row as it stands under the lock.
+    // Using the copy loaded before the lock would let a wizard tab that has been
+    // open since before another tab started answering pass these checks and
+    // delete that work.
+    if (current.status === 'submitted') {
+      return { status: 409, body: { error: 'This assessment has been submitted and can no longer be changed.' } };
+    }
 
     const { rows: counted } = await client.query(
       'SELECT COUNT(*)::int AS count FROM answers WHERE assessment_id = $1',
       [req.assessment.id]
     );
-    if (req.assessment.eligibility_completed_at && counted[0].count > 0) {
-      await client.query('ROLLBACK');
-      return res.status(409).json({
-        error:
-          'The questionnaire has already been started, so the SAQ type cannot be changed here. Ask your assessor to reset it.',
-      });
+    if (current.eligibility_completed_at && counted[0].count > 0) {
+      return {
+        status: 409,
+        body: {
+          error:
+            'The questionnaire has already been started, so the SAQ type cannot be changed here. Ask your assessor to reset it.',
+        },
+      };
     }
-
-    // Any answers still present belong to a questionnaire that is about to be
-    // replaced, so they go with it. Doing this inside the lock means an answer
-    // saved concurrently is either counted above and blocks the change, or is
-    // written after it against the new SAQ.
-    await client.query('DELETE FROM answers WHERE assessment_id = $1', [req.assessment.id]);
+    // An answer recorded without a determination cannot belong to the SAQ about
+    // to be set, so it goes with the questionnaire it was answered against.
+    if (counted[0].count > 0) {
+      await client.query('DELETE FROM answers WHERE assessment_id = $1', [req.assessment.id]);
+    }
 
     await client.query(
       `UPDATE assessments
@@ -164,43 +161,38 @@ router.post('/:token/eligibility', withAssessment, async (req, res) => {
         WHERE id = $1`,
       [req.assessment.id, outcome.saqType, outcome.variant, JSON.stringify(record)]
     );
-    await client.query('COMMIT');
-  } catch (err) {
-    await client.query('ROLLBACK').catch(() => {});
-    throw err;
-  } finally {
-    client.release();
-  }
 
-  res.json({
-    saqType: outcome.saqType,
-    saq: outcome.saq,
-    administered: outcome.administered,
-    path: outcome.path,
-    notes: outcome.notes,
+    return {
+      status: 200,
+      body: {
+        saqType: outcome.saqType,
+        saq: outcome.saq,
+        administered: outcome.administered,
+        path: outcome.path,
+        notes: outcome.notes,
+      },
+    };
   });
+
+  res.status(status).json(body);
 });
 
 /** Clear a determination so the client can run the wizard again, when nothing has been answered. */
 router.post('/:token/eligibility/reset', withAssessment, async (req, res) => {
-  if (req.assessment.status === 'submitted') {
-    return res.status(409).json({ error: 'This assessment has been submitted and can no longer be changed.' });
-  }
-
-  const client = await pool.connect();
-  try {
-    await client.query('BEGIN');
-    await client.query('SELECT id FROM assessments WHERE id = $1 FOR UPDATE', [req.assessment.id]);
+  const { status, body } = await withLockedAssessment(req.assessment.id, async (client, current) => {
+    if (current.status === 'submitted') {
+      return { status: 409, body: { error: 'This assessment has been submitted and can no longer be changed.' } };
+    }
 
     const { rows } = await client.query(
       'SELECT COUNT(*)::int AS count FROM answers WHERE assessment_id = $1',
       [req.assessment.id]
     );
     if (rows[0].count > 0) {
-      await client.query('ROLLBACK');
-      return res.status(409).json({
-        error: 'The questionnaire has already been started. Ask your assessor to reset it.',
-      });
+      return {
+        status: 409,
+        body: { error: 'The questionnaire has already been started. Ask your assessor to reset it.' },
+      };
     }
 
     await client.query(
@@ -210,36 +202,19 @@ router.post('/:token/eligibility/reset', withAssessment, async (req, res) => {
         WHERE id = $1`,
       [req.assessment.id]
     );
-    await client.query('COMMIT');
-  } catch (err) {
-    await client.query('ROLLBACK').catch(() => {});
-    throw err;
-  } finally {
-    client.release();
-  }
+    return { status: 200, body: { ok: true } };
+  });
 
-  res.json({ ok: true });
+  res.status(status).json(body);
 });
 
 router.put('/:token/answers/:questionId', withAssessment, requireVariant, async (req, res) => {
-  if (req.assessment.status === 'submitted') {
-    return res.status(409).json({ error: 'This questionnaire has been submitted and can no longer be edited.' });
-  }
-
-  const question = getQuestion(req.assessment.variant, req.params.questionId);
-  if (!question) {
-    return res.status(404).json({ error: 'Unknown requirement for this questionnaire.' });
-  }
-
   const { response, justification = '', evidence = '' } = req.body || {};
 
   // Reject oversized text rather than silently truncating it: a client whose
   // compensating-control description was cut in half would not find out until
-  // the assessor read the report.
-  //
-  // The type check comes first. Checking `typeof value === 'string'` and then
-  // coercing with String() later would let an array through the limit entirely
-  // and store whatever it stringifies to.
+  // the assessor read the report. The type check comes first, so a value that
+  // is not a string cannot slip past the limit and be coerced afterwards.
   for (const [field, value] of [['justification', justification], ['evidence', evidence]]) {
     if (typeof value !== 'string') {
       return res.status(400).json({ error: `The ${field} must be text.`, field });
@@ -254,50 +229,34 @@ router.put('/:token/answers/:questionId', withAssessment, requireVariant, async 
   }
 
   const clearing = response === null || response === '';
-
-  if (!clearing) {
-    if (!RESPONSES[response]) {
-      return res.status(400).json({ error: 'Invalid response value.' });
-    }
-    if (response === 'na' && !question.allowNA) {
-      return res.status(400).json({
-        error: 'This requirement cannot be marked Not Applicable. It applies to every entity completing SAQ D.',
-      });
-    }
+  if (!clearing && !RESPONSES[response]) {
+    return res.status(400).json({ error: 'Invalid response value.' });
   }
 
-  // The status was read by withAssessment, so a submit could have landed since.
-  // Taking FOR UPDATE on the assessment row makes this wait for any submission
-  // in flight and then see its result, rather than writing over locked answers.
-  // It also serializes writes for one assessment, so two saves for the same
-  // requirement cannot be applied out of order.
-  const client = await pool.connect();
-  try {
-    await client.query('BEGIN');
+  const { status, body } = await withLockedAssessment(req.assessment.id, async (client, current) => {
+    if (current.status === 'submitted') {
+      return { status: 409, body: { error: 'This questionnaire has been submitted and can no longer be edited.' } };
+    }
+    // The SAQ type may have been reset or changed since this request read the
+    // assessment, so the requirement is resolved against the locked row.
+    if (!current.variant) {
+      return { status: 409, body: { error: 'The eligibility questions have not been completed yet.' } };
+    }
 
-    const { rows } = await client.query(
-      'SELECT status, variant FROM assessments WHERE id = $1 FOR UPDATE',
-      [req.assessment.id]
-    );
-    if (!rows[0]) {
-      await client.query('ROLLBACK');
-      return res.status(404).json({ error: 'This questionnaire link is not valid.' });
+    const question = getQuestion(current.variant, req.params.questionId);
+    if (!question) {
+      return {
+        status: 409,
+        body: { error: 'The questionnaire changed while you were answering. Reload the page to continue.' },
+      };
     }
-    if (rows[0].status === 'submitted') {
-      await client.query('ROLLBACK');
-      return res.status(409).json({ error: 'This questionnaire has been submitted and can no longer be edited.' });
-    }
-    // Re-check against the variant as it stands under the lock: the SAQ type may
-    // have been reset or changed since this request's assessment row was read.
-    if (!rows[0].variant) {
-      await client.query('ROLLBACK');
-      return res.status(409).json({ error: 'The eligibility questions have not been completed yet.' });
-    }
-    if (!getQuestion(rows[0].variant, question.id)) {
-      await client.query('ROLLBACK');
-      return res.status(409).json({
-        error: 'The questionnaire changed while you were answering. Reload the page to continue.',
-      });
+    if (!clearing && response === 'na' && !question.allowNA) {
+      return {
+        status: 400,
+        body: {
+          error: 'This requirement cannot be marked Not Applicable. It applies to every entity completing SAQ D.',
+        },
+      };
     }
 
     if (clearing) {
@@ -314,19 +273,15 @@ router.put('/:token/answers/:questionId', withAssessment, requireVariant, async 
                        justification = EXCLUDED.justification,
                        evidence = EXCLUDED.evidence,
                        updated_at = now()`,
-        [req.assessment.id, question.id, response, String(justification), String(evidence)]
+        [req.assessment.id, question.id, response, justification, evidence]
       );
     }
 
     await client.query('UPDATE assessments SET updated_at = now() WHERE id = $1', [req.assessment.id]);
-    await client.query('COMMIT');
-    res.json({ ok: true, cleared: clearing });
-  } catch (err) {
-    await client.query('ROLLBACK').catch(() => {});
-    throw err;
-  } finally {
-    client.release();
-  }
+    return { status: 200, body: { ok: true, cleared: clearing } };
+  });
+
+  res.status(status).json(body);
 });
 
 router.post('/:token/submit', withAssessment, requireVariant, async (req, res) => {
@@ -335,26 +290,12 @@ router.post('/:token/submit', withAssessment, requireVariant, async (req, res) =
     return res.status(400).json({ error: 'Enter the name of the person attesting to these answers.' });
   }
 
-  // Scoring and locking happen in one transaction, with the assessment row held
-  // under FOR UPDATE. Without it, an answer save in flight could land between
-  // the score and the status change, so the stored result would not match the
-  // answers that were attested to.
-  const client = await pool.connect();
-  try {
-    await client.query('BEGIN');
-
-    const { rows } = await client.query(
-      "SELECT status, variant FROM assessments WHERE id = $1 FOR UPDATE",
-      [req.assessment.id]
-    );
-    const current = rows[0];
-    if (!current) {
-      await client.query('ROLLBACK');
-      return res.status(404).json({ error: 'This questionnaire link is not valid.' });
-    }
+  const { status, body } = await withLockedAssessment(req.assessment.id, async (client, current) => {
     if (current.status === 'submitted') {
-      await client.query('ROLLBACK');
-      return res.status(409).json({ error: 'This questionnaire has already been submitted.' });
+      return { status: 409, body: { error: 'This questionnaire has already been submitted.' } };
+    }
+    if (!current.variant) {
+      return { status: 409, body: { error: 'The eligibility questions have not been completed yet.' } };
     }
 
     const { rows: answerRows } = await client.query(
@@ -368,34 +309,33 @@ router.post('/:token/submit', withAssessment, requireVariant, async (req, res) =
       ])
     );
 
+    // Scored under the lock, so the answers attested to are exactly the answers
+    // stored: no save can land between scoring them and locking them.
     const result = scoreAssessment(current.variant, answers);
 
-    // An incomplete questionnaire cannot produce a determination, so it cannot be submitted.
     if (result.determination === 'incomplete') {
-      await client.query('ROLLBACK');
-      return res.status(400).json({
-        error: 'The questionnaire is not complete.',
-        unanswered: result.unanswered.map((q) => q.id),
-        missingJustification: result.missingJustification.map((q) => q.id),
-      });
+      return {
+        status: 400,
+        body: {
+          error: 'The questionnaire is not complete.',
+          unanswered: result.unanswered.map((q) => q.id),
+          missingJustification: result.missingJustification.map((q) => q.id),
+        },
+      };
     }
 
     await client.query(
       `UPDATE assessments
           SET status = 'submitted', submitted_at = now(), submitted_by = $2,
               submitted_title = $3, updated_at = now()
-        WHERE id = $1 AND status = 'in-progress'`,
+        WHERE id = $1`,
       [req.assessment.id, String(name).trim().slice(0, 200), String(title || '').trim().slice(0, 200) || null]
     );
 
-    await client.query('COMMIT');
-    res.json({ ok: true, result });
-  } catch (err) {
-    await client.query('ROLLBACK').catch(() => {});
-    throw err;
-  } finally {
-    client.release();
-  }
+    return { status: 200, body: { ok: true, result } };
+  });
+
+  res.status(status).json(body);
 });
 
 router.get('/:token/result', withAssessment, requireVariant, async (req, res) => {
