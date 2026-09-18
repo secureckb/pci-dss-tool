@@ -57,12 +57,21 @@ export default function Questionnaire() {
   // never land out of order and leave the older value stored.
   const saveChains = useRef<Record<string, Promise<void>>>({});
   // The latest value for a question whose debounce has not fired yet, so it can
-  // be flushed before submitting instead of being cancelled by navigation.
-  const pendingText = useRef<Record<string, Answer>>({});
+  // be flushed rather than cancelled. Each entry carries the revision it was
+  // buffered at: a save that completes may only clear the entry it actually
+  // wrote, or a slow earlier request would erase text typed while it was in
+  // flight and the debounce would then find nothing to send.
+  const pendingText = useRef<Record<string, { answer: Answer; rev: number }>>({});
+  const revCounter = useRef(0);
   const inFlight = useRef(0);
   // Set when any save fails and cleared on the next success, so submission can
   // refuse to proceed on answers the server never accepted.
   const saveFailed = useRef(false);
+  // Lets the unmount cleanup reach the current persist without re-running the
+  // effect (and so re-registering the unload listeners) on every render.
+  const persistRef = useRef<
+    ((questionId: string, answer: Answer | null, rev?: number) => Promise<void>) | null
+  >(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -84,13 +93,57 @@ export default function Questionnaire() {
     };
   }, [token, navigate]);
 
+  /**
+   * Nothing typed should be lost by leaving the page.
+   *
+   * On unmount (navigating within the app) the debounce is cancelled but the
+   * buffered edits are sent: the requests outlive the component. On a tab close
+   * or reload there is no time for a normal request, so they go with `keepalive`,
+   * which the browser is permitted to finish after the page is gone.
+   */
   useEffect(() => {
-    const pending = timers.current;
-    return () => Object.values(pending).forEach(clearTimeout);
-  }, []);
+    const flushWithKeepalive = () => {
+      for (const [questionId, entry] of Object.entries(pendingText.current)) {
+        try {
+          fetch(`/api/assessment/${token}/answers/${questionId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            keepalive: true,
+            body: JSON.stringify({
+              response: entry.answer.response,
+              justification: entry.answer.justification,
+              evidence: entry.answer.evidence,
+            }),
+          });
+        } catch {
+          // Nothing useful can be done as the page goes away.
+        }
+      }
+    };
+
+    // Safari and mobile browsers often skip beforeunload; visibilitychange fires.
+    const onHide = () => {
+      if (document.visibilityState === 'hidden') flushWithKeepalive();
+    };
+    window.addEventListener('beforeunload', flushWithKeepalive);
+    document.addEventListener('visibilitychange', onHide);
+
+    return () => {
+      window.removeEventListener('beforeunload', flushWithKeepalive);
+      document.removeEventListener('visibilitychange', onHide);
+      Object.values(timers.current).forEach(clearTimeout);
+      timers.current = {};
+      // Fire, do not await: these requests complete after this component goes.
+      for (const [questionId, entry] of Object.entries(pendingText.current)) {
+        persistRef.current?.(questionId, entry.answer, entry.rev).catch(() => {});
+      }
+      pendingText.current = {};
+    };
+  }, [token]);
 
   const persist = useCallback(
-    (questionId: string, answer: Answer | null) => {
+    (questionId: string, answer: Answer | null, rev?: number) => {
       setSaveState('saving');
       setSaveError(null);
       inFlight.current += 1;
@@ -106,7 +159,11 @@ export default function Questionnaire() {
               justification: answer?.justification ?? '',
               evidence: answer?.evidence ?? '',
             });
-            delete pendingText.current[questionId];
+            // Only clear the buffered edit if it is still the one just written.
+            const buffered = pendingText.current[questionId];
+            if (buffered && (rev === undefined || buffered.rev === rev)) {
+              delete pendingText.current[questionId];
+            }
             saveFailed.current = false;
           } catch (err) {
             saveFailed.current = true;
@@ -127,6 +184,8 @@ export default function Questionnaire() {
     },
     [token]
   );
+
+  persistRef.current = persist;
 
   const setResponse = (question: Question, response: Answer['response']) => {
     const current = answers[question.id];
@@ -149,10 +208,12 @@ export default function Questionnaire() {
 
     clearTimeout(timers.current[question.id]);
     delete timers.current[question.id];
-    if (next) pendingText.current[question.id] = next;
+
+    const rev = ++revCounter.current;
+    if (next) pendingText.current[question.id] = { answer: next, rev };
     else delete pendingText.current[question.id];
 
-    persist(question.id, next).catch(() => {});
+    persist(question.id, next, rev).catch(() => {});
   };
 
   const setText = (question: Question, field: 'justification' | 'evidence', value: string) => {
@@ -163,17 +224,18 @@ export default function Questionnaire() {
     });
 
     clearTimeout(timers.current[question.id]);
+    const rev = ++revCounter.current;
     setAnswers((latest) => {
       const answer = latest[question.id];
-      // Remember the value even before the debounce fires, so submitting early
-      // flushes it rather than losing it to the cleanup that cancels timers.
-      if (answer) pendingText.current[question.id] = { ...answer, [field]: value };
+      // Buffer the value before the debounce fires, so an early submit or a
+      // navigation flushes it instead of losing it.
+      if (answer) pendingText.current[question.id] = { answer: { ...answer, [field]: value }, rev };
       return latest;
     });
 
     timers.current[question.id] = setTimeout(() => {
-      const answer = pendingText.current[question.id];
-      if (answer) persist(question.id, answer).catch(() => {});
+      const entry = pendingText.current[question.id];
+      if (entry && entry.rev === rev) persist(question.id, entry.answer, rev).catch(() => {});
     }, TEXT_SAVE_DELAY);
   };
 
@@ -184,7 +246,7 @@ export default function Questionnaire() {
 
     const pending = Object.entries(pendingText.current);
     pendingText.current = {};
-    await Promise.all(pending.map(([questionId, answer]) => persist(questionId, answer)));
+    await Promise.all(pending.map(([questionId, entry]) => persist(questionId, entry.answer, entry.rev)));
 
     // Saves started earlier may still be running. Those chains swallow their own
     // rejections so they never surface as unhandled, so the failure flag is what
