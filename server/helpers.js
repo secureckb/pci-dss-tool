@@ -37,19 +37,25 @@ export async function issueEpoch() {
 }
 
 /**
- * Reads an assessment and its answers from one database snapshot.
+ * Reads an assessment and its answers from one database snapshot, by token or
+ * by id.
  *
  * The two used to be read separately, so a write committing between them
  * produced a payload holding the new answers under the old revision. The client
  * would then be refused at submission over a change it was already looking at,
- * and could only get out of it by reloading. A repeatable-read transaction
- * gives both from the same point in time.
+ * and could only get out of it by reloading. Worse on the reporting routes: an
+ * assessor's reset between the two reads scored the old questionnaire against
+ * the deleted answers, and the report came out declaring a complete assessment
+ * entirely unanswered. A repeatable-read transaction gives both from the same
+ * point in time.
  */
-export async function readSnapshot(token) {
+export async function readSnapshot({ token, id }) {
   const client = await pool.connect();
   try {
     await client.query('BEGIN TRANSACTION READ ONLY ISOLATION LEVEL REPEATABLE READ');
-    const { rows } = await client.query('SELECT * FROM assessments WHERE token = $1', [token]);
+    const { rows } = token
+      ? await client.query('SELECT * FROM assessments WHERE token = $1', [token])
+      : await client.query('SELECT * FROM assessments WHERE id = $1', [id]);
     const assessment = rows[0] || null;
     if (!assessment) {
       await client.query('COMMIT');

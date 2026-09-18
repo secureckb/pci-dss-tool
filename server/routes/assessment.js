@@ -4,7 +4,7 @@ import { scoreAssessment, RESPONSES } from '../../shared/scoring.js';
 import { getSections, getQuestion, VARIANTS } from '../../shared/questions/index.js';
 import { determineSaq, prunedAnswers, ELIGIBILITY_STEPS, FIRST_STEP, SAQ_TYPES } from '../../shared/eligibility.js';
 import { buildGapReport, buildAttestation } from '../pdf.js';
-import { issueEpoch, loadAnswers, readSnapshot, withLockedAssessment } from '../helpers.js';
+import { issueEpoch, readSnapshot, withLockedAssessment } from '../helpers.js';
 
 const router = asyncRouter();
 
@@ -80,7 +80,7 @@ router.get('/:token', withAssessment, async (req, res) => {
   // from the same moment. Read separately, a write landing in between produced a
   // payload whose answers were newer than its revision, and the client would be
   // refused at submission over a change it was already looking at.
-  const { assessment, answers } = await readSnapshot(req.params.token);
+  const { assessment, answers } = await readSnapshot({ token: req.params.token });
   if (!assessment) {
     return res.status(404).json({ error: 'This questionnaire link is not valid. Check the link or ask for a new one.' });
   }
@@ -334,6 +334,13 @@ router.put('/:token/answers/:questionId', withAssessment, requireVariant, async 
     // The stored pair only moves forward. An unordered write still overwrites the
     // answer, but it must not drag the watermark back to (0, 0) — that would
     // reopen the row to every stale write that the real watermark was excluding.
+    //
+    // The comparison is strict, so a version already stored is a no-op rather
+    // than a second write. The page-hide flush sends a buffered edit without
+    // removing it, so the debounce that follows sends the same (epoch, seq)
+    // again: counted twice, the revision ran ahead of what the page could
+    // account for and it blocked its own submission as though another window
+    // had been editing.
     const { rows: written } = await client.query(
       `INSERT INTO answers (assessment_id, question_id, response, justification, evidence, client_epoch, client_seq)
        VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -351,7 +358,7 @@ router.put('/:token/answers/:questionId', withAssessment, requireVariant, async 
                        THEN EXCLUDED.client_seq ELSE answers.client_seq END,
                      updated_at = now()
          WHERE $8::boolean IS FALSE
-            OR (answers.client_epoch, answers.client_seq) <= (EXCLUDED.client_epoch, EXCLUDED.client_seq)
+            OR (answers.client_epoch, answers.client_seq) < (EXCLUDED.client_epoch, EXCLUDED.client_seq)
        RETURNING client_epoch`,
       [
         req.assessment.id,
@@ -486,17 +493,24 @@ router.post('/:token/submit', withAssessment, requireVariant, async (req, res) =
 });
 
 router.get('/:token/result', withAssessment, requireVariant, async (req, res) => {
-  const answers = await loadAnswers(req.assessment.id);
+  // From one snapshot: a reset landing between the two reads would otherwise
+  // score the old questionnaire against the answers it had just deleted.
+  const { assessment, answers } = await readSnapshot({ token: req.params.token });
+  if (!assessment?.variant) {
+    return res.status(409).json({ error: 'This assessment has no questionnaire to report on.', stage: 'eligibility' });
+  }
   res.json({
-    assessment: publicView(req.assessment),
-    result: scoreAssessment(req.assessment.variant, answers),
+    assessment: publicView(assessment),
+    result: scoreAssessment(assessment.variant, answers),
   });
 });
 
 router.get('/:token/report.pdf', withAssessment, requireVariant, async (req, res) => {
-  const answers = await loadAnswers(req.assessment.id);
-  const result = scoreAssessment(req.assessment.variant, answers);
-  buildGapReport(res, req.assessment, result, answers);
+  const { assessment, answers } = await readSnapshot({ token: req.params.token });
+  if (!assessment?.variant) {
+    return res.status(409).json({ error: 'This assessment has no questionnaire to report on.', stage: 'eligibility' });
+  }
+  buildGapReport(res, assessment, scoreAssessment(assessment.variant, answers), answers);
 });
 
 router.get('/:token/aoc.pdf', withAssessment, requireVariant, async (req, res) => {
@@ -509,9 +523,11 @@ router.get('/:token/aoc.pdf', withAssessment, requireVariant, async (req, res) =
     });
   }
 
-  const answers = await loadAnswers(req.assessment.id);
-  const result = scoreAssessment(req.assessment.variant, answers);
-  buildAttestation(res, req.assessment, result);
+  const { assessment, answers } = await readSnapshot({ token: req.params.token });
+  if (!assessment?.variant) {
+    return res.status(409).json({ error: 'This assessment has no questionnaire to attest to.', stage: 'eligibility' });
+  }
+  buildAttestation(res, assessment, scoreAssessment(assessment.variant, answers));
 });
 
 export default router;
