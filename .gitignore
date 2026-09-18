@@ -18,3 +18,7 @@ yarn-debug.log*
 .idea
 .DS_Store
 *.sw?
+
+# Playwright
+test-results
+playwright-report
