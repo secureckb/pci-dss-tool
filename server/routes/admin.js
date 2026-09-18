@@ -1,12 +1,12 @@
 import { asyncRouter } from '../async-router.js';
 import crypto from 'node:crypto';
-import { query, pool } from '../db.js';
+import { query } from '../db.js';
 import { checkAdminPassword, clearSessionCookie, isAdmin, requireAdmin, setSessionCookie } from '../auth.js';
 import { scoreAssessment } from '../../shared/scoring.js';
 import { VARIANTS } from '../../shared/questions/index.js';
 import { SAQ_TYPES } from '../../shared/eligibility.js';
 import { buildGapReport, buildAttestation } from '../pdf.js';
-import { loadAnswers, publicBaseUrl } from '../helpers.js';
+import { loadAnswers, publicBaseUrl, withLockedAssessment } from '../helpers.js';
 
 const router = asyncRouter();
 
@@ -237,49 +237,41 @@ router.patch('/assessments/:id', async (req, res) => {
  * the UI before the request is made.
  */
 router.post('/assessments/:id/reset-eligibility', async (req, res) => {
-  const assessment = await getAssessmentById(req.params.id);
-  if (!assessment) return res.status(404).json({ error: 'Assessment not found.' });
-
-  // Both statements run in one transaction under the assessment's row lock. A
-  // failure between them would otherwise leave the answers deleted but the old
-  // determination intact, which is unrecoverable client data lost for nothing.
-  // The lock also stops an answer write in flight from surviving the reset.
-  const client = await pool.connect();
-  try {
-    await client.query('BEGIN');
-    await client.query('SELECT id FROM assessments WHERE id = $1 FOR UPDATE', [assessment.id]);
-    await client.query('DELETE FROM answers WHERE assessment_id = $1', [assessment.id]);
+  const { status, body } = await withLockedAssessment(req.params.id, async (client) => {
+    await client.query('DELETE FROM answers WHERE assessment_id = $1', [req.params.id]);
     await client.query(
       `UPDATE assessments
           SET saq_type = NULL, variant = NULL, eligibility = NULL, eligibility_completed_at = NULL,
               status = 'in-progress', submitted_at = NULL, submitted_by = NULL, submitted_title = NULL,
               updated_at = now()
         WHERE id = $1`,
-      [assessment.id]
+      [req.params.id]
     );
-    await client.query('COMMIT');
-  } catch (err) {
-    await client.query('ROLLBACK').catch(() => {});
-    throw err;
-  } finally {
-    client.release();
-  }
+    return { status: 200, body: { ok: true } };
+  });
 
-  res.json({ ok: true });
+  res.status(status).json(body);
 });
 
 router.post('/assessments/:id/reopen', async (req, res) => {
-  const assessment = await getAssessmentById(req.params.id);
-  if (!assessment) return res.status(404).json({ error: 'Assessment not found.' });
+  // Takes the same lock as every other assessment mutation, so reopening cannot
+  // interleave with a submission in flight.
+  const { status, body } = await withLockedAssessment(req.params.id, async (client, current) => {
+    if (current.status !== 'submitted') {
+      return { status: 409, body: { error: 'This assessment is not submitted, so there is nothing to reopen.' } };
+    }
 
-  await query(
-    `UPDATE assessments
-        SET status = 'in-progress', submitted_at = NULL, submitted_by = NULL,
-            submitted_title = NULL, updated_at = now()
-      WHERE id = $1`,
-    [assessment.id]
-  );
-  res.json({ ok: true });
+    await client.query(
+      `UPDATE assessments
+          SET status = 'in-progress', submitted_at = NULL, submitted_by = NULL,
+              submitted_title = NULL, updated_at = now()
+        WHERE id = $1`,
+      [req.params.id]
+    );
+    return { status: 200, body: { ok: true } };
+  });
+
+  res.status(status).json(body);
 });
 
 router.delete('/assessments/:id', async (req, res) => {
