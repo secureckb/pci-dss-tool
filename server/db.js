@@ -24,9 +24,19 @@ if (!process.env.DATABASE_URL) {
 //   DATABASE_SSL=off   No TLS at all, for a private network that has none.
 const isLocal = /localhost|127\.0\.0\.1/.test(process.env.DATABASE_URL);
 const sslMode = (process.env.DATABASE_SSL || '').trim().toLowerCase();
+// A platform's private network — Railway's `*.railway.internal`, Render's
+// `*.internal` — is not reachable from outside and does not offer TLS at all.
+// Requiring it there is not a stricter policy, it is a connection that cannot be
+// made, so the default would fail a correct deployment with a TLS error. An
+// explicit DATABASE_SSL still wins over this.
+const isPrivateNetwork = /@[^/@]*\.(railway\.internal|internal)(:\d+)?\//.test(process.env.DATABASE_URL || '');
 
 function sslConfig() {
   if (isLocal || sslMode === 'off') return false;
+  if (!sslMode && isPrivateNetwork) {
+    console.log('Postgres is on the platform private network, which does not offer TLS. Connecting without it.');
+    return false;
+  }
   if (sslMode === 'no-verify') {
     console.warn(
       'DATABASE_SSL=no-verify: the Postgres certificate is not being verified. The connection is ' +

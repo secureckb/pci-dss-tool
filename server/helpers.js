@@ -91,9 +91,22 @@ export async function readSnapshot({ token, id }) {
 const warnedHosts = new Set();
 
 /**
+ * The domain the platform says it is serving this deployment on.
+ *
+ * Railway injects RAILWAY_PUBLIC_DOMAIN once a domain exists. Unlike the Host
+ * header this comes from the platform, not from whoever made the request, so it
+ * is safe to build a client link from — and it means a correct deployment does
+ * not depend on someone remembering to set PUBLIC_BASE_URL by hand.
+ */
+function platformDomain() {
+  const domain = process.env.RAILWAY_PUBLIC_DOMAIN;
+  return domain ? `https://${domain.replace(/^https?:\/\//, '')}` : null;
+}
+
+/**
  * Base URL for client invite links.
  *
- * PUBLIC_BASE_URL wins, so links stay stable behind a proxy. The fallback is the
+ * PUBLIC_BASE_URL wins, then the platform's own domain. The last resort is the
  * requesting host, which is a header: a request reaching this service with a
  * Host that is not really this deployment produces a link carrying a live bearer
  * token on somebody else's origin, and an assessor would have no way to tell
@@ -102,7 +115,7 @@ const warnedHosts = new Set();
  * shows the warning beside the link it just generated.
  */
 export function publicBaseUrl(req) {
-  const configured = process.env.PUBLIC_BASE_URL;
+  const configured = process.env.PUBLIC_BASE_URL || platformDomain();
   if (configured) return configured.replace(/\/+$/, '');
   const proto = req.get('x-forwarded-proto') || req.protocol;
   const host = req.get('host');
@@ -126,9 +139,10 @@ export function isLocalHost(host) {
   return name === 'localhost' || name === '127.0.0.1' || name === '::1';
 }
 
-/** True when a link was built from the request rather than from configuration. */
+/** True when a link was built from the request rather than from configuration or
+ *  from the platform's own domain. */
 export function linkBaseIsFromRequest(req) {
-  return !process.env.PUBLIC_BASE_URL && !isLocalHost(req.get('host'));
+  return !process.env.PUBLIC_BASE_URL && !platformDomain() && !isLocalHost(req.get('host'));
 }
 
 /**
