@@ -2,9 +2,41 @@ import pg from 'pg';
 
 const { Pool } = pg;
 
-if (!process.env.DATABASE_URL) {
+/**
+ * Where the database is.
+ *
+ * DATABASE_URL is the usual answer. Failing that, a Postgres service usually
+ * also exposes PGHOST/PGDATABASE and friends, which `pg` reads by itself — so a
+ * deployment that wired those instead of the URL works rather than dying.
+ *
+ * If neither is there, say precisely what was missing and list the variable
+ * names that *are* present, names only. An unresolved Railway reference arrives
+ * as an empty string, which read exactly like nothing being set at all and sent
+ * at least one deployment round in circles.
+ */
+const hasUrl = typeof process.env.DATABASE_URL === 'string' && process.env.DATABASE_URL.trim() !== '';
+const hasPgVars = Boolean(process.env.PGHOST || process.env.PGDATABASE);
+
+if (!hasUrl && !hasPgVars) {
+  const relevant = Object.keys(process.env)
+    .filter((k) => /^(DATABASE|POSTGRES|PG|RAILWAY)/.test(k))
+    .sort();
   console.error(
-    'DATABASE_URL is not set. Add the Postgres plugin in Railway, or set DATABASE_URL for local development.'
+    process.env.DATABASE_URL === undefined
+      ? 'DATABASE_URL is not set at all.'
+      : 'DATABASE_URL is set but empty. On Railway that usually means a variable reference such as ' +
+          '${{Postgres.DATABASE_URL}} did not resolve — check the database service is really named ' +
+          'what the reference says.'
+  );
+  console.error(
+    'Add the Postgres plugin and reference it from this service, or set DATABASE_URL for local ' +
+      'development. PGHOST/PGDATABASE would also do.'
+  );
+  console.error(
+    relevant.length
+      ? `Database and platform variables this process can see (names only): ${relevant.join(', ')}`
+      : 'This process can see no DATABASE_*, POSTGRES_*, PG* or RAILWAY_* variables at all, which ' +
+          'suggests the variables were set on a different service or environment than the one deploying.'
   );
   process.exit(1);
 }
@@ -49,7 +81,9 @@ function sslConfig() {
 }
 
 export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  // Omitted entirely when absent, so `pg` falls back to its own PG* variables
+  // rather than being handed an empty string.
+  ...(hasUrl ? { connectionString: process.env.DATABASE_URL } : {}),
   ssl: sslConfig(),
   max: 10,
   idleTimeoutMillis: 30_000,
