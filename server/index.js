@@ -179,11 +179,11 @@ migrate()
     // Certificate verification is on by default now, so a provider whose
     // certificate does not chain to a public root fails here. Say what to do
     // about it rather than leaving an operator to decode a TLS error.
-    if (/self.signed|unable to verify|certificate/i.test(err?.message || '')) {
+    if (/self.signed|unable to verify|certificate|does not support SSL|SSL/i.test(err?.message || '')) {
       console.error(
-        'Could not verify the Postgres server certificate. If your provider uses a private root, ' +
-          'supply it in DATABASE_CA; if the database is reached over a private network with no TLS, ' +
-          'set DATABASE_SSL=off; to connect encrypted but unverified, set DATABASE_SSL=no-verify and ' +
+        'The Postgres connection failed over TLS. If your provider uses a private root, supply it in ' +
+          'DATABASE_CA; if the database is reached over a private network with no TLS, set ' +
+          'DATABASE_SSL=off; to connect encrypted but unverified, set DATABASE_SSL=no-verify and ' +
           'accept that the connection is not authenticated.'
       );
     }
