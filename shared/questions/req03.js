@@ -120,7 +120,11 @@ export default {
         'Examine documented policies and data stores to verify that SAD storage is limited to that needed for a legitimate issuing business need.',
         'Examine data stores and system configurations to verify the data is encrypted using strong cryptography.',
       ],
-      appliesTo: 'service-provider',
+      // Scoped by issuing activity, not by merchant or service provider status: an
+      // entity that issues cards may be either. Marking this service-provider-only
+      // hid it from the merchant edition entirely, so an issuing merchant had no
+      // way to record it. Everyone is asked; a non-issuer marks it N/A.
+      appliesTo: 'all',
       allowNA: true,
       condition: 'Mark N/A if your organization is not an issuer and does not support issuing services.',
     },

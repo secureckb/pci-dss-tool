@@ -109,7 +109,7 @@ check("storage routes to SAQ D merchant", s == 200 and r["saqType"] == "D-Mercha
 check("note explains why", any("rules out every shorter SAQ" in n["note"] for n in r["notes"]))
 s, payload = req("GET", f"/api/assessment/{token}")
 check("stage becomes questionnaire", payload["stage"] == "questionnaire")
-check("merchant bank served", sum(len(x["questions"]) for x in payload["sections"]) == 234)
+check("merchant bank served", sum(len(x["questions"]) for x in payload["sections"]) == 235)
 s, r = req("PUT", f"/api/assessment/{token}/answers/1.1.1", {"response": "yes"})
 check("can now answer", s == 200)
 

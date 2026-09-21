@@ -159,7 +159,7 @@ export const SAQ_TYPES = {
       'You are a merchant eligible to self-assess rather than undergo an on-site assessment.',
       'You do not qualify for any of the shorter SAQ types.',
     ],
-    scope: 'All twelve requirements — 234 applicable questions in this tool.',
+    scope: 'All twelve requirements — 235 applicable questions in this tool.',
     variant: 'merchant',
   },
   'D-ServiceProvider': {

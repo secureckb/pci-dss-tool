@@ -11,7 +11,7 @@ import { ALL_SECTIONS, getQuestions, getSections } from '../shared/questions/ind
 import { ELIGIBILITY_STEPS, FIRST_STEP, SAQ_TYPES, determineSaq } from '../shared/eligibility.js';
 import { RESPONSES } from '../shared/scoring.js';
 
-const EXPECTED = { merchant: 234, 'service-provider': 260 };
+const EXPECTED = { merchant: 235, 'service-provider': 260 };
 
 const failures = [];
 const check = (label, condition, detail = '') => {

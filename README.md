@@ -11,7 +11,7 @@ The complete SAQ D question bank for PCI DSS v4.0.1, in both official editions:
 
 | Edition | Applicable requirements |
 | --- | --- |
-| SAQ D for Merchants | 234 |
+| SAQ D for Merchants | 235 |
 | SAQ D for Service Providers | 260 |
 
 All twelve requirements, plus Appendix A1 (multi-tenant service providers) and Appendix A2
@@ -194,7 +194,7 @@ npm run build && npm start    # serves the built SPA and the API on :8080
 broken question bank fails the build.
 
 `npm run verify` asserts the invariants a reader would otherwise have to check by hand:
-that each edition holds exactly the number of requirements the tool claims (234 and 260),
+that each edition holds exactly the number of requirements the tool claims (235 and 260),
 that no requirement id is duplicated, that every N/A-eligible requirement says when N/A
 applies, that every eligibility step is reachable and every SAQ outcome can actually be
 reached from the tree.
