@@ -56,6 +56,101 @@ function matchesSearch(question: Question, needle: string) {
   return haystack.includes(needle);
 }
 
+/**
+ * Who a completed SAQ D actually satisfies.
+ *
+ * The question bank being complete is not the same as this being the right
+ * validation route: PCI's levels decide whether an entity may self-assess at
+ * all, and the largest merchants and service providers may not. A catalogue that
+ * lists 260 requirements without saying so invites the reader to assume more
+ * than it delivers.
+ */
+function ScopeNote() {
+  return (
+    <div className="card">
+      <h2>What a completed SAQ D does and does not cover</h2>
+
+      <p className="small">
+        SAQ D is the most comprehensive self-assessment questionnaire: every PCI DSS requirement applies,
+        rather than the subset a narrower SAQ covers. Completing it here records a self-assessment.
+      </p>
+
+      <h3 style={{ marginTop: 18 }}>Who may validate with an SAQ</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Entity</th>
+            <th>Validation route</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Merchant Level 1 &mdash; over 6M transactions a year, or designated by a payment brand</td>
+            <td>
+              <strong>Not an SAQ.</strong> An annual onsite assessment by a QSA (or an internal assessor where
+              permitted), documented in a Report on Compliance
+            </td>
+          </tr>
+          <tr>
+            <td>Merchant Levels 2&ndash;4</td>
+            <td>
+              SAQ and Attestation of Compliance. Some brand programmes require a QSA or an internal security
+              assessor at Level 2 &mdash; confirm with the acquirer
+            </td>
+          </tr>
+          <tr>
+            <td>Service Provider Level 1 &mdash; over 300,000 transactions a year</td>
+            <td>
+              <strong>Not an SAQ.</strong> An annual onsite assessment and a Report on Compliance
+            </td>
+          </tr>
+          <tr>
+            <td>Service Provider Level 2</td>
+            <td>SAQ D for Service Providers and an Attestation of Compliance</td>
+          </tr>
+        </tbody>
+      </table>
+      <p className="small muted" style={{ marginTop: 10 }}>
+        Levels are set by the payment brands and by transaction volume, and a breach can move an entity up one.
+        The acquirer or brand programme is the authority on which route applies.
+      </p>
+
+      <h3 style={{ marginTop: 18 }}>What this tool does not produce</h3>
+      <ul className="small">
+        <li>
+          <strong>The official SAQ D and Attestation of Compliance.</strong> Those come from the PCI SSC Document
+          Library and must be completed and signed before anything is submitted to an acquirer. The attestation
+          generated here is a working draft, marked as such.
+        </li>
+        <li>
+          <strong>The rest of the official form.</strong> The published SAQ D also carries contact details, an
+          executive summary of payment channels and third parties, validation and attestation details, and an
+          action plan for requirements not in place. This covers the requirement responses.
+        </li>
+        <li>
+          <strong>Scan and test evidence.</strong> External vulnerability scans (11.3.2) must be run by an
+          Approved Scanning Vendor, and penetration tests (11.4) by a qualified tester. Answering those
+          requirements records that the work was done; it is not the report.
+        </li>
+        <li>
+          <strong>Compensating control worksheets.</strong> An answer of Yes with Compensating Control takes a
+          written description here; the formal Appendix C worksheet is a separate document.
+        </li>
+        <li>
+          <strong>The customized approach.</strong> Deliberately absent: an SAQ cannot be used to document it, and
+          an entity validating that way uses the Report on Compliance template instead.
+        </li>
+      </ul>
+
+      <p className="small muted" style={{ marginBottom: 0 }}>
+        Not affiliated with or endorsed by the PCI Security Standards Council. A determination of Compliant means
+        no applicable requirement was answered No &mdash; it does not verify that the answers are accurate, that the
+        scope described is correct, or that the supporting evidence exists.
+      </p>
+    </div>
+  );
+}
+
 export default function Requirements() {
   const printRestore = React.useRef<boolean | null>(null);
   const [data, setData] = useState<Catalogue | null>(null);
@@ -213,6 +308,8 @@ export default function Requirements() {
             server.
           </p>
         </div>
+
+        <ScopeNote />
 
         <div className="card card-tight filter-bar">
           <div className="search-field">
