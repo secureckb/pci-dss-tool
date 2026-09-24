@@ -3,16 +3,19 @@ export default {
   title: 'Protect Stored Account Data',
   goal: 'Protect Account Data',
   intro:
-    'Protection methods such as encryption, truncation, masking, and hashing are critical components of account data protection. If an intruder circumvents other security controls and gains access to encrypted account data, without the proper cryptographic keys the data is unreadable and unusable to that person.',
+    'Encryption, truncation, masking and hashing are the techniques that make stored account data worthless to whoever obtains it. If someone gets past every other control and reaches the data, none of it is of use to them without the keys. Requirement 3 covers keeping as little as possible, rendering what is kept unreadable, and looking after the keys that do the rendering.',
   questions: [
     {
       id: '3.1.1',
       title: 'Documented policies and procedures',
       question:
-        'Are all security policies and operational procedures identified in Requirement 3 documented, kept up to date, in use, and known to all affected parties?',
+        'Are the security policies and operating procedures covering Requirement 3 written down, kept current, actually followed, and communicated to everyone whose work they govern?',
       requirement:
-        'All security policies and operational procedures that are identified in Requirement 3 are: documented, kept up to date, in use, and known to all affected parties.',
-      testing: ['Examine documented policies and procedures for Requirement 3.', 'Interview personnel to verify they are in use and known.'],
+        'Written policies and operating procedures exist for the subject matter of Requirement 3. They are kept up to date, are in active use rather than shelved, and are known to every party they affect.',
+      testing: [
+        'Read the policies and operating procedures the entity holds for Requirement 3.',
+        'Ask the personnel governed by them whether they are followed in practice and known to those affected.',
+      ],
       appliesTo: 'all',
       allowNA: false,
     },
@@ -20,10 +23,13 @@ export default {
       id: '3.1.2',
       title: 'Roles and responsibilities',
       question:
-        'Are roles and responsibilities for performing activities in Requirement 3 documented, assigned, and understood?',
+        'Is it written down who is accountable for each Requirement 3 activity, has that accountability been allocated to specific people or roles, and do they understand it?',
       requirement:
-        'Roles and responsibilities for performing activities in Requirement 3 are documented, assigned, and understood.',
-      testing: ['Examine documentation of roles and responsibilities.', 'Interview responsible personnel to verify they are understood.'],
+        'Accountability for performing each Requirement 3 activity is recorded in writing, allocated to identified roles, and understood by the people holding those roles.',
+      testing: [
+        'Read the documentation that allocates these responsibilities and check that each one has an owner.',
+        'Ask the people named whether they understand what falls to them.',
+      ],
       appliesTo: 'all',
       allowNA: false,
     },
@@ -31,13 +37,13 @@ export default {
       id: '3.2.1',
       title: 'Data retention and disposal',
       question:
-        'Is account data storage kept to a minimum through implementation of data retention and disposal policies, procedures, and processes that cover all locations of stored account data, cover any sensitive authentication data stored prior to authorization, limit data storage amount and retention time to that required for legal, regulatory, and/or business requirements, include specific retention requirements for stored account data, include processes for secure deletion or rendering account data unrecoverable when no longer needed, and include a process for verifying at least once every three months that stored account data exceeding the defined retention period has been securely deleted or rendered unrecoverable?',
+        'Do your retention and disposal arrangements hold stored account data to a minimum — reaching every place it sits, covering any sensitive authentication data held before authorisation finishes, capping how much is kept and for how long against what law, regulation or the business actually needs, stating a retention period for stored account data with a written reason for it, providing for secure deletion once the data is no longer needed, and checking at intervals no longer than three months that anything past its retention period really has gone?',
       requirement:
-        'Account data storage is kept to a minimum through implementation of data retention and disposal policies, procedures, and processes that include at least the following: coverage for all locations of stored account data; coverage for any sensitive authentication data (SAD) stored prior to completion of authorization; limiting data storage amount and retention time to that which is required for legal or regulatory, and/or business requirements; specific retention requirements for stored account data that defines length of retention period and includes a documented business justification; processes for secure deletion or rendering account data unrecoverable when no longer needed per the retention policy; a process for verifying, at least once every three months, that stored account data exceeding the defined retention period has been securely deleted or rendered unrecoverable.',
+        'Stored account data is held to a minimum by retention and disposal policies, procedures and processes covering at least the following. They reach every location where account data is stored. They cover any sensitive authentication data held before authorisation has completed. They cap both the quantity kept and the time it is kept for at what legal or regulatory obligations, or the business itself, actually require. They state a retention period for stored account data and record a business reason for that period. They provide for securely deleting account data, or otherwise making it unrecoverable, once the retention policy no longer calls for keeping it. And they include a check, carried out at intervals no longer than three months, that stored account data which has outlived the retention period has indeed been securely deleted or made unrecoverable.',
       testing: [
-        'Examine the data retention and disposal policies, procedures, and processes.',
-        'Examine files and system records to verify that stored data does not exceed the defined retention requirements.',
-        'Observe the deletion mechanism to verify data is deleted securely.',
+        'Read the retention and disposal policies, procedures and processes.',
+        'Inspect the files and system records and confirm nothing stored has outlived the retention period the entity set.',
+        'Watch the deletion mechanism operate and confirm data goes securely.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -46,12 +52,12 @@ export default {
       id: '3.3.1',
       title: 'SAD not retained after authorization',
       question:
-        'Is sensitive authentication data (SAD) not retained after authorization, even if encrypted, and is all SAD received rendered unrecoverable upon completion of the authorization process?',
+        'Once authorisation is finished, is sensitive authentication data gone — encrypted copies included — and is everything of that kind you received made unrecoverable at that point?',
       requirement:
-        'SAD is not retained after authorization, even if encrypted. All sensitive authentication data received is rendered unrecoverable upon completion of the authorization process.',
+        'Sensitive authentication data is not kept once authorisation has taken place, and encrypting it does not make keeping it permissible. Every item of such data the entity received is made unrecoverable at the point authorisation completes.',
       testing: [
-        'Examine documented policies, procedures, and system configurations to verify SAD is not retained after authorization.',
-        'Examine a sample of data sources including incoming transaction data, logs, history files, trace files, database schemas, and contents to verify no SAD is retained.',
+        'Read the documented policies and procedures and inspect the system configuration to confirm none of this data survives authorisation.',
+        'Take a sample of places data could hide — inbound transaction data, logs, history and trace files, database schemas and their contents — and confirm none of it is there.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -60,11 +66,11 @@ export default {
       id: '3.3.1.1',
       title: 'Full track data not retained',
       question:
-        'Is the full contents of any track not retained upon completion of the authorization process?',
+        'Once authorisation is finished, is the complete content of the magnetic stripe or its chip equivalent no longer held?',
       requirement:
-        'The full contents of any track are not retained upon completion of the authorization process.',
+        'No track retains its complete contents once authorisation has completed.',
       testing: [
-        'Examine data sources to verify that the full contents of any track are not stored upon completion of the authorization process.',
+        'Inspect the places data is held and confirm no complete track content survives the end of authorisation.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -73,11 +79,11 @@ export default {
       id: '3.3.1.2',
       title: 'Card verification code not retained',
       question:
-        'Is the card verification code not retained upon completion of the authorization process?',
+        'Once authorisation is finished, is the card verification code no longer held?',
       requirement:
-        'The card verification code is not retained upon completion of the authorization process.',
+        'The card verification code does not survive the completion of authorisation.',
       testing: [
-        'Examine data sources to verify that the card verification code is not stored upon completion of the authorization process.',
+        'Inspect the places data is held and confirm no card verification code survives the end of authorisation.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -86,11 +92,11 @@ export default {
       id: '3.3.1.3',
       title: 'PIN and PIN block not retained',
       question:
-        'Are the personal identification number (PIN) and the PIN block not retained upon completion of the authorization process?',
+        'Once authorisation is finished, are the PIN and the PIN block no longer held?',
       requirement:
-        'The personal identification number (PIN) and the PIN block are not retained upon completion of the authorization process.',
+        'Neither the personal identification number nor the PIN block survives the completion of authorisation.',
       testing: [
-        'Examine data sources to verify that PINs and PIN blocks are not stored upon completion of the authorization process.',
+        'Inspect the places data is held and confirm no PIN or PIN block survives the end of authorisation.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -99,11 +105,11 @@ export default {
       id: '3.3.2',
       title: 'SAD stored before authorization is encrypted',
       question:
-        'Is SAD that is stored electronically prior to completion of authorization encrypted using strong cryptography?',
+        'Where sensitive authentication data sits electronically before authorisation has finished, is it encrypted with strong cryptography?',
       requirement:
-        'SAD that is stored electronically prior to completion of authorization is encrypted using strong cryptography.',
+        'Sensitive authentication data held electronically before authorisation completes is encrypted with strong cryptography.',
       testing: [
-        'Examine data stores, system configurations, and vendor documentation to verify that all SAD stored electronically prior to completion of authorization is encrypted using strong cryptography.',
+        'Inspect the data stores, the system configuration and the vendor documentation, and confirm every such item held electronically before authorisation completes is encrypted with strong cryptography.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -113,12 +119,12 @@ export default {
       id: '3.3.3',
       title: 'Issuer storage of SAD',
       question:
-        'For issuers and companies that support issuing services and store sensitive authentication data, is any storage of SAD limited to that which is needed for a legitimate issuing business need, secured, and encrypted using strong cryptography?',
+        'If you issue cards, or support issuing, and you hold sensitive authentication data: is what you hold confined to what a genuine issuing purpose requires, kept secure, and encrypted with strong cryptography?',
       requirement:
-        'Additional requirement for issuers and companies that support issuing services and store sensitive authentication data: Any storage of sensitive authentication data is: limited to that which is needed for a legitimate issuing business need and is secured; encrypted using strong cryptography.',
+        'An extra obligation on issuers, and on companies supporting issuing services, that hold sensitive authentication data. Whatever is held is confined to what a legitimate issuing business purpose requires, and is kept secure; and it is encrypted with strong cryptography.',
       testing: [
-        'Examine documented policies and data stores to verify that SAD storage is limited to that needed for a legitimate issuing business need.',
-        'Examine data stores and system configurations to verify the data is encrypted using strong cryptography.',
+        'Read the documented policies and inspect the data stores, confirming that what is held goes no further than a legitimate issuing purpose requires.',
+        'Inspect the data stores and system configuration and confirm the data is encrypted with strong cryptography.',
       ],
       // Scoped by issuing activity, not by merchant or service provider status: an
       // entity that issues cards may be either. Marking this service-provider-only
@@ -132,12 +138,12 @@ export default {
       id: '3.4.1',
       title: 'PAN masking on display',
       question:
-        'Is PAN masked when displayed — with the BIN and last four digits being the maximum number of digits displayed — such that only personnel with a legitimate business need can see more than the BIN and last four digits of the PAN?',
+        'When a PAN appears on screen, is it masked so that at most the leading bank identification digits and the final four show — with anything beyond that visible only to people whose work genuinely requires it?',
       requirement:
-        'PAN is masked when displayed (the BIN and last four digits are the maximum number of digits to be displayed), such that only personnel with a legitimate business need can see more than the BIN and last four digits of the PAN.',
+        'A PAN shown on a display is masked, the most that may appear being the bank identification number together with the last four digits. Seeing more than that is confined to personnel with a genuine business need.',
       testing: [
-        'Examine documented policies and procedures for masking PAN displays.',
-        'Examine system configurations and observe displays of PAN to verify that PAN is masked as specified.',
+        'Read the documented policies and procedures governing how a displayed PAN is masked.',
+        'Inspect the system configuration and watch a PAN being displayed, confirming the masking behaves as described.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -146,12 +152,12 @@ export default {
       id: '3.4.2',
       title: 'Copy/relocation of PAN via remote access',
       question:
-        'When using remote-access technologies, do technical controls prevent copy and/or relocation of PAN for all personnel, except for those with documented, explicit authorization and a legitimate, defined business need?',
+        'During a remote-access session, do technical controls stop anyone copying or moving a PAN off the system, except for the individuals holding explicit written authorisation and a stated, genuine business reason?',
       requirement:
-        'When using remote-access technologies, technical controls prevent copy and/or relocation of PAN for all personnel, except for those with documented, explicit authorization and a legitimate, defined business need.',
+        'Where remote-access technology is in use, technical controls prevent personnel from copying a PAN or relocating it. The exception is an individual holding documented, explicit authorisation together with a legitimate and stated business need.',
       testing: [
-        'Examine documented policies and procedures and remote-access technology configurations.',
-        'Observe processes and interview personnel to verify that copy and/or relocation of PAN is prevented for personnel without explicit authorization.',
+        'Read the documented policies and procedures and inspect how the remote-access technology is configured.',
+        'Watch the process and ask staff, confirming that copying or moving a PAN is blocked for anyone lacking explicit authorisation.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -161,12 +167,12 @@ export default {
       id: '3.5.1',
       title: 'PAN rendered unreadable in storage',
       question:
-        'Is PAN rendered unreadable anywhere it is stored by using one-way hashes based on strong cryptography of the entire PAN, truncation, index tokens, or strong cryptography with associated key-management processes and procedures?',
+        'Wherever a PAN is stored, is it made unreadable — by a one-way hash over the whole PAN using strong cryptography, by truncation, by an index token, or by strong cryptography with the key management that goes with it?',
       requirement:
-        'PAN is rendered unreadable anywhere it is stored by using any of the following approaches: one-way hashes based on strong cryptography of the entire PAN; truncation (hashing cannot be used to replace the truncated segment of PAN) — if hashed and truncated versions of the same PAN, or different truncation formats of the same PAN, are present in an environment, additional controls are in place such that the different versions cannot be correlated to reconstruct the original PAN; index tokens; strong cryptography with associated key-management processes and procedures.',
+        'A stored PAN is made unreadable wherever it sits, by any of the following means. A one-way hash, computed with strong cryptography over the entire PAN. Truncation, noting that hashing may not be used to stand in for the truncated portion; and where an environment holds both a hashed and a truncated version of the same PAN, or two differently truncated versions of it, further controls exist so the versions cannot be matched up to rebuild the original. An index token. Or strong cryptography, together with the key-management processes and procedures that accompany it.',
       testing: [
-        'Examine documentation about the system used to render PAN unreadable, including the vendor, type of system/process, and encryption algorithms.',
-        'Examine data repositories and audit logs, including payment application logs, to verify the PAN is rendered unreadable.',
+        'Read the documentation on whatever renders the PAN unreadable, covering the vendor, the type of system or process, and the encryption algorithms involved.',
+        'Inspect the data repositories and the audit logs, payment application logs among them, and confirm the PAN is unreadable.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -176,12 +182,12 @@ export default {
       id: '3.5.1.1',
       title: 'Keyed cryptographic hashes',
       question:
-        'If hashes are used to render PAN unreadable, are they keyed cryptographic hashes of the entire PAN, with associated key-management processes and procedures in accordance with Requirements 3.6 and 3.7?',
+        'Where hashing is what makes a stored PAN unreadable, is the hash a keyed one computed over the whole PAN, with key management meeting Requirements 3.6 and 3.7?',
       requirement:
-        'Hashes used to render PAN unreadable (per the first bullet of Requirement 3.5.1) are keyed cryptographic hashes of the entire PAN, with associated key-management processes and procedures in accordance with Requirements 3.6 and 3.7.',
+        'Where hashing is the means of making a PAN unreadable, under the first of the options in Requirement 3.5.1, the hash is keyed and is computed over the entire PAN, and the accompanying key-management processes and procedures satisfy Requirements 3.6 and 3.7.',
       testing: [
-        'Examine documentation about the hashing method used to verify that keyed cryptographic hashes of the entire PAN are used.',
-        'Examine documentation about key-management procedures and processes to verify keys are managed per Requirements 3.6 and 3.7.',
+        'Read the documentation on the hashing method and confirm the hash is keyed and spans the whole PAN.',
+        'Read the key-management documentation and confirm the keys are handled as Requirements 3.6 and 3.7 demand.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -191,11 +197,11 @@ export default {
       id: '3.5.1.2',
       title: 'Disk-level encryption limitations',
       question:
-        'If disk-level or partition-level encryption is used to render PAN unreadable, is it implemented only on removable electronic media, or — if used for non-removable electronic media — is PAN also rendered unreadable via another mechanism that meets Requirement 3.5.1?',
+        'Where whole-disk or partition encryption is what makes a PAN unreadable, is it confined to removable media — or, if used on fixed media, is the PAN additionally made unreadable by one of the other means Requirement 3.5.1 allows?',
       requirement:
-        'If disk-level or partition-level encryption (rather than file-, column-, or field-level database encryption) is used to render PAN unreadable, it is implemented only as follows: on removable electronic media, OR, if used for non-removable electronic media, PAN is also rendered unreadable via another mechanism that meets Requirement 3.5.1.',
+        'Where encryption at the disk or partition level, as opposed to encryption at the file, column or database field level, is what renders a PAN unreadable, it is used in only one of two ways: on removable electronic media; or, if on non-removable electronic media, with the PAN additionally rendered unreadable by some other mechanism satisfying Requirement 3.5.1.',
       testing: [
-        'Examine encryption processes and system configurations to verify that disk-level or partition-level encryption is implemented only as specified.',
+        'Inspect the encryption arrangements and the system configuration, and confirm disk or partition encryption is used only in one of those two ways.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -205,12 +211,12 @@ export default {
       id: '3.5.1.3',
       title: 'Disk-level encryption access management',
       question:
-        'If disk-level or partition-level encryption is used to render PAN unreadable, is logical access managed separately and independently of native operating system authentication and access control mechanisms, and are decryption keys not associated with user accounts?',
+        'Where whole-disk or partition encryption is in use, is logical access to it handled separately from the operating system’s own sign-in and access controls, and are the decryption keys kept unconnected to user accounts?',
       requirement:
-        'If disk-level or partition-level encryption is used (rather than file-, column-, or field-level database encryption) to render PAN unreadable, it is managed as follows: logical access is managed separately and independently of native operating system authentication and access control mechanisms; decryption keys are not associated with user accounts.',
+        'Where encryption at the disk or partition level, rather than at the file, column or database field level, renders a PAN unreadable, it is handled as follows: logical access to it is administered separately and independently from the operating system’s own authentication and access control; and the decryption keys bear no association with user accounts.',
       testing: [
-        'Examine system configurations and observe the authentication process to verify that logical access is managed independently of native OS authentication.',
-        'Examine key-management procedures to verify that decryption keys are not associated with user accounts.',
+        'Inspect the system configuration and watch the authentication happen, confirming logical access is administered independently of the operating system’s own sign-in.',
+        'Read the key-management procedures and confirm no decryption key is tied to a user account.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -220,12 +226,12 @@ export default {
       id: '3.6.1',
       title: 'Protection of cryptographic keys',
       question:
-        'Are procedures defined and implemented to protect cryptographic keys used to protect stored account data against disclosure and misuse?',
+        'Are there procedures, actually in force, that shield the keys protecting stored account data from being disclosed or misused?',
       requirement:
-        'Procedures are defined and implemented to protect cryptographic keys used to protect stored account data against disclosure and misuse, including: access to keys is restricted to the fewest number of custodians necessary; key-encrypting keys are at least as strong as the data-encrypting keys they protect; key-encrypting keys are stored separately from data-encrypting keys; keys are stored securely in the fewest possible locations and forms.',
+        'Procedures exist and are in force that protect the cryptographic keys guarding stored account data against disclosure and against misuse. They include: confining access to the keys to as few custodians as the work allows; ensuring no key-encrypting key is weaker than the data-encrypting key beneath it; holding key-encrypting keys somewhere other than the data-encrypting keys; and keeping keys securely, in as few places and as few forms as possible.',
       testing: [
-        'Examine documented key-management policies and procedures.',
-        'Interview responsible personnel to verify the procedures are implemented.',
+        'Read the documented key-management policies and procedures.',
+        'Ask the responsible staff to confirm those procedures are actually carried out.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -235,12 +241,12 @@ export default {
       id: '3.6.1.1',
       title: 'Documented cryptographic architecture',
       question:
-        'Is a documented description of the cryptographic architecture maintained that includes details of all algorithms, protocols, and keys used for the protection of stored account data, preventing the use of the same cryptographic keys in production and test environments, a description of the key usage for each key, and an inventory of any hardware security modules, key management systems, and other secure cryptographic devices used for key management?',
+        'Do you keep a written account of your cryptographic architecture — every algorithm, protocol and key used to protect stored account data with its strength and expiry, the bar on reusing production keys in test, what each key is for, and an inventory of the secure cryptographic devices doing the key management — hardware security modules and key management systems among them — recording each one’s type and where it sits?',
       requirement:
-        'Additional requirement for service providers only: A documented description of the cryptographic architecture is maintained that includes: details of all algorithms, protocols, and keys used for the protection of stored account data, including key strength and expiry date; preventing the use of the same cryptographic keys in production and test environments; description of the key usage for each key; inventory of any hardware security modules (HSMs), key management systems (KMS), and other secure cryptographic devices (SCDs) used for key management, including type and location of devices.',
+        'An extra obligation on service providers. A written account of the cryptographic architecture is maintained, setting out: every algorithm, protocol and key used to protect stored account data, together with each key’s strength and expiry date; the measures that stop a key used in production being reused in a test environment; what each key is used for; and an inventory of every secure cryptographic device employed in key management, hardware security modules and key management systems included, recording each device’s type and where it is located.',
       testing: [
-        'Examine documentation to verify that a description of the cryptographic architecture exists and includes all required elements.',
-        'Interview responsible personnel to verify the documentation is maintained and current.',
+        'Read the documentation and confirm an account of the cryptographic architecture exists and covers each of those points.',
+        'Ask the responsible staff to confirm it is maintained and current.',
       ],
       appliesTo: 'service-provider',
       allowNA: true,
@@ -250,12 +256,12 @@ export default {
       id: '3.6.1.2',
       title: 'Storage form of secret and private keys',
       question:
-        'Are secret and private keys used to protect stored account data stored at all times in one or more of the following forms: encrypted with a key-encrypting key that is at least as strong as the data-encrypting key and stored separately from it; within a secure cryptographic device such as an HSM or PTS-approved point-of-interaction device; or as at least two full-length key components or key shares in accordance with an industry-accepted method?',
+        'Are the secret and private keys protecting stored account data always held in at least one of these forms: encrypted under a key-encrypting key that is no weaker than the data key and kept elsewhere; inside a secure cryptographic device such as a hardware security module or a PTS-approved terminal; or split into two or more full-length components or shares by a recognised industry method?',
       requirement:
-        'Secret and private keys used to protect stored account data are stored in one (or more) of the following forms at all times: encrypted with a key-encrypting key that is at least as strong as the data-encrypting key, and that is stored separately from the data-encrypting key; within a secure cryptographic device (SCD), such as a hardware security module (HSM) or PTS-approved point-of-interaction device; as at least two full-length key components or key shares, in accordance with an industry-accepted method.',
+        'The secret and private keys protecting stored account data are, at every moment, held in at least one of three forms. Encrypted beneath a key-encrypting key that is no weaker than the data-encrypting key and that lives somewhere other than the data-encrypting key. Inside a secure cryptographic device, such as a hardware security module or a PTS-approved point-of-interaction device. Or split, by a method the industry recognises, into two or more components or shares, each of them full length.',
       testing: [
-        'Examine documented key-management procedures to verify that keys are stored as specified.',
-        'Examine system configurations and key storage locations to verify keys are stored in one of the permitted forms.',
+        'Read the documented key-management procedures and confirm keys are held in one of those forms.',
+        'Inspect the system configuration and the places keys are kept, confirming each is held in a permitted form.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -265,11 +271,11 @@ export default {
       id: '3.6.1.3',
       title: 'Restricting access to cleartext key components',
       question:
-        'Is access to cleartext cryptographic key components restricted to the fewest number of custodians necessary?',
+        'Is the number of custodians who can reach a cleartext key component held to the fewest the work allows?',
       requirement:
-        'Access to cleartext cryptographic key components is restricted to the fewest number of custodians necessary.',
+        'Reaching a cryptographic key component in cleartext is confined to as few custodians as the work allows.',
       testing: [
-        'Examine user access lists and key-custodian documentation to verify that access to cleartext key components is restricted to the fewest custodians necessary.',
+        'Read the access lists and the key-custodian records, confirming that reaching a cleartext key component is confined to as few custodians as the work allows.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -279,10 +285,11 @@ export default {
       id: '3.6.1.4',
       title: 'Key storage locations',
       question:
-        'Are cryptographic keys stored in the fewest possible locations?',
-      requirement: 'Cryptographic keys are stored in the fewest possible locations.',
+        'Are cryptographic keys kept in as few places as possible?',
+      requirement:
+        'Cryptographic keys reside in as few places as can be managed.',
       testing: [
-        'Examine key-management documentation and key storage locations to verify keys are stored in the fewest possible locations.',
+        'Read the key-management documentation and inspect where keys are kept, confirming the number of places is as small as can be managed.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -292,12 +299,12 @@ export default {
       id: '3.7.1',
       title: 'Generation of strong keys',
       question:
-        'Are key-management policies and procedures implemented to include the generation of strong cryptographic keys used to protect stored account data?',
+        'Do your key-management arrangements cover how strong keys are generated for protecting stored account data?',
       requirement:
-        'Key-management policies and procedures are implemented to include generation of strong cryptographic keys used to protect stored account data.',
+        'The key-management policies and procedures in force address the generation of strong cryptographic keys for protecting stored account data.',
       testing: [
-        'Examine the documented key-management policies and procedures for keys used to protect stored account data.',
-        'Observe the method for generating keys to verify that strong keys are generated.',
+        'Read the key-management policies and procedures covering the keys that protect stored account data.',
+        'Watch keys being generated and confirm the result is strong.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -307,12 +314,12 @@ export default {
       id: '3.7.2',
       title: 'Secure key distribution',
       question:
-        'Are key-management policies and procedures implemented to include secure distribution of cryptographic keys used to protect stored account data?',
+        'Do your key-management arrangements cover distributing those keys securely?',
       requirement:
-        'Key-management policies and procedures are implemented to include secure distribution of cryptographic keys used to protect stored account data.',
+        'The key-management policies and procedures in force address distributing securely the cryptographic keys that protect stored account data.',
       testing: [
-        'Examine documented key-management policies and procedures.',
-        'Observe the method for distributing keys to verify keys are distributed securely.',
+        'Read the documented key-management policies and procedures.',
+        'Watch keys being distributed and confirm the method is secure.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -322,12 +329,12 @@ export default {
       id: '3.7.3',
       title: 'Secure key storage',
       question:
-        'Are key-management policies and procedures implemented to include secure storage of cryptographic keys used to protect stored account data?',
+        'Do your key-management arrangements cover storing those keys securely?',
       requirement:
-        'Key-management policies and procedures are implemented to include secure storage of cryptographic keys used to protect stored account data.',
+        'The key-management policies and procedures in force address storing securely the cryptographic keys that protect stored account data.',
       testing: [
-        'Examine documented key-management policies and procedures.',
-        'Observe the method for storing keys to verify keys are stored securely.',
+        'Read the documented key-management policies and procedures.',
+        'Watch how keys are put into storage and confirm the method is secure.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -337,12 +344,12 @@ export default {
       id: '3.7.4',
       title: 'Key changes at cryptoperiod end',
       question:
-        'Do key-management policies and procedures for cryptographic keys used to protect stored account data include cryptographic key changes for keys that have reached the end of their cryptoperiod, as defined by the associated application vendor or key owner and based on industry best practices and guidelines?',
+        'Do your key-management arrangements provide for replacing a key once its cryptoperiod runs out — with a cryptoperiod set for every type of key you use, and a process for making the change, following what the application vendor or key owner specifies and what industry guidance recommends?',
       requirement:
-        'Key-management policies and procedures are implemented for cryptographic key changes for keys that have reached the end of their cryptoperiod, as defined by the associated application vendor or key owner, and based on industry best practices and guidelines, including the following: a defined cryptoperiod for each key type in use; a process for key changes at the end of the defined cryptoperiod.',
+        'Key-management policies and procedures are in force for changing a cryptographic key whose cryptoperiod has run out, the cryptoperiod being the one set by the relevant application vendor or key owner and informed by industry good practice and guidance. They include a stated cryptoperiod for every type of key in use, and a process by which a key is changed once that cryptoperiod ends.',
       testing: [
-        'Examine documented key-management policies and procedures to verify a defined cryptoperiod exists for each key type.',
-        'Interview personnel and examine records to verify keys are changed at the end of the defined cryptoperiod.',
+        'Read the documented key-management policies and procedures and confirm a cryptoperiod is stated for each type of key.',
+        'Ask staff and read the records, confirming keys are in fact changed when the stated cryptoperiod ends.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -352,12 +359,12 @@ export default {
       id: '3.7.5',
       title: 'Key retirement, replacement and destruction',
       question:
-        'Are key-management policies and procedures implemented to include the retirement, replacement, or destruction of keys used to protect stored account data when the integrity of the key has been weakened, or when the key is suspected of or known to be compromised, and are retained keys used only for decryption or verification purposes?',
+        'Do your arrangements provide for retiring, replacing or destroying a key when its cryptoperiod ends, when its integrity has been weakened — including when somebody who knew a cleartext component leaves the company or that role — or when it is thought or known to be compromised; and where a retired key is kept, is it used only to decrypt or verify, never to encrypt?',
       requirement:
-        'Key-management policies procedures are implemented to include the retirement, replacement, or destruction of keys used to protect stored account data, as deemed necessary when: the key has reached the end of its defined cryptoperiod; the integrity of the key has been weakened, including when personnel with knowledge of a cleartext key component leaves the company or the role for which the key component was known; the key is suspected of or known to be compromised. If retired or replaced cryptographic keys are retained, these keys are not used for encryption operations.',
+        'Key-management policies and procedures are in force for retiring, replacing or destroying a key that protects stored account data, applied whenever it is judged necessary and in particular when: the key’s stated cryptoperiod has ended; the key’s integrity has been weakened, which includes the departure of a person who knew a cleartext key component, whether from the company or from the role in which they knew it; or the key is suspected of compromise or known to be compromised. Where a retired or replaced key is kept rather than destroyed, it is never used to encrypt anything.',
       testing: [
-        'Examine documented key-management policies and procedures.',
-        'Interview personnel to verify processes are implemented for retirement, replacement, or destruction of keys.',
+        'Read the documented key-management policies and procedures.',
+        'Ask staff to confirm that retirement, replacement and destruction of keys actually happen as described.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -367,12 +374,12 @@ export default {
       id: '3.7.6',
       title: 'Split knowledge and dual control',
       question:
-        'Where manual cleartext cryptographic key-management operations are performed, are key-management policies and procedures implemented to include the use of split knowledge and dual control?',
+        'Where people handle cleartext keys by hand, do your arrangements require split knowledge and dual control over those operations?',
       requirement:
-        'Where manual cleartext cryptographic key-management operations are performed by personnel, key-management policies and procedures are implemented to include managing these operations using split knowledge and dual control.',
+        'Where personnel carry out cryptographic key-management operations on cleartext keys by hand, the key-management policies and procedures in force require those operations to be conducted under split knowledge and dual control.',
       testing: [
-        'Examine documented key-management policies and procedures.',
-        'Interview personnel and/or observe processes to verify that manual cleartext key operations require split knowledge and dual control.',
+        'Read the documented key-management policies and procedures.',
+        'Ask staff, or watch the process, to confirm that a manual cleartext key operation cannot proceed without split knowledge and dual control.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -382,12 +389,12 @@ export default {
       id: '3.7.7',
       title: 'Prevention of unauthorized key substitution',
       question:
-        'Are key-management policies and procedures implemented to include the prevention of unauthorized substitution of cryptographic keys?',
+        'Do your key-management arrangements stop a cryptographic key being swapped for another without authorisation?',
       requirement:
-        'Key-management policies and procedures are implemented to include the prevention of unauthorized substitution of cryptographic keys.',
+        'The key-management policies and procedures in force guard against a cryptographic key being substituted without authorisation.',
       testing: [
-        'Examine documented key-management policies and procedures.',
-        'Interview personnel to verify processes prevent unauthorized key substitution.',
+        'Read the documented key-management policies and procedures.',
+        'Ask staff to confirm the arrangements do prevent an unauthorised key swap.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -397,12 +404,12 @@ export default {
       id: '3.7.8',
       title: 'Key custodian acknowledgements',
       question:
-        'Are key-management policies and procedures implemented to include that cryptographic key custodians formally acknowledge, in writing or electronically, that they understand and accept their key-custodian responsibilities?',
+        'Do your key-management arrangements require each key custodian to confirm formally, on paper or electronically, that they understand and accept what being a custodian entails?',
       requirement:
-        'Key-management policies and procedures are implemented to include that cryptographic key custodians formally acknowledge (in writing or electronically) that they understand and accept their key-custodian responsibilities.',
+        'The key-management policies and procedures in force require every cryptographic key custodian to give formal acknowledgement, in writing or electronically, that they understand the responsibilities of a key custodian and accept them.',
       testing: [
-        'Examine documented key-management policies and procedures.',
-        'Examine documentation or other evidence showing that key custodians have provided acknowledgements.',
+        'Read the documented key-management policies and procedures.',
+        'Read the acknowledgements the custodians have given, or other evidence that they gave them.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -412,12 +419,12 @@ export default {
       id: '3.7.9',
       title: 'Key guidance shared with customers',
       question:
-        'Where your organization shares cryptographic keys with customers for transmission or storage of account data, is guidance on secure transmission, storage, and updating of such keys documented and distributed to customers?',
+        'Where you share cryptographic keys with customers so they can transmit or store account data, have you written guidance on transmitting, storing and updating those keys securely, and have you issued it to them?',
       requirement:
-        'Additional requirement for service providers only: Where a service provider shares cryptographic keys with customers for transmission or storage of account data, guidance on secure transmission, storage, and updating of such keys is documented and distributed to customers.',
+        'An extra obligation on service providers. Where a provider gives its customers cryptographic keys to transmit or store account data with, written guidance on transmitting, storing and updating those keys securely exists and has been issued to those customers.',
       testing: [
-        'Examine documentation to verify that guidance for secure transmission, storage, and updating of cryptographic keys is documented.',
-        'Interview personnel and examine records to verify the guidance is distributed to customers.',
+        'Read the documentation and confirm guidance on secure transmission, storage and updating of the keys has been written.',
+        'Ask staff and read the records, confirming the guidance reached the customers.',
       ],
       appliesTo: 'service-provider',
       allowNA: true,

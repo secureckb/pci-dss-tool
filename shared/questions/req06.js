@@ -3,16 +3,19 @@ export default {
   title: 'Develop and Maintain Secure Systems and Software',
   goal: 'Maintain a Vulnerability Management Program',
   intro:
-    'Actors with bad intentions can use security vulnerabilities to gain privileged access to systems. Many of these vulnerabilities are fixed by vendor-provided security patches, which must be installed by the entities that manage the systems.',
+    'A flaw in software is a way in, and a way to gain more privilege than was intended. Vendors close most of them with patches, but a patch protects nobody until the entity running the system installs it. Requirement 6 covers building software carefully, watching for the flaws that get published, and putting changes through a controlled process.',
   questions: [
     {
       id: '6.1.1',
       title: 'Documented policies and procedures',
       question:
-        'Are all security policies and operational procedures identified in Requirement 6 documented, kept up to date, in use, and known to all affected parties?',
+        'Are the security policies and operating procedures covering Requirement 6 written down, kept current, actually followed, and communicated to everyone whose work they govern?',
       requirement:
-        'All security policies and operational procedures that are identified in Requirement 6 are: documented, kept up to date, in use, and known to all affected parties.',
-      testing: ['Examine documented policies and procedures for Requirement 6.', 'Interview personnel to verify they are in use and known.'],
+        'Written policies and operating procedures exist for the subject matter of Requirement 6. They are kept up to date, are in active use rather than shelved, and are known to every party they affect.',
+      testing: [
+        'Read the policies and operating procedures the entity holds for Requirement 6.',
+        'Ask the personnel governed by them whether they are followed in practice and known to those affected.',
+      ],
       appliesTo: 'all',
       allowNA: false,
     },
@@ -20,10 +23,13 @@ export default {
       id: '6.1.2',
       title: 'Roles and responsibilities',
       question:
-        'Are roles and responsibilities for performing activities in Requirement 6 documented, assigned, and understood?',
+        'Is it written down who is accountable for each Requirement 6 activity, has that accountability been allocated to specific people or roles, and do they understand it?',
       requirement:
-        'Roles and responsibilities for performing activities in Requirement 6 are documented, assigned, and understood.',
-      testing: ['Examine documentation of roles and responsibilities.', 'Interview responsible personnel to verify they are understood.'],
+        'Accountability for performing each Requirement 6 activity is recorded in writing, allocated to identified roles, and understood by the people holding those roles.',
+      testing: [
+        'Read the documentation that allocates these responsibilities and check that each one has an owner.',
+        'Ask the people named whether they understand what falls to them.',
+      ],
       appliesTo: 'all',
       allowNA: false,
     },
@@ -31,12 +37,12 @@ export default {
       id: '6.2.1',
       title: 'Secure software development',
       question:
-        'Is bespoke and custom software developed securely — based on industry standards and/or best practices for secure development, in accordance with PCI DSS, and incorporating consideration of information security issues during each stage of the software development lifecycle?',
+        'Is your bespoke and custom software built securely — drawing on recognised industry standards or good practice for secure development, consistent with PCI DSS, and with security questions raised at every stage of the development lifecycle rather than only at the end?',
       requirement:
-        'Bespoke and custom software are developed securely, as follows: based on industry standards and/or best practices for secure development; in accordance with PCI DSS (for example, secure authentication and logging); incorporating consideration of information security issues during each stage of the software development lifecycle.',
+        'Bespoke and custom software is built securely. Development draws on recognised industry standards, good practice for secure development, or both; it is consistent with PCI DSS, in matters such as authentication and logging; and information security is considered at every stage of the software development lifecycle.',
       testing: [
-        'Examine documented software development procedures to verify that processes are defined for secure development.',
-        'Interview software development personnel and examine records to verify that software is developed in accordance with the procedures.',
+        'Read the documented development procedures and confirm they set out how secure development is to be done.',
+        'Ask the developers and read the records, to confirm software is actually built the way those procedures say.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -46,12 +52,12 @@ export default {
       id: '6.2.2',
       title: 'Developer secure coding training',
       question:
-        'Are software development personnel working on bespoke and custom software trained at least once every 12 months on software security relevant to their job function and development languages, including secure software design and secure coding techniques, and on how to use any security testing tools for detecting vulnerabilities in software?',
+        'Do the developers working on bespoke and custom software receive training at intervals no longer than 12 months, covering software security as it bears on their own role and languages, secure design and secure coding, and — where security testing tools are used — how to drive those tools to find flaws?',
       requirement:
-        'Software development personnel working on bespoke and custom software are trained at least once every 12 months as follows: on software security relevant to their job function and development languages; including secure software design and secure coding techniques; including, if security testing tools are used, how to use the tools for detecting vulnerabilities in software.',
+        'Anyone who develops bespoke or custom software receives training no less often than once every 12 months. The training covers software security as it applies to their particular role and the languages they write in; it includes secure software design and secure coding practice; and where the entity uses security testing tools, it includes how to use those tools to find flaws in software.',
       testing: [
-        'Examine software development procedures to verify training processes are defined.',
-        'Examine training records and interview personnel to verify training occurs at least once every 12 months.',
+        'Read the development procedures and confirm the training arrangements are defined.',
+        'Read the training records and ask staff, to confirm training happens at intervals of no more than 12 months.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -61,12 +67,12 @@ export default {
       id: '6.2.3',
       title: 'Code review before release',
       question:
-        'Is bespoke and custom software reviewed prior to being released into production or to customers, to identify and correct potential coding vulnerabilities, using either manual or automated code review techniques?',
+        'Is bespoke and custom software reviewed before it ships to production or to customers, by hand or by tool, so that coding flaws are found and fixed first?',
       requirement:
-        'Bespoke and custom software is reviewed prior to being released into production or to customers, to identify and correct potential coding vulnerabilities, as follows: code reviews ensure code is developed according to secure coding guidelines; code reviews look for both existing and emerging software vulnerabilities; appropriate corrections are implemented prior to release.',
+        'Bespoke and custom software is reviewed before release to production or to customers, so that potential coding flaws are found and put right. The review establishes that the code was written to the entity’s secure coding guidelines; it looks for flaws already known and for those newly emerging; and the necessary corrections are made before the software is released.',
       testing: [
-        'Examine software development procedures to verify that code review processes are defined.',
-        'Examine evidence of code reviews and interview personnel to verify reviews are performed prior to release.',
+        'Read the development procedures and confirm the code review process is defined.',
+        'Read the evidence of reviews and ask staff, to confirm they happen before release rather than after.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -76,12 +82,12 @@ export default {
       id: '6.2.3.1',
       title: 'Manual code review controls',
       question:
-        'If manual code reviews are performed for bespoke and custom software prior to release to production, are code changes reviewed by individuals other than the originating code author who are knowledgeable about code-review techniques and secure coding practices, and reviewed and approved by management prior to release?',
+        'Where those pre-release reviews are done by hand, is each change looked at by somebody other than its author — someone who knows both review technique and secure coding — and does management review and approve it before release?',
       requirement:
-        'If manual code reviews are performed for bespoke and custom software prior to release to production, code changes are: reviewed by individuals other than the originating code author, and who are knowledgeable about code-review techniques and secure coding practices; reviewed and approved by management prior to release.',
+        'Where bespoke and custom software is reviewed by hand before release to production, each code change is examined by a person other than the one who wrote it, and that person is competent in code review technique and in secure coding practice. Management reviews and approves the change before it is released.',
       testing: [
-        'Examine documented procedures to verify manual code review requirements are defined.',
-        'Examine evidence of manual code reviews to verify reviews are performed by qualified individuals other than the author and approved by management.',
+        'Read the documented procedures and confirm the requirements for review by hand are defined.',
+        'Read the evidence of such reviews and confirm each was carried out by a competent person who did not write the code, and that management signed it off.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -91,12 +97,12 @@ export default {
       id: '6.2.4',
       title: 'Prevention of common software attacks',
       question:
-        'Are software engineering techniques or other methods defined and in use by software development personnel to prevent or mitigate common software attacks and related vulnerabilities in bespoke and custom software — including injection attacks, attacks on data and data structures, attacks on cryptography usage, attacks on business logic, attacks on access control mechanisms, and attacks via any high-risk vulnerabilities identified in the vulnerability identification process?',
+        'Have engineering techniques or other methods been defined, and are developers actually using them, to stop or blunt the common classes of attack against bespoke and custom software — injection; attempts against data and the structures holding it; misuse of cryptography; abuse of business logic; subversion of access control; and anything your own process has rated a high-risk vulnerability?',
       requirement:
-        'Software engineering techniques or other methods are defined and in use by software development personnel to prevent or mitigate common software attacks and related vulnerabilities in bespoke and custom software, including but not limited to the following: injection attacks, including SQL, LDAP, XPath, or other command, parameter, object, fault, or injection-type flaws; attacks on data and data structures, including attempts to manipulate buffers, pointers, input data, or shared data; attacks on cryptography usage, including attempts to exploit weak, insecure, or inappropriate cryptographic implementations, algorithms, cipher suites, or modes of operation; attacks on business logic, including attempts to abuse or bypass application features and functionalities through the manipulation of APIs, communication protocols and channels, client-side functionality, or other system/application functions and resources; attacks on access control mechanisms, including attempts to bypass or abuse identification, authentication, or authorization mechanisms, or attempts to exploit weaknesses in the implementation of such mechanisms; attacks via any "high-risk" vulnerabilities identified in the vulnerability identification process, as defined in Requirement 6.3.1.',
+        'The entity has settled on engineering techniques, or other methods, and its developers actually use them to head off the common classes of attack on bespoke and custom software, together with the weaknesses those attacks rely on. The classes covered run to at least the following six. (1) Injection of every variety — SQL, LDAP and XPath among them, and equally those turning on a command, a parameter, an object or an induced fault. (2) Attempts against data and the structures that hold it: tampering with a buffer, a pointer, the input supplied, or data shared between components. (3) Misuse of cryptography, where the attacker exploits an implementation, algorithm, cipher suite or mode of operation that is weak, insecure or ill-suited to the job. (4) Abuse of business logic — misusing or sidestepping what the application offers, by way of its APIs, its communication protocols and channels, its client-side behaviour, or any other function or resource it exposes. (5) Subversion of the access control machinery: evading or misusing identification, authentication or authorisation, or exploiting a weakness in how any of the three was built. (6) Anything reachable by way of a weakness that the entity\u2019s own process under Requirement 6.3.1 has rated high risk.',
       testing: [
-        'Examine documented software development procedures to verify techniques are defined to prevent or mitigate common software attacks.',
-        'Interview software development personnel and examine evidence to verify the techniques are in use.',
+        'Read the documented development procedures and confirm techniques are defined for heading off the common classes of attack.',
+        'Ask the developers and read the evidence, to confirm those techniques are genuinely in use.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -106,12 +112,12 @@ export default {
       id: '6.3.1',
       title: 'Vulnerability identification and risk ranking',
       question:
-        'Are security vulnerabilities identified and managed such that new security vulnerabilities are identified using industry-recognized sources for security vulnerability information (including alerts from international and national CERTs), vulnerabilities are assigned a risk ranking based on industry best practices and consideration of potential impact including ranking as high-risk or critical, and risk rankings identify at a minimum all vulnerabilities considered to be a high risk to the environment, with vulnerabilities for bespoke and custom and third-party software components covered?',
+        'Do you find out about new vulnerabilities from recognised industry sources, including national and international CERT advisories, rank each one for risk using industry practice and its likely impact so that high-risk and critical ones are picked out, and cover both your own software and the third-party components in it?',
       requirement:
-        'Security vulnerabilities are identified and managed as follows: new security vulnerabilities are identified using industry-recognized sources for security vulnerability information, including alerts from international and national computer emergency response teams (CERTs); vulnerabilities are assigned a risk ranking based on industry best practices and consideration of potential impact; risk rankings identify, at a minimum, all vulnerabilities considered to be a high-risk or critical to the environment; vulnerabilities for bespoke and custom, and third-party software (for example operating systems and databases) are covered.',
+        'Vulnerabilities are found and managed as follows. Newly published vulnerabilities are learned of through recognised industry sources of vulnerability information, including advisories from national and international computer emergency response teams. Each is given a risk ranking, arrived at from industry practice and from what its impact would be. The ranking picks out, as a minimum, every vulnerability that is high risk or critical for this environment. And the process covers bespoke and custom software as well as third-party software such as operating systems and databases.',
       testing: [
-        'Examine documented policies and procedures to verify a process is defined for identifying and managing security vulnerabilities.',
-        'Interview responsible personnel and examine evidence to verify that vulnerabilities are identified and risk-ranked as specified.',
+        'Read the documented policies and procedures and confirm a process for finding and managing vulnerabilities is defined.',
+        'Ask the responsible staff and read the evidence, to confirm vulnerabilities are found and ranked as described.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -120,12 +126,12 @@ export default {
       id: '6.3.2',
       title: 'Software inventory',
       question:
-        'Is an inventory of bespoke and custom software, and third-party software components incorporated into bespoke and custom software, maintained to facilitate vulnerability and patch management?',
+        'Do you keep an inventory of your bespoke and custom software, and of the third-party components built into it, so that vulnerabilities and patches can be tracked against it?',
       requirement:
-        'An inventory of bespoke and custom software, and third-party software components incorporated into bespoke and custom software is maintained to facilitate vulnerability and patch management.',
+        'An inventory is maintained of bespoke and custom software and of the third-party software components incorporated into it, so that vulnerability and patch management can be carried out against it.',
       testing: [
-        'Examine documentation to verify an inventory of bespoke and custom software and third-party software components is maintained.',
-        'Examine the inventory and compare to the software in use to verify the inventory is complete and current.',
+        'Read the documentation and confirm such an inventory is maintained.',
+        'Compare the inventory against the software actually in use and confirm it is complete and current.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -135,12 +141,12 @@ export default {
       id: '6.3.3',
       title: 'Security patching',
       question:
-        'Are all system components protected from known vulnerabilities by installing applicable security patches/updates, with critical or high-security patches/updates installed within one month of release and all other applicable security patches/updates installed within an appropriate time frame as determined by your organization?',
+        'Are all system components kept clear of known vulnerabilities by applying the relevant security patches — those rated critical or high within one month of release, and the rest within a period your organisation has itself decided is appropriate?',
       requirement:
-        'All system components are protected from known vulnerabilities by installing applicable security patches/updates as follows: critical or high-security patches/updates (identified according to the risk ranking process at Requirement 6.3.1) are installed within one month of release; all other applicable security patches/updates are installed within an appropriate time frame as determined by the entity (for example, within three months of release).',
+        'System components are kept protected from known vulnerabilities by installing the security patches and updates that apply to them. Where the ranking process at Requirement 6.3.1 has marked a patch or update as critical or high, it is applied no more than a month after the vendor puts it out. Every other applicable security patch or update is installed within a period the entity has determined to be appropriate — within three months of release, for instance.',
       testing: [
-        'Examine policies and procedures to verify processes are defined for installing security patches/updates within the required time frames.',
-        'Examine system components and compare the list of installed security patches to the most recent vendor patch information.',
+        'Read the policies and procedures and confirm the installation timescales are defined.',
+        'Inspect the system components and set the patches installed against the vendor’s most recent patch information.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -149,12 +155,12 @@ export default {
       id: '6.4.1',
       title: 'Public-facing web application assessments',
       question:
-        'For public-facing web applications, are new threats and vulnerabilities addressed on an ongoing basis, and are these applications protected against known attacks by being reviewed using manual or automated application vulnerability security assessment tools or methods at least once every 12 months and after significant changes, by an entity that specializes in application security, with all vulnerabilities per Requirement 6.3.1 corrected and the application re-evaluated after corrections?',
+        'Do you deal with emerging threats and weaknesses in your internet-facing web applications continuously, and is each one reviewed — by hand or by vulnerability assessment tooling, at intervals no longer than 12 months and again after any significant change, by a party specialising in application security, covering at minimum the attack classes in Requirement 6.2.4 — and does every weakness found get ranked as Requirement 6.3.1 directs, put right, and the application looked at again once it has been?',
       requirement:
-        'For public-facing web applications, new threats and vulnerabilities are addressed on an ongoing basis and these applications are protected against known attacks as follows: reviewing public-facing web applications via manual or automated application vulnerability security assessment tools or methods as follows — at least once every 12 months and after significant changes; by an entity that specializes in application security; including, at a minimum, all common software attacks in Requirement 6.2.4; all vulnerabilities are ranked in accordance with Requirement 6.3.1; all vulnerabilities are corrected; the application is re-evaluated after the corrections.',
+        'Internet-facing web applications are protected against known attacks, and emerging threats and weaknesses affecting them are dealt with as a continuing activity rather than a periodic one. Each is reviewed using either hands-on methods or application vulnerability assessment tooling: at intervals no longer than 12 months, and additionally after any significant change; by a party that specialises in application security; and covering as a minimum all of the common attack classes set out in Requirement 6.2.4. Every vulnerability found is ranked as Requirement 6.3.1 requires, every vulnerability is corrected, and the application is examined again once the corrections are in.',
       testing: [
-        'Examine documented procedures to verify processes are defined for reviewing public-facing web applications.',
-        'Examine records of application security assessments to verify they are performed at the required frequency and that vulnerabilities are corrected and re-evaluated.',
+        'Read the documented procedures and confirm a review process for public-facing web applications is defined.',
+        'Read the assessment records and confirm reviews happened at the required interval and that findings were corrected and re-examined.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -164,12 +170,12 @@ export default {
       id: '6.4.2',
       title: 'Automated technical solution for web attacks',
       question:
-        'For public-facing web applications, is an automated technical solution deployed that continually detects and prevents web-based attacks, is installed in front of public-facing web applications, is actively running and up to date as applicable, generates audit logs, and is configured to either block web-based attacks or generate an alert that is immediately investigated?',
+        'Is there an automated technical control sitting in front of your public-facing web applications that detects and stops web attacks on a continuing basis — running and current, producing audit logs, and set either to block the attack or to raise an alert that is investigated at once?',
       requirement:
-        'For public-facing web applications, an automated technical solution is deployed that continually detects and prevents web-based attacks, with at least the following: is installed in front of public-facing web applications and is configured to detect and prevent web-based attacks; actively running and up to date as applicable; generating audit logs; configured to either block web-based attacks or generate an alert that is immediately investigated.',
+        'An automated technical control is deployed for public-facing web applications that detects and prevents web-based attacks on a continuing basis, meeting at least the following. It sits in front of those applications, set up to spot web attacks and stop them. It is running, and current wherever currency applies. It produces audit logs. And it is configured either to block the attack outright or to raise an alert that is investigated immediately.',
       testing: [
-        'Examine system configuration settings and audit logs to verify that an automated technical solution is deployed in front of public-facing web applications.',
-        'Interview responsible personnel to verify the solution is actively running, up to date, and configured as specified.',
+        'Inspect the configuration and the audit logs to confirm such a control is deployed in front of the public-facing web applications.',
+        'Ask the responsible staff to confirm it is running, current, and configured as described.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -179,12 +185,12 @@ export default {
       id: '6.4.3',
       title: 'Payment page script management',
       question:
-        'Are all payment page scripts that are loaded and executed in the consumer’s browser managed such that a method is implemented to confirm that each script is authorized, a method is implemented to assure the integrity of each script, and an inventory of all scripts is maintained with written business or technical justification as to why each is necessary?',
+        'For every script that loads and runs in the cardholder’s browser on a payment page, is there a means of confirming the script is authorised, a means of assuring it has not been tampered with, and an inventory recording in writing why each script needs to be there?',
       requirement:
-        'All payment page scripts that are loaded and executed in the consumer’s browser are managed as follows: a method is implemented to confirm that each script is authorized; a method is implemented to assure the integrity of each script; an inventory of all scripts is maintained with written business or technical justification as to why each is necessary.',
+        'Every script that a payment page causes to run in the browser of the person paying is managed in three ways: a means is in place to confirm that the script is authorised; a means is in place to assure the script’s integrity; and an inventory of all such scripts is maintained, recording in writing the business or technical reason each one is needed.',
       testing: [
-        'Examine documented policies and procedures to verify processes are defined for managing payment page scripts.',
-        'Examine the inventory of scripts and interview personnel to verify that authorization and integrity methods are implemented.',
+        'Read the documented policies and procedures and confirm a process for managing payment page scripts is defined.',
+        'Read the script inventory and ask staff, to confirm the authorisation and integrity mechanisms are in place.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -194,12 +200,12 @@ export default {
       id: '6.5.1',
       title: 'Change control procedures',
       question:
-        'Are changes to all system components in the production environment made according to established procedures that include the reason for and description of the change, documentation of security impact, documented change approval by authorized parties, testing to verify that the change does not adversely impact system security, testing of all bespoke and custom software updates for compliance with Requirement 6.2.4 before deployment, and procedures to address failures and return to a secure state?',
+        'Does every change to a production system component follow a settled procedure that records the reason for and nature of the change, documents its security impact, captures approval from someone authorised, tests that security is not degraded, tests bespoke and custom software updates against Requirement 6.2.4 before they reach production, and says what to do when a change fails and how to get back to a safe state?',
       requirement:
-        'Changes to all system components in the production environment are made according to established procedures that include: reason for, and description of, the change; documentation of security impact; documented change approval by authorized parties; testing to verify that the change does not adversely impact system security; for bespoke and custom software changes, all updates are tested for compliance with Requirement 6.2.4 before being deployed into production; procedures to address failures and return to a secure state.',
+        'Changes to system components in the production environment follow settled procedures, which include all of the following: the reason for the change and a description of it; a record of its security impact; approval recorded by a party authorised to give it; testing establishing that the change does not weaken system security; for changes to bespoke and custom software, testing every update against Requirement 6.2.4 before it is deployed to production; and procedures covering what happens if a change fails and how a secure state is restored.',
       testing: [
-        'Examine documented change control procedures to verify all required elements are addressed.',
-        'Examine records of recent changes to verify the procedures were followed.',
+        'Read the documented change control procedures and confirm each of those elements is covered.',
+        'Read the records of recent changes and confirm the procedures were actually followed.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -208,12 +214,12 @@ export default {
       id: '6.5.2',
       title: 'Significant change confirmation',
       question:
-        'Upon completion of a significant change, are all applicable PCI DSS requirements confirmed to be in place on all new or changed systems and networks, and is documentation updated as applicable?',
+        'After a significant change, do you go back and confirm that every applicable PCI DSS requirement is still in place on the systems and networks that were added or altered, and bring the documentation up to date?',
       requirement:
-        'Upon completion of a significant change, all applicable PCI DSS requirements are confirmed to be in place on all new or changed systems and networks, and documentation is updated as applicable.',
+        'Once a significant change is complete, every applicable PCI DSS requirement is confirmed to be in place on each new or altered system and network, and the documentation is brought up to date where it needs to be.',
       testing: [
-        'Examine documented change control procedures to verify that processes are defined to confirm PCI DSS requirements are in place after significant changes.',
-        'Examine records of significant changes and interview personnel to verify the confirmation was performed.',
+        'Read the documented change control procedures and confirm this post-change confirmation is provided for.',
+        'Read the records of significant changes and ask staff, to confirm the confirmation actually took place.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -222,12 +228,12 @@ export default {
       id: '6.5.3',
       title: 'Separation of pre-production and production',
       question:
-        'Are pre-production environments separated from production environments, and is the separation enforced with access controls?',
+        'Are pre-production environments kept apart from production, with access controls enforcing that separation rather than convention alone?',
       requirement:
-        'Pre-production environments are separated from production environments and the separation is enforced with access controls.',
+        'Pre-production environments are kept separate from production environments, and access controls enforce that separation.',
       testing: [
-        'Examine network documentation and configurations to verify that pre-production environments are separate from production environments.',
-        'Examine access control settings to verify that the separation is enforced.',
+        'Read the network documentation and inspect the configuration to confirm pre-production is separate from production.',
+        'Inspect the access control settings and confirm they enforce the separation.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -237,12 +243,12 @@ export default {
       id: '6.5.4',
       title: 'Separation of duties',
       question:
-        'Are roles and functions separated between production and pre-production environments to provide accountability such that only reviewed and approved changes are deployed?',
+        'Are roles and duties split between the production and pre-production environments, so that accountability exists and only changes that have been reviewed and approved can be deployed?',
       requirement:
-        'Roles and functions are separated between production and pre-production environments to provide accountability such that only reviewed and approved changes are deployed.',
+        'Roles and functions are divided between production and pre-production environments, establishing accountability such that only a change that has been reviewed and approved can be deployed.',
       testing: [
-        'Examine documented policies and procedures and access control settings to verify roles and functions are separated.',
-        'Interview personnel to verify that only reviewed and approved changes are deployed.',
+        'Read the documented policies and procedures and inspect the access control settings to confirm roles and functions are divided.',
+        'Ask staff to confirm that only reviewed and approved changes get deployed.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -252,12 +258,12 @@ export default {
       id: '6.5.5',
       title: 'Live PANs in pre-production',
       question:
-        'Are live PANs prohibited from use in pre-production environments, except where those environments are included in the CDE and protected in accordance with all applicable PCI DSS requirements?',
+        'Are real PANs kept out of pre-production environments, unless such an environment is itself inside the cardholder data environment and protected to every applicable PCI DSS requirement?',
       requirement:
-        'Live PANs are not used in pre-production environments, except where those environments are included in the CDE and protected in accordance with all applicable PCI DSS requirements.',
+        'Pre-production environments do not carry real PANs. The one exception is a pre-production environment that has been brought inside the cardholder data environment and is protected in line with every applicable PCI DSS requirement.',
       testing: [
-        'Examine documented policies and procedures to verify processes are defined to prohibit live PANs in pre-production environments.',
-        'Examine pre-production data and interview personnel to verify that live PANs are not present, or that the environment is included in the CDE and protected.',
+        'Read the documented policies and procedures and confirm a process exists that keeps real PANs out of pre-production.',
+        'Inspect the pre-production data and ask staff, to confirm either that no real PANs are present or that the environment sits inside the cardholder data environment and is protected.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -267,12 +273,12 @@ export default {
       id: '6.5.6',
       title: 'Removal of test data and accounts',
       question:
-        'Are test data and test accounts removed from system components before the system goes into production?',
+        'Are test data and test accounts taken off a system component before it goes live?',
       requirement:
-        'Test data and test accounts are removed from system components before the system goes into production.',
+        'Before a system component enters production, any test data and test accounts sitting on it are taken off.',
       testing: [
-        'Examine documented policies and procedures to verify processes are defined for removing test data and test accounts.',
-        'Examine recently installed or updated production systems to verify test data and test accounts have been removed.',
+        'Read the documented policies and procedures and confirm a removal process is defined.',
+        'Inspect production systems recently installed or updated and confirm test data and test accounts are gone.',
       ],
       appliesTo: 'all',
       allowNA: false,
