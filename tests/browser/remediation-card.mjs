@@ -50,7 +50,10 @@ ck('nothing to remediate means no advisor card', (await page.locator('h2:has-tex
 console.log('\n== once a requirement fails ==');
 await page.goto(link, { waitUntil: 'networkidle' });
 await page.waitForSelector('.question', { timeout: 10000 });
-await page.locator('.question').first().locator('label', { hasText: 'No' }).first().click();
+// Response options render in the order yes, no, na, yes-ccw, so index 1 is
+// "No". Selected by position rather than by label text, as the other suites do:
+// matching on wording would tie this suite to text that gets revised.
+await page.locator('.question').first().locator('.response-option').nth(1).click();
 await page.waitForTimeout(1200);
 
 await page.goto(`${BASE}/admin`, { waitUntil: 'networkidle' });

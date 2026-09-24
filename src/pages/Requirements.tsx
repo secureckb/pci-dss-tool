@@ -486,9 +486,13 @@ export default function Requirements() {
         <div className="card">
           <h2>Source and scope</h2>
           <p className="small muted" style={{ marginBottom: 0 }}>
-            Requirement text is drawn from PCI DSS v4.0.1. This catalogue is a reference for the questions this tool asks
-            and is not affiliated with or endorsed by the PCI Security Standards Council. The authoritative text is the
-            standard itself, available from the PCI SSC Document Library.
+            Every requirement below is described in this tool&rsquo;s own words, not the standard&rsquo;s. The requirement
+            numbers are PCI DSS v4.0.1&rsquo;s and are kept exactly so that an answer here can be traced to the requirement
+            it concerns &mdash; but the wording, and the way each testing procedure is described, is ours. That means a
+            summary here can be clearer than the source, and it also means it can be wrong where the source is not. This
+            catalogue is a reference for the questions this tool asks; it is not the standard, and it is not affiliated with
+            or endorsed by the PCI Security Standards Council. The authoritative text is PCI DSS v4.0.1 itself, obtainable
+            from the PCI SSC Document Library, and it governs wherever the two differ.
           </p>
         </div>
       </main>

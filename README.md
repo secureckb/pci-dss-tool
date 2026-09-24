@@ -109,8 +109,9 @@ Optional, off unless `ANTHROPIC_API_KEY` is set, and deliberately kept to one si
 above.
 
 Once an assessment has failed requirements, the assessor can have a remediation plan drafted for
-them. A model is given a small set of tools — the scored gap list, the verbatim requirement text and
-testing procedures, a keyword search over the bank, and one tool that records a draft item — and left
+them. A model is given a small set of tools — the scored gap list, this tool's own description of each
+requirement and its testing procedures, a keyword search over the bank, and one tool that records a draft
+item — and left
 to work: it reads the requirements behind each gap, looks for the neighbouring controls that
 remediation has to cover too, and writes an item per gap with actions, the evidence that would close
 it, an owner and an effort estimate. That loop is the only non-deterministic part of the tool.
@@ -275,6 +276,31 @@ Edit the relevant `shared/questions/reqNN.js`. Each question is:
 Existing answers are stored by requirement id, so renaming an id orphans previously recorded
 answers for that requirement. The requirement catalogue at `/requirements` is generated from these
 modules, so it updates with them and needs no separate edit.
+
+## Where the requirement wording comes from
+
+The requirement **numbers** in this tool are PCI DSS v4.0.1's, kept exactly. They are what makes a
+result usable — an acquirer, a QSA and the AOC all speak in requirement numbers, so a finding that
+cannot cite `8.3.6` cannot be acted on.
+
+The requirement **wording** is this project's own. Every question, requirement description and
+testing procedure in `shared/questions/` was written here to carry the same obligation in different
+words. The bank used to reproduce roughly nineteen pages of the standard's text verbatim, which is
+the part its licence actually covers; the numbers are not, and short factual identifiers generally
+are not protectable. Renumbering the controls would have cost the tool its usefulness and addressed
+none of that.
+
+Two consequences worth being clear about:
+
+- **A paraphrase can be clearer than its source, and it can also be wrong where the source is not.**
+  PCI DSS v4.0.1 governs wherever the two differ, and the catalogue page says so to the reader.
+- **Editing the bank has rules.** Scope, frequency, thresholds and every enumerated condition have to
+  survive a rewording intact; cross-references stay as they are; terms of art stay. The full set is
+  documented at the top of `shared/questions/index.js`, where anyone editing will see it.
+
+`npm run verify` gates the counts and structure on every build. The wording was checked separately,
+by comparing each rewritten field against the text it replaced: no field shares a run of eight or
+more consecutive words with it.
 
 ## Scope and limitations
 
