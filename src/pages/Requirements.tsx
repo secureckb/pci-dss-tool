@@ -142,6 +142,13 @@ function ScopeNote() {
         </li>
       </ul>
 
+      <p className="small muted">
+        Every result, count and determination this tool produces is computed from the answers given, by fixed rules,
+        with no AI involvement. An assessor may separately have remediation advice drafted for failed requirements by
+        a language model; where that advice appears in a report it is labelled as machine-drafted and
+        assessor-approved, and it is never an input to the determination.
+      </p>
+
       <p className="small muted" style={{ marginBottom: 0 }}>
         Not affiliated with or endorsed by the PCI Security Standards Council. A determination of Compliant means
         no applicable requirement was answered No &mdash; it does not verify that the answers are accurate, that the

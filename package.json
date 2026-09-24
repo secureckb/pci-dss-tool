@@ -17,6 +17,7 @@
     "test": "node tests/run.mjs"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.128.0",
     "compression": "^1.8.2",
     "cookie-parser": "^1.4.7",
     "express": "^4.21.2",

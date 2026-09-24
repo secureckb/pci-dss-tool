@@ -235,8 +235,58 @@ function safeFilename(name, suffix) {
   return `${base || 'assessment'}-${suffix}.pdf`;
 }
 
-/** Full gap remediation report: determination, rollups, and every failed or flagged item. */
-export function buildGapReport(res, assessment, result) {
+/**
+ * One drafted remediation item.
+ *
+ * Kept visually distinct from the requirement blocks above it, and introduced by
+ * a provenance line, because the two have different standing: the requirement
+ * text and the client's answer are the record, and this is advice an assessor
+ * approved about that record.
+ */
+function remediationItem(doc, item, index) {
+  const left = doc.page.margins.left;
+  const width = doc.page.width - left - doc.page.margins.right;
+
+  ensureSpace(doc, 150);
+  doc.fillColor(INK).font('Helvetica-Bold').fontSize(11).text(`${index}. Requirement ${item.questionId}`, left, doc.y, { width });
+  doc.moveDown(0.2);
+  doc.fillColor(INK).font('Helvetica').fontSize(9).text(item.summary, { width, align: 'justify' });
+  doc.moveDown(0.4);
+
+  const rows = [
+    ['ACTIONS', item.steps],
+    ['EVIDENCE TO CLOSE', item.evidence],
+    ['RELATED REQUIREMENTS', item.related],
+  ];
+  for (const [label, value] of rows) {
+    if (!value) continue;
+    ensureSpace(doc, 40);
+    doc.fillColor(MUTED).font('Helvetica-Bold').fontSize(8).text(label, left, doc.y, { width });
+    doc.fillColor(INK).font('Helvetica').fontSize(9).text(value, { width });
+    doc.moveDown(0.3);
+  }
+
+  const meta = [item.ownerRole && `Owner: ${item.ownerRole}`, item.effort && `Estimated effort: ${item.effort}`]
+    .filter(Boolean)
+    .join('   ·   ');
+  if (meta) {
+    doc.fillColor(MUTED).font('Helvetica-Oblique').fontSize(8).text(meta, { width });
+    doc.moveDown(0.2);
+  }
+
+  doc.strokeColor(RULE).lineWidth(0.5).moveTo(left, doc.y).lineTo(left + width, doc.y).stroke();
+  doc.moveDown(0.6);
+}
+
+/**
+ * Full gap remediation report: determination, rollups, and every failed or
+ * flagged item.
+ *
+ * `options.plan` is an approved remediation plan, if one exists. Only an
+ * approved plan is ever passed in — a draft the assessor has not signed off on
+ * does not belong in a document that leaves the tool.
+ */
+export function buildGapReport(res, assessment, result, options = {}) {
   const doc = startDocument(res, safeFilename(assessment.client_name, 'pci-dss-saq-d-report'));
 
   heading(
@@ -281,6 +331,69 @@ export function buildGapReport(res, assessment, result) {
     result.gaps.forEach((gap, i) => {
       gapEntry(doc, gap, i + 1, { accent: FAIL, textLabel: 'CLIENT NOTES / PLANNED REMEDIATION' });
     });
+  }
+
+  const plan = options.plan;
+  if (plan && plan.items.length > 0) {
+    doc.addPage();
+    heading(
+      doc,
+      'Recommended remediation',
+      'Drafted by an AI advisor from the failed requirements above, then reviewed and approved by the assessor.'
+    );
+
+    const left = doc.page.margins.left;
+    const width = doc.page.width - left - doc.page.margins.right;
+
+    // Provenance, stated before the advice rather than in a footnote. A reader
+    // is entitled to know that this section was machine-drafted, which model
+    // drafted it, and that a person approved it before it was included.
+    doc.save();
+    doc.roundedRect(left, doc.y, width, 58, 4).fillOpacity(0.06).fill(REVIEW);
+    doc.restore();
+    doc
+      .fillColor(REVIEW)
+      .font('Helvetica-Bold')
+      .fontSize(8)
+      .text(
+        'HOW THIS SECTION WAS PRODUCED. The requirement results in this report are computed directly from the ' +
+          'entity\u2019s own answers and contain no AI output. This section alone was drafted by a language model ' +
+          `(${plan.model}, brief ${plan.promptVersion}) from those results, and approved by the assessor on ` +
+          `${formatDate(plan.reviewedAt)}. It is professional advice to be weighed, not a finding, and it does not ` +
+          'affect the compliance determination.',
+        left + 10,
+        doc.y + 8,
+        { width: width - 20 }
+      );
+    doc.y += 70;
+    doc.x = left;
+
+    if (plan.overview) {
+      sectionTitle(doc, 'Overview');
+      doc.fillColor(INK).font('Helvetica').fontSize(10).text(plan.overview, { width, align: 'justify' });
+      doc.moveDown(0.6);
+    }
+
+    sectionTitle(doc, 'Items, in the order recommended');
+    plan.items.forEach((item, i) => remediationItem(doc, item, i + 1));
+
+    // Said plainly when it happens, rather than leaving a reader to compare two
+    // lists and notice the difference themselves.
+    const covered = new Set(plan.items.map((item) => item.questionId));
+    const missed = result.gaps.filter((gap) => !covered.has(gap.id)).map((gap) => gap.id);
+    if (missed.length > 0) {
+      ensureSpace(doc, 50);
+      doc
+        .fillColor(FAIL)
+        .font('Helvetica-Bold')
+        .fontSize(9)
+        .text(
+          `No remediation was drafted for ${missed.length} failed requirement(s): ${missed.join(', ')}. ` +
+            'They still have to be remediated.',
+          { width, align: 'justify' }
+        );
+      doc.moveDown(0.4);
+    }
   }
 
   if (result.reviewItems.length > 0) {
@@ -345,6 +458,20 @@ export function buildGapReport(res, assessment, result) {
     .text(
       'A "Compliant" determination here means no applicable requirement was answered "No". It does not verify that the answers are accurate, ' +
         'that the described scope is correct, or that supporting evidence exists.',
+      { align: 'justify' }
+    );
+  doc.moveDown(0.5);
+  doc
+    .fillColor(MUTED)
+    .font('Helvetica')
+    .fontSize(9)
+    .text(
+      options.plan
+        ? 'Every requirement result, count and determination in this report is computed directly from the responses given, by fixed rules, ' +
+            'with no AI involvement. The "Recommended remediation" section is the one exception: it was drafted by a language model and ' +
+            'approved by the assessor before inclusion, and is identified as such where it appears.'
+        : 'Every requirement result, count and determination in this report is computed directly from the responses given, by fixed rules. ' +
+            'No part of this report was written by an AI model.',
       { align: 'justify' }
     );
 

@@ -32,6 +32,12 @@ The browser suites need a built front end (`npm run build`) and Chromium
 (`npx playwright install chromium`). Set `CHROMIUM_PATH` if you want a specific
 binary.
 
+No suite calls a model. The advisor's loop is exercised against a scripted client
+instead, which is both free and repeatable; what a real model would write is not
+a thing a regression suite can assert. The guards around the loop — who may start
+a run, and when one is worth making — are covered against a real server in
+`api/remediation-advisor`, with a placeholder key.
+
 ## Layout
 
 | Folder | Runtime | What it covers |
@@ -51,6 +57,7 @@ rather than rewritten.
 | Suite | Covers |
 | --- | --- |
 | `https-gate` | Which requests may sign in: direct TLS, a proxy on the private network, a spoofed forwarded header, localhost |
+| `agent-loop` | The remediation advisor's loop against a scripted model: ordering, the turn ceiling, and what it refuses to save |
 
 ### `api/`
 
@@ -68,6 +75,7 @@ rather than rewritten.
 | `questionnaire-generation` | A write from before a reset cannot restore deleted answers |
 | `reopen-and-snapshots` | Reopening does not revive tabs open at submission; reports are read from one snapshot |
 | `https-enforcement` | Plaintext is redirected with no way out of it, and the health check stays reachable |
+| `remediation-advisor` | The advisor is assessor-only, says so when unconfigured, and refuses a run with nothing to remediate |
 
 ### `browser/`
 
@@ -85,3 +93,4 @@ rather than rewritten.
 | `wizard-then-answer` | Answers given after the wizard are still ordered |
 | `scope-and-cross-window` | The scope summary is shown; a cross-window change blocks submission |
 | `retry-accounting` | A save that failed at the network does not hide another window's edit |
+| `remediation-card` | The advisor's card on a deployment with no key: present, explicit, and taking nothing else down |

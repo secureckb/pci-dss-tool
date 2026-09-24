@@ -172,3 +172,62 @@ export interface EligibilityRecord {
   notes: { stepId: string; note: string }[];
   determinedAt: string;
 }
+
+/**
+ * The remediation advisor.
+ *
+ * Its output is kept in its own types rather than folded into Result, because it
+ * is a different kind of thing: Result is computed from the client's answers by
+ * fixed rules, and a plan is advice a model drafted about that result. Nothing
+ * here feeds back into Result.
+ */
+export interface RemediationItem {
+  questionId: string;
+  priority: number;
+  summary: string;
+  steps: string;
+  evidence: string;
+  effort: string;
+  ownerRole: string;
+  related: string;
+}
+
+export interface RemediationPlan {
+  id: string;
+  status: 'draft' | 'approved' | 'discarded';
+  determination: Determination;
+  gapCount: number;
+  overview: string;
+  model: string;
+  promptVersion: string;
+  createdAt: string;
+  reviewedAt: string | null;
+  /** The assessment has changed since this plan was drafted. */
+  stale: boolean;
+  items: RemediationItem[];
+}
+
+export interface AgentRun {
+  id: string;
+  planId: string | null;
+  status: 'running' | 'succeeded' | 'failed';
+  model: string;
+  iterations: number;
+  inputTokens: number;
+  outputTokens: number;
+  stopReason: string | null;
+  error: string | null;
+  startedAt: string;
+  finishedAt: string | null;
+}
+
+export interface RemediationState {
+  /** False when the deployment has no model access. Everything else still works. */
+  configured: boolean;
+  model: string;
+  gapCount: number;
+  running: { id: string; startedAt: string } | null;
+  plan: RemediationPlan | null;
+  approvedPlanId: string | null;
+  runs: AgentRun[];
+}

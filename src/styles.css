@@ -375,6 +375,9 @@ h4.detail-label {
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* For an inline icon that turns while something is running. */
+.spin { animation: spin 1s linear infinite; }
+
 .save-state { font-size: 0.8rem; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
 
 @media (max-width: 860px) {

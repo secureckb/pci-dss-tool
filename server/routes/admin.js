@@ -14,6 +14,8 @@ import { VARIANTS } from '../../shared/questions/index.js';
 import { SAQ_TYPES } from '../../shared/eligibility.js';
 import { buildGapReport, buildAttestation } from '../pdf.js';
 import { linkBaseIsFromRequest, readSnapshot, publicBaseUrl, withLockedAssessment } from '../helpers.js';
+import { registerRemediationRoutes } from './remediation.js';
+import { approvedPlan } from '../agent/store.js';
 
 const router = asyncRouter();
 
@@ -139,6 +141,9 @@ router.get('/session', (req, res) => {
 });
 
 router.use(requireAdmin);
+
+// The remediation advisor, behind the same session check as everything else here.
+registerRemediationRoutes(router);
 
 router.get('/assessments', async (req, res) => {
   const { rows } = await query(
@@ -374,7 +379,10 @@ router.get('/assessments/:id/report.pdf', async (req, res) => {
   if (!assessment) return res.status(404).json({ error: 'Assessment not found.' });
   if (!assessment.variant) return res.status(409).json({ error: 'This assessment has no questionnaire to report on yet.' });
 
-  buildGapReport(res, assessment, scoreAssessment(assessment.variant, answers), answers);
+  // Only an approved plan reaches the report. A draft the assessor has not read
+  // is not something to put in front of a client under their letterhead.
+  const plan = await approvedPlan(assessment);
+  buildGapReport(res, assessment, scoreAssessment(assessment.variant, answers), { plan });
 });
 
 router.get('/assessments/:id/aoc.pdf', async (req, res) => {

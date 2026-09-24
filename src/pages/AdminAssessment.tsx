@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Download, FileText, RotateCcw, Trash2 } from 'lucide-react';
 import { SaqResult } from '../components/SaqResult';
+import { RemediationPlanCard } from '../components/RemediationPlan';
 import { api } from '../api';
 import { RESPONSES } from '../responses';
 import {
@@ -238,6 +239,10 @@ export default function AdminAssessment() {
             showResponse
           />
         )}
+        {result && (result.gaps.length > 0 || result.reviewItems.length > 0) && (
+          <RemediationPlanCard assessmentId={id} />
+        )}
+
         {result && result.naItems.length > 0 && (
           <EntryList title="Marked Not Applicable" tone="muted" entries={result.naItems} notesLabel="Justification" />
         )}

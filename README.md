@@ -103,6 +103,44 @@ That produces one of four determinations:
 Requirements where N/A is never legitimate (documented policies, assigned roles, and similar) have
 the Not Applicable option disabled, and the server rejects it too.
 
+## The remediation advisor
+
+Optional, off unless `ANTHROPIC_API_KEY` is set, and deliberately kept to one side of everything
+above.
+
+Once an assessment has failed requirements, the assessor can have a remediation plan drafted for
+them. A model is given a small set of tools — the scored gap list, the verbatim requirement text and
+testing procedures, a keyword search over the bank, and one tool that records a draft item — and left
+to work: it reads the requirements behind each gap, looks for the neighbouring controls that
+remediation has to cover too, and writes an item per gap with actions, the evidence that would close
+it, an owner and an effort estimate. That loop is the only non-deterministic part of the tool.
+
+What keeps it safe to have in a compliance tool is what it cannot reach:
+
+- **It has no tool that writes an answer, changes eligibility, submits, reopens, or touches the
+  determination.** That is a property of the tool surface in `server/agent/tools.js`, not of the
+  prompt — no wording in a model's output, and nothing smuggled into a client's justification text,
+  can reach any of those.
+- **The determination is computed before the advisor runs and is never recomputed from its output.**
+  `shared/scoring.js` has no model in it and does not import anything that does. Pass or fail is the
+  same function it always was.
+- **It is assessor-only.** Its routes sit behind the admin session, so a client never sees model
+  output while they are answering, and no drafted text can nudge the answers a determination is
+  computed from.
+- **Nothing reaches a client until a person approves it.** A draft is visible in the console alone.
+  Approving it adds it to the full report — including the client's own copy — where it is labelled
+  with the model, the brief that produced it, and the date a person approved it.
+- **Every run is recorded.** `agent_runs` keeps each run's tool calls and the results it was given
+  back, with token counts and outcome. A score can be re-derived; advice from a model cannot, so the
+  run is the only honest answer to where a plan came from.
+- **A plan goes stale.** It stores the answers revision and generation it was drafted against, so a
+  plan written about answers the client has since changed is shown as stale rather than as current.
+
+Client answers and requirement text are sent to the Anthropic API when a run happens, which is a
+third-party data processor in a path that otherwise has none. That is the trade for the feature; if
+it is not one you want to make for a given client, leave `ANTHROPIC_API_KEY` unset and the tool
+behaves exactly as it did before the advisor existed.
+
 ## How you use it
 
 1. Sign in at `/admin` with your admin password.
@@ -135,6 +173,9 @@ the Not Applicable option disabled, and the server rejects it too.
    | `REQUIRE_HTTPS` | no | Plain HTTP is redirected to HTTPS by default, since a client link is a bearer credential. Set to `0` only for an instance you accept is plaintext. Localhost and `/api/health` are exempt. A proxy terminating TLS in front of this service must set `X-Forwarded-Proto`, or requests will be redirected back to it. |
    | `DATABASE_SSL` | no | Remote Postgres connections verify the server certificate by default. Set `no-verify` to encrypt without verifying (the connection is then not authenticated), or `off` for a private network with no TLS. |
    | `DATABASE_CA` | no | PEM for a private root certificate, if your provider publishes one. |
+   | `ANTHROPIC_API_KEY` | no | Switches on the remediation advisor. Without it the advisor is off and everything else works unchanged. |
+   | `AGENT_MODEL` | no | Which model the advisor uses. Defaults to `claude-opus-5`. |
+   | `AGENT_MAX_ITERATIONS` | no | How many turns one drafting run may take before it is stopped. Defaults to 40. |
    | `PORT` | no | Railway sets this. |
 
 4. Generate a domain under **Settings → Networking**, then set `PUBLIC_BASE_URL` to it and redeploy
@@ -206,6 +247,7 @@ shared/questions/     The SAQ D question bank, one module per requirement, plus 
 shared/scoring.js     Response semantics and the pass/fail engine — used by server and client
 shared/eligibility.js The SAQ decision tree and the eleven outcomes it routes to
 server/               Express API, Postgres access, PDF generation
+server/agent/         The remediation advisor: its tools, its loop, its brief, its storage
 src/                  React SPA: landing, SAQ wizard, requirement catalogue, questionnaire, results, admin
 tests/                API, unit and Chromium suites, with a runner that gives each a clean server
 ```
@@ -251,3 +293,12 @@ Admin sign-in requires HTTPS. If the deployment is reachable over plain HTTP the
 refused rather than issuing a session cookie in clear text; `localhost` is exempt so local
 development still works. Railway terminates TLS and forwards `X-Forwarded-Proto`, so a normal
 deployment is unaffected.
+
+Every requirement result, count and determination this tool produces is computed from the responses
+given, by fixed rules, with no AI involvement. The remediation advisor is the single exception, it is
+off by default, and what it drafts is advice an assessor approves — never a finding, and never an
+input to the determination.
+
+Where a report includes an approved remediation plan, that section is labelled with the model and
+brief that drafted it and the date it was approved. Where a report has no such plan, it says outright
+that no part of it was written by a model.

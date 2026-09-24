@@ -77,6 +77,12 @@ function startServer() {
       PORT: String(PORT),
       PUBLIC_BASE_URL: BASE_URL,
       NODE_ENV: 'test',
+      // Blanked rather than inherited. Suites assert what the tool does with the
+      // remediation advisor switched off, and a developer who happens to have a
+      // key exported would otherwise see those fail for a reason that has
+      // nothing to do with their change. The one suite that needs the advisor on
+      // starts its own server with a placeholder key.
+      ANTHROPIC_API_KEY: '',
     },
     stdio: ['ignore', 'pipe', 'pipe'],
   });

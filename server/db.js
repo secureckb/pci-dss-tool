@@ -194,6 +194,76 @@ ALTER TABLE answers ADD CONSTRAINT answers_response_check
 UPDATE assessments
    SET saq_type = CASE WHEN variant = 'service-provider' THEN 'D-ServiceProvider' ELSE 'D-Merchant' END
  WHERE saq_type IS NULL AND variant IS NOT NULL;
+
+-- The remediation advisor's output.
+--
+-- Kept strictly apart from "answers". What the client answered and what the
+-- scorer made of it are the record; this is advice drafted about that record by
+-- a language model, and it is stored where it cannot be mistaken for either. A
+-- plan carries the revision and generation it was drafted against, so one whose
+-- assessment has moved on can be shown as stale rather than read as current,
+-- and it carries the model and prompt version that produced it, because advice
+-- from a non-deterministic component is only defensible if you can say exactly
+-- what produced it.
+--
+-- "status" is the human gate. A draft is visible to the assessor alone; only an
+-- approved plan may appear in a report that leaves this tool.
+CREATE TABLE IF NOT EXISTS remediation_plans (
+  id               uuid PRIMARY KEY,
+  assessment_id    uuid NOT NULL REFERENCES assessments(id) ON DELETE CASCADE,
+  answers_revision bigint NOT NULL,
+  generation       bigint NOT NULL,
+  determination    text NOT NULL,
+  gap_count        integer NOT NULL DEFAULT 0,
+  status           text NOT NULL DEFAULT 'draft'
+                   CHECK (status IN ('draft', 'approved', 'discarded')),
+  overview         text NOT NULL DEFAULT '',
+  model            text NOT NULL,
+  prompt_version   text NOT NULL,
+  created_at       timestamptz NOT NULL DEFAULT now(),
+  reviewed_at      timestamptz
+);
+
+CREATE TABLE IF NOT EXISTS remediation_items (
+  plan_id     uuid NOT NULL REFERENCES remediation_plans(id) ON DELETE CASCADE,
+  question_id text NOT NULL,
+  priority    integer NOT NULL DEFAULT 99,
+  summary     text NOT NULL DEFAULT '',
+  steps       text NOT NULL DEFAULT '',
+  evidence    text NOT NULL DEFAULT '',
+  effort      text NOT NULL DEFAULT '',
+  owner_role  text NOT NULL DEFAULT '',
+  related     text NOT NULL DEFAULT '',
+  PRIMARY KEY (plan_id, question_id)
+);
+
+-- One row per agent run, whether it produced a plan or failed.
+--
+-- The transcript is every tool call the model made and every result it was
+-- given back. A deterministic scorer needs no such record because you can
+-- re-run it; this cannot be re-run to the same answer, so the run itself has to
+-- be the record. Without it there is no way to answer the only question that
+-- matters about advice in a compliance file: where did this come from.
+CREATE TABLE IF NOT EXISTS agent_runs (
+  id            uuid PRIMARY KEY,
+  assessment_id uuid NOT NULL REFERENCES assessments(id) ON DELETE CASCADE,
+  plan_id       uuid REFERENCES remediation_plans(id) ON DELETE SET NULL,
+  status        text NOT NULL CHECK (status IN ('running', 'succeeded', 'failed')),
+  model         text NOT NULL,
+  iterations    integer NOT NULL DEFAULT 0,
+  input_tokens  integer NOT NULL DEFAULT 0,
+  output_tokens integer NOT NULL DEFAULT 0,
+  stop_reason   text,
+  error         text,
+  transcript    jsonb NOT NULL DEFAULT '[]'::jsonb,
+  started_at    timestamptz NOT NULL DEFAULT now(),
+  finished_at   timestamptz
+);
+
+CREATE INDEX IF NOT EXISTS remediation_plans_assessment_idx
+  ON remediation_plans (assessment_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS agent_runs_assessment_idx
+  ON agent_runs (assessment_id, started_at DESC);
 `;
 
 export async function migrate() {

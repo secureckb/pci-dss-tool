@@ -4,6 +4,7 @@ import { scoreAssessment, RESPONSES } from '../../shared/scoring.js';
 import { getSections, getQuestion, VARIANTS } from '../../shared/questions/index.js';
 import { determineSaq, prunedAnswers, ELIGIBILITY_STEPS, FIRST_STEP, SAQ_TYPES } from '../../shared/eligibility.js';
 import { buildGapReport, buildAttestation } from '../pdf.js';
+import { approvedPlan } from '../agent/store.js';
 import { issueEpoch, readSnapshot, withLockedAssessment } from '../helpers.js';
 
 const router = asyncRouter();
@@ -510,7 +511,10 @@ router.get('/:token/report.pdf', withAssessment, requireVariant, async (req, res
   if (!assessment?.variant) {
     return res.status(409).json({ error: 'This assessment has no questionnaire to report on.', stage: 'eligibility' });
   }
-  buildGapReport(res, assessment, scoreAssessment(assessment.variant, answers), answers);
+  // An approved remediation plan is included; a draft never is. Approval is the
+  // assessor saying the advice is fit to send, and this is where it gets sent.
+  const plan = await approvedPlan(assessment);
+  buildGapReport(res, assessment, scoreAssessment(assessment.variant, answers), { plan });
 });
 
 router.get('/:token/aoc.pdf', withAssessment, requireVariant, async (req, res) => {
