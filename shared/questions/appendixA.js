@@ -3,18 +3,18 @@ export const appendixA1 = {
   title: 'Appendix A1: Additional PCI DSS Requirements for Multi-Tenant Service Providers',
   goal: 'Additional PCI DSS Requirements',
   intro:
-    'This appendix applies to multi-tenant service providers — providers that offer various shared services to merchants and other service providers, where customers share system resources such as physical or virtual servers, infrastructure and applications.',
+    'These requirements bind providers whose customers share the same underlying resources — the same physical or virtual servers, the same infrastructure, the same applications — while serving merchants and other providers from them. The concern throughout is keeping one tenant out of another tenant’s environment.',
   questions: [
     {
       id: 'A1.1.1',
       title: 'Logical separation between provider and customers',
       question:
-        'Is logical separation implemented such that the provider cannot access its customers’ environments without authorization, and customers cannot access the provider’s environment without authorization?',
+        'Is logical separation in place such that the provider cannot get into a customer’s environment without authorisation, and no customer can get into the provider’s environment without authorisation?',
       requirement:
-        'Logical separation is implemented as follows: the provider cannot access its customers’ environments without authorization; customers cannot access the provider’s environment without authorization.',
+        'Logical separation is in place, working in both directions: the provider cannot reach a customer’s environment without authorisation, and a customer cannot reach the provider’s environment without authorisation.',
       testing: [
-        'Examine documentation and system configurations to verify logical separation is implemented between the provider and customer environments.',
-        'Examine authorization records for any provider access to customer environments.',
+        'Read the documentation and inspect the system configuration, confirming logical separation stands between the provider’s environment and the customers’.',
+        'Read the authorisation records covering any occasion on which the provider entered a customer environment.',
       ],
       appliesTo: 'service-provider',
       allowNA: true,
@@ -25,11 +25,11 @@ export const appendixA1 = {
       id: 'A1.1.2',
       title: 'Customer access limited to own data',
       question:
-        'Are controls implemented such that each customer only has permission to access its own cardholder data and CDE?',
+        'Do the controls confine each customer to its own cardholder data and its own cardholder data environment?',
       requirement:
-        'Controls are implemented such that each customer only has permission to access its own cardholder data and CDE.',
+        'Controls are in place that permit a customer to reach only its own cardholder data and its own cardholder data environment.',
       testing: [
-        'Examine documentation and system configurations to verify that controls restrict each customer to its own cardholder data and CDE.',
+        'Read the documentation and inspect the system configuration, confirming no customer can reach data or an environment belonging to another.',
       ],
       appliesTo: 'service-provider',
       allowNA: true,
@@ -40,11 +40,11 @@ export const appendixA1 = {
       id: 'A1.1.3',
       title: 'Customer access limited to allocated resources',
       question:
-        'Are controls implemented such that each customer can only access resources allocated to them?',
+        'Do the controls confine each customer to the resources allotted to it?',
       requirement:
-        'Controls are implemented such that each customer can only access resources allocated to them.',
+        'Controls are in place that permit a customer to reach only those resources allotted to it.',
       testing: [
-        'Examine system configurations and access controls to verify that customers can only access resources allocated to them.',
+        'Inspect the system configuration and the access controls, confirming a customer can reach only the resources allotted to it.',
       ],
       appliesTo: 'service-provider',
       allowNA: true,
@@ -55,11 +55,11 @@ export const appendixA1 = {
       id: 'A1.1.4',
       title: 'Penetration testing of logical separation',
       question:
-        'Is the effectiveness of logical separation controls used to separate customer environments confirmed at least once every six months via penetration testing?',
+        'Is the logical separation between customer environments proved to be working, by penetration testing, at intervals no longer than six months?',
       requirement:
-        'The effectiveness of logical separation controls used to separate customer environments is confirmed at least once every six months via penetration testing.',
+        'Penetration testing establishes, at intervals no longer than six months, that the logical separation controls keeping customer environments apart are working.',
       testing: [
-        'Examine the results of the most recent penetration tests to verify that testing confirmed the effectiveness of logical separation controls at least once every six months.',
+        'Read the latest penetration test output, confirming it established that the separation controls work, and that such testing happens at least every six months.',
       ],
       appliesTo: 'service-provider',
       allowNA: true,
@@ -70,12 +70,12 @@ export const appendixA1 = {
       id: 'A1.2.1',
       title: 'Per-customer audit log capability',
       question:
-        'Is audit log capability enabled for each customer’s environment that is consistent with PCI DSS Requirement 10, including logs relevant to each customer’s environment and log capability for each customer’s CDE?',
+        'Does each customer’s environment have audit logging of the kind Requirement 10 calls for — logging switched on for the common third-party applications, active without anyone having to turn it on, readable only by the customer it belongs to, its whereabouts made plain to that customer, and the data and its availability matching what Requirement 10 asks?',
       requirement:
-        'Audit log capability is enabled for each customer’s environment that is consistent with PCI DSS Requirement 10, including: logs are enabled for common third-party applications; logs are active by default; logs are available for review only by the owning customer; log locations are clearly communicated to the owning customer; log data and availability is consistent with PCI DSS Requirement 10.',
+        'Each customer’s environment has an audit logging capability consistent with PCI DSS Requirement 10. That means: logging is switched on for the common third-party applications; logging is active by default, without anyone having to enable it; the resulting logs may be read only by the customer they belong to; where those logs reside is made plain to that customer; and both the log data and its availability are consistent with what Requirement 10 asks.',
       testing: [
-        'Examine documentation and system configurations to verify that audit log capability is enabled for each customer’s environment.',
-        'Interview personnel and examine logs to verify logs are available only to the owning customer.',
+        'Read the documentation and inspect the system configuration, confirming each customer environment has this logging capability.',
+        'Ask staff and inspect the logs, confirming a customer’s logs are readable only by that customer.',
       ],
       appliesTo: 'service-provider',
       allowNA: true,
@@ -86,12 +86,12 @@ export const appendixA1 = {
       id: 'A1.2.2',
       title: 'Support for forensic investigations',
       question:
-        'Are processes or mechanisms implemented to support and/or facilitate prompt forensic investigations in the event of a suspected or confirmed security incident for any customer?',
+        'Are there processes or mechanisms that let a forensic investigation get under way quickly when an incident is suspected or confirmed for any of your customers?',
       requirement:
-        'Processes or mechanisms are implemented to support and/or facilitate prompt forensic investigations in the event of a suspected or confirmed security incident for any customer.',
+        'Processes or mechanisms are in place that support a prompt forensic investigation, or make one easier, where a security incident is suspected or confirmed for any customer.',
       testing: [
-        'Examine documented procedures to verify that processes are defined to support prompt forensic investigations for any customer.',
-        'Interview personnel to verify the processes are implemented.',
+        'Read the documented procedures and confirm they provide for supporting a prompt forensic investigation on behalf of any customer.',
+        'Ask staff to confirm those processes are actually in place.',
       ],
       appliesTo: 'service-provider',
       allowNA: true,
@@ -102,12 +102,12 @@ export const appendixA1 = {
       id: 'A1.2.3',
       title: 'Customer incident and vulnerability reporting',
       question:
-        'Are processes or mechanisms implemented for reporting and addressing suspected or confirmed security incidents and vulnerabilities, including that customers can report suspected or confirmed security incidents and vulnerabilities, and that your organization addresses and remediates them?',
+        'Is there a way for a customer to report a suspected or confirmed incident, or a vulnerability, to you securely — and do you then deal with it and put it right?',
       requirement:
-        'Processes or mechanisms are implemented for reporting and addressing suspected or confirmed security incidents and vulnerabilities, including: customers can securely report security incidents and vulnerabilities to the provider; the provider addresses and remediates suspected or confirmed security incidents and vulnerabilities according to Requirement 6.3.1.',
+        'Processes or mechanisms exist for the reporting and handling of suspected or confirmed security incidents and vulnerabilities. Under them, a customer can report such a matter to the provider securely; and the provider deals with it and remediates it in the manner Requirement 6.3.1 provides.',
       testing: [
-        'Examine documented procedures to verify that processes are defined for customers to report incidents and vulnerabilities.',
-        'Examine records of reported incidents and vulnerabilities to verify they are addressed and remediated.',
+        'Read the documented procedures and confirm a route exists for customers to report incidents and vulnerabilities.',
+        'Read the records of what customers have reported, confirming each was dealt with and remediated.',
       ],
       appliesTo: 'service-provider',
       allowNA: true,
@@ -122,17 +122,17 @@ export const appendixA2 = {
   title: 'Appendix A2: Additional PCI DSS Requirements for Entities Using SSL/Early TLS for Card-Present POS POI Terminal Connections',
   goal: 'Additional PCI DSS Requirements',
   intro:
-    'This appendix applies only to entities using SSL/early TLS as a security control to protect POS POI terminal connections, including service providers that provide connection points to such terminals. If you do not use SSL or early TLS for these connections, mark each requirement here Not Applicable and say so in the justification.',
+    'These requirements bind only those entities still relying on SSL or an early version of TLS to protect connections to card-present terminals, including providers that supply the connection points for such terminals. If none of your terminal connections rely on those protocols, mark each requirement here Not Applicable and say so in the justification.',
   questions: [
     {
       id: 'A2.1.1',
       title: 'POI terminals not susceptible to known exploits',
       question:
-        'Where POS POI terminals at the merchant or payment acceptance location use SSL and/or early TLS, does your organization confirm the devices are not susceptible to any known exploits for those protocols?',
+        'Where terminals at the merchant or acceptance location rely on SSL or an early version of TLS, have you established that those devices are not open to any of the known exploits against those protocols?',
       requirement:
-        'Where POS POI terminals at the merchant or payment acceptance location use SSL and/or early TLS, the entity confirms the devices are not susceptible to any known exploits for those protocols.',
+        'Where a terminal sited at a merchant, or anywhere else payment is taken, relies on SSL or an early version of TLS, the entity has established that the device is not open to any known exploit against those protocols.',
       testing: [
-        'Examine documentation and interview personnel to verify that the POS POI terminals and the termination points are confirmed as not being susceptible to any known exploits for SSL/early TLS.',
+        'Read the documentation and ask staff, confirming both the terminals and the points where their connections terminate have been established as not open to any known exploit against those protocols.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -142,11 +142,11 @@ export const appendixA2 = {
       id: 'A2.1.2',
       title: 'Risk mitigation and migration plan (service providers)',
       question:
-        'Does your organization, as a service provider with existing connection points to POS POI terminals that use SSL and/or early TLS, have a formal Risk Mitigation and Migration Plan in place that includes a description of usage, risk-assessment results, a description of monitoring for new vulnerabilities, a description of change control processes, an overview of the migration project plan, and a target date for migration completion no later than the date required by the applicable payment brand?',
+        'As a provider with connection points to terminals relying on SSL or early TLS, do you hold a formal risk mitigation and migration plan — describing how the protocols are used, the results of your risk assessment, how you watch for new vulnerabilities, the change controls keeping those protocols out of new environments, and the migration project with a completion date no later than the applicable payment brand requires?',
       requirement:
-        'Additional requirement for service providers only: All service providers with existing connection points to POS POI terminals that use SSL and/or early TLS have a formal Risk Mitigation and Migration Plan in place that includes: description of usage, including what data is being transmitted, types and number of systems that use and/or support SSL/early TLS, and type of environment; risk-assessment results and risk-reduction controls in place; description of processes to monitor for new vulnerabilities associated with SSL/early TLS; description of change control processes that are implemented to ensure SSL/early TLS is not implemented into new environments; overview of migration project plan including target migration completion date no later than the date required by the applicable payment brand.',
+        'An extra obligation on service providers. Every provider holding connection points to terminals that rely on SSL or an early version of TLS keeps a formal risk mitigation and migration plan, comprising: a description of how the protocols are used, covering what data travels over them, the kinds and number of systems using or supporting them, and the kind of environment involved; the findings of the risk assessment and the risk-reduction controls in place; a description of how the entity watches for newly published vulnerabilities in those protocols; a description of the change controls in place to keep those protocols out of newly built environments; and an outline of the migration project, carrying a target completion date no later than the date the applicable payment brand requires.',
       testing: [
-        'Examine the documented Risk Mitigation and Migration Plan to verify it includes all required elements.',
+        'Read the documented risk mitigation and migration plan and confirm each of those elements appears.',
       ],
       appliesTo: 'service-provider',
       allowNA: true,
@@ -156,11 +156,11 @@ export const appendixA2 = {
       id: 'A2.1.3',
       title: 'Secure service offering (service providers)',
       question:
-        'Does your organization, as a service provider, offer a secure protocol option for its service?',
+        'As a provider, do you make a secure protocol available as an option for your service?',
       requirement:
-        'Additional requirement for service providers only: All service providers provide a secure service offering.',
+        'An extra obligation on service providers. Every provider makes a secure offering available for its service.',
       testing: [
-        'Examine system configurations and supporting documentation to verify that the service provider offers a secure protocol option for its service.',
+        'Inspect the system configuration and the supporting documentation, confirming the provider makes a secure protocol option available for its service.',
       ],
       appliesTo: 'service-provider',
       allowNA: true,
