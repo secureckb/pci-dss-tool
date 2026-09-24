@@ -3,16 +3,19 @@ export default {
   title: 'Protect Cardholder Data with Strong Cryptography During Transmission Over Open, Public Networks',
   goal: 'Protect Account Data',
   intro:
-    'Sensitive information must be encrypted during transmission over networks that are easily accessed by malicious individuals. Misconfigured wireless networks and vulnerabilities in legacy encryption and authentication protocols continue to be targets of malicious individuals who exploit these vulnerabilities to gain privileged access to CDEs.',
+    'Once data leaves the entity’s own network it travels over ground the entity does not control, where anyone positioned on the path can read it. Requirement 4 is about making that traffic unintelligible to them — and about not quietly falling back to an older protocol that no longer makes it so.',
   questions: [
     {
       id: '4.1.1',
       title: 'Documented policies and procedures',
       question:
-        'Are all security policies and operational procedures identified in Requirement 4 documented, kept up to date, in use, and known to all affected parties?',
+        'Are the security policies and operating procedures covering Requirement 4 written down, kept current, actually followed, and communicated to everyone whose work they govern?',
       requirement:
-        'All security policies and operational procedures that are identified in Requirement 4 are: documented, kept up to date, in use, and known to all affected parties.',
-      testing: ['Examine documented policies and procedures for Requirement 4.', 'Interview personnel to verify they are in use and known.'],
+        'Written policies and operating procedures exist for the subject matter of Requirement 4. They are kept up to date, are in active use rather than shelved, and are known to every party they affect.',
+      testing: [
+        'Read the policies and operating procedures the entity holds for Requirement 4.',
+        'Ask the personnel governed by them whether they are followed in practice and known to those affected.',
+      ],
       appliesTo: 'all',
       allowNA: false,
     },
@@ -20,10 +23,13 @@ export default {
       id: '4.1.2',
       title: 'Roles and responsibilities',
       question:
-        'Are roles and responsibilities for performing activities in Requirement 4 documented, assigned, and understood?',
+        'Is it written down who is accountable for each Requirement 4 activity, has that accountability been allocated to specific people or roles, and do they understand it?',
       requirement:
-        'Roles and responsibilities for performing activities in Requirement 4 are documented, assigned, and understood.',
-      testing: ['Examine documentation of roles and responsibilities.', 'Interview responsible personnel to verify they are understood.'],
+        'Accountability for performing each Requirement 4 activity is recorded in writing, allocated to identified roles, and understood by the people holding those roles.',
+      testing: [
+        'Read the documentation that allocates these responsibilities and check that each one has an owner.',
+        'Ask the people named whether they understand what falls to them.',
+      ],
       appliesTo: 'all',
       allowNA: false,
     },
@@ -31,13 +37,13 @@ export default {
       id: '4.2.1',
       title: 'Strong cryptography for PAN in transit',
       question:
-        'Are strong cryptography and security protocols implemented to safeguard PAN during transmission over open, public networks, such that only trusted keys and certificates are accepted, certificates used to safeguard PAN are confirmed as valid and not expired or revoked, the protocol in use supports only secure versions or configurations and does not support fallback to insecure versions, algorithms, key sizes, or implementations, and the encryption strength is appropriate for the encryption methodology in use?',
+        'When PAN crosses an open or public network, is it protected by strong cryptography and secure protocols — accepting only keys and certificates you trust, checking that each certificate is valid rather than expired or revoked, running the protocol in a secure version and configuration with no route back to a weak one, and using an encryption strength that suits the method chosen?',
       requirement:
-        'Strong cryptography and security protocols are implemented as follows to safeguard PAN during transmission over open, public networks: only trusted keys and certificates are accepted; certificates used to safeguard PAN during transmission over open, public networks are confirmed as valid and are not expired or revoked; the protocol in use supports only secure versions or configurations and does not support fallback to, or use of insecure versions, algorithms, key sizes, or implementations; the encryption strength is appropriate for the encryption methodology in use.',
+        'PAN travelling over open or public networks is protected by strong cryptography and secure protocols, arranged as follows. Only keys and certificates the entity trusts are accepted. Certificates relied on for this protection are verified as valid, and are neither expired nor revoked. The protocol runs only in secure versions and configurations, with no ability to fall back to, or otherwise use, an insecure version, algorithm, key size or implementation. The strength of encryption suits the encryption method in use.',
       testing: [
-        'Examine documented policies and procedures and system configurations to verify that strong cryptography and security protocols are implemented.',
-        'Observe system configurations to verify only trusted keys and certificates are accepted and that insecure versions or configurations are not supported.',
-        'Examine certificates in use to verify they are valid and not expired or revoked.',
+        'Read the documented policies and procedures and inspect the system configurations to confirm strong cryptography and secure protocols are in force.',
+        'Observe the configurations and confirm two things: nothing but a trusted key or certificate is accepted, and no weak version or configuration remains reachable.',
+        'Inspect the certificates in use and confirm each is valid, unexpired and unrevoked.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -47,12 +53,12 @@ export default {
       id: '4.2.1.1',
       title: 'Inventory of trusted keys and certificates',
       question:
-        'Is an inventory of your organization’s trusted keys and certificates used to protect PAN during transmission maintained?',
+        'Do you keep a list of the trusted keys and certificates your organisation relies on to protect PAN in transit?',
       requirement:
-        'An inventory of the entity’s trusted keys and certificates used to protect PAN during transmission is maintained.',
+        'The entity maintains an inventory of the trusted keys and certificates it relies on to protect PAN while in transit.',
       testing: [
-        'Examine documented procedures to verify processes are defined for maintaining an inventory of trusted keys and certificates.',
-        'Examine the inventory and compare with system configurations to verify the inventory is complete and current.',
+        'Read the documented procedures and confirm a process is defined for keeping this inventory.',
+        'Compare the inventory against the system configurations and confirm it is both complete and current.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -62,11 +68,11 @@ export default {
       id: '4.2.1.2',
       title: 'Wireless transmission of PAN',
       question:
-        'Are wireless networks transmitting PAN, or connected to the CDE, using industry best practices to implement strong cryptography for authentication and transmission?',
+        'Where a wireless network carries PAN or attaches to the cardholder data environment, does it follow current industry practice in applying strong cryptography to both authentication and the traffic itself?',
       requirement:
-        'Wireless networks transmitting PAN or connected to the CDE use industry best practices to implement strong cryptography for authentication and transmission.',
+        'Wireless networks that carry PAN, or that attach to the cardholder data environment, apply strong cryptography to authentication and to transmission, following prevailing industry practice.',
       testing: [
-        'Examine system configurations to verify that wireless networks transmitting PAN or connected to the CDE use industry best practices for strong cryptography.',
+        'Inspect the configurations of wireless networks that carry PAN or attach to the cardholder data environment, and confirm strong cryptography is applied in line with prevailing industry practice.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -76,12 +82,12 @@ export default {
       id: '4.2.2',
       title: 'PAN sent via end-user messaging',
       question:
-        'Is PAN secured with strong cryptography whenever it is sent via end-user messaging technologies such as email, instant messaging, SMS, or chat?',
+        'Any time PAN goes out through a messaging tool people use directly — email, instant messaging, SMS, chat — is it protected by strong cryptography?',
       requirement:
-        'PAN is secured with strong cryptography whenever it is sent via end-user messaging technologies.',
+        'Whenever PAN is sent using an end-user messaging technology, it is protected by strong cryptography.',
       testing: [
-        'Examine documented policies and procedures to verify processes are in place to secure PAN with strong cryptography whenever sent via end-user messaging technologies.',
-        'Examine system configurations and vendor documentation to verify PAN is secured with strong cryptography whenever sent via end-user messaging technologies.',
+        'Read the documented policies and procedures and confirm a process exists to protect PAN with strong cryptography on every such transmission.',
+        'Inspect the system configurations and the vendor documentation and confirm that protection is actually applied.',
       ],
       appliesTo: 'all',
       allowNA: true,

@@ -3,16 +3,19 @@ export default {
   title: 'Apply Secure Configurations to All System Components',
   goal: 'Build and Maintain a Secure Network and Systems',
   intro:
-    'Malicious individuals often use vendor default passwords and other vendor default settings to compromise systems. These passwords and settings are well known and easily determined via public information.',
+    'Equipment and software usually arrive configured for convenience rather than safety, and the accounts and settings they ship with are a matter of public record. Requirement 2 is about replacing what the vendor chose with what the entity has decided, and doing it before the system carries live traffic.',
   questions: [
     {
       id: '2.1.1',
       title: 'Documented policies and procedures',
       question:
-        'Are all security policies and operational procedures identified in Requirement 2 documented, kept up to date, in use, and known to all affected parties?',
+        'Are the security policies and operating procedures covering Requirement 2 written down, kept current, actually followed, and communicated to everyone whose work they govern?',
       requirement:
-        'All security policies and operational procedures that are identified in Requirement 2 are: documented, kept up to date, in use, and known to all affected parties.',
-      testing: ['Examine documented policies and procedures for Requirement 2.', 'Interview personnel to verify they are in use and known.'],
+        'Written policies and operating procedures exist for the subject matter of Requirement 2. They are kept up to date, are in active use rather than shelved, and are known to every party they affect.',
+      testing: [
+        'Read the policies and operating procedures the entity holds for Requirement 2.',
+        'Ask the personnel governed by them whether they are followed in practice and known to those affected.',
+      ],
       appliesTo: 'all',
       allowNA: false,
     },
@@ -20,10 +23,13 @@ export default {
       id: '2.1.2',
       title: 'Roles and responsibilities',
       question:
-        'Are roles and responsibilities for performing activities in Requirement 2 documented, assigned, and understood?',
+        'Is it written down who is accountable for each Requirement 2 activity, has that accountability been allocated to specific people or roles, and do they understand it?',
       requirement:
-        'Roles and responsibilities for performing activities in Requirement 2 are documented, assigned, and understood.',
-      testing: ['Examine documentation of roles and responsibilities.', 'Interview responsible personnel to verify they are understood.'],
+        'Accountability for performing each Requirement 2 activity is recorded in writing, allocated to identified roles, and understood by the people holding those roles.',
+      testing: [
+        'Read the documentation that allocates these responsibilities and check that each one has an owner.',
+        'Ask the people named whether they understand what falls to them.',
+      ],
       appliesTo: 'all',
       allowNA: false,
     },
@@ -31,12 +37,12 @@ export default {
       id: '2.2.1',
       title: 'Configuration standards',
       question:
-        'Are configuration standards developed, implemented, and maintained to cover all system components, address all known security vulnerabilities, be consistent with industry-accepted system hardening standards or vendor hardening recommendations, be updated as new vulnerability issues are identified, and be applied when new systems are configured and verified as in place before or immediately after a system component is connected to a production environment?',
+        'Has the organisation written hardening standards that reach every system component, close off each vulnerability it knows about, align with recognised industry hardening guidance or the vendor’s own recommendations, get revised as new vulnerabilities come to light, and are applied and checked as present by the time a component joins production — or immediately after?',
       requirement:
-        'Configuration standards are developed, implemented, and maintained to: cover all system components; address all known security vulnerabilities; be consistent with industry-accepted system hardening standards or vendor hardening recommendations; be updated as new vulnerability issues are identified, as defined in Requirement 6.3.1; be applied when new systems are configured and verified as in place before or immediately after a system component is connected to a production environment.',
+        'Hardening standards are written, applied and maintained. They extend to every system component; they deal with each security vulnerability known to the entity; they follow either recognised industry hardening guidance or the vendor’s hardening recommendations; they are revised as new vulnerabilities are identified, in the manner Requirement 6.3.1 sets out; and they are applied whenever a new system is built, with their presence confirmed either before the component is attached to a production environment or immediately afterwards.',
       testing: [
-        'Examine system configuration standards and compare to industry-accepted hardening standards.',
-        'Examine configuration settings on a sample of system components to verify the standards are applied.',
+        'Read the hardening standards and measure them against recognised industry hardening guidance.',
+        'Take a sample of system components, inspect how they are configured, and confirm the standards were actually applied.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -45,12 +51,12 @@ export default {
       id: '2.2.2',
       title: 'Vendor default accounts',
       question:
-        'Are vendor default accounts managed such that, if used, the default password is changed in accordance with Requirement 8.3.6, and if not used, the account is removed or disabled?',
+        'For every account a vendor ships with its product: where the account is kept in use, has its shipped password been replaced as Requirement 8.3.6 demands, and where it is not needed, has it been deleted or disabled?',
       requirement:
-        'Vendor default accounts are managed as follows: if the vendor default account(s) will be used, the default password is changed per Requirement 8.3.6; if the vendor default account(s) will not be used, the account is removed or disabled.',
+        'Accounts supplied by a vendor are handled one of two ways. Where such an account is to remain in use, its shipped password is replaced in line with Requirement 8.3.6. Where it is not to be used, the account is deleted or disabled.',
       testing: [
-        'Examine system configuration standards to verify that vendor default accounts are addressed.',
-        'Examine a sample of system components and attempt to log on using default vendor accounts and passwords.',
+        'Read the hardening standards and confirm they say what is to happen to vendor-supplied accounts.',
+        'Take a sample of system components and try signing in with the vendor’s shipped accounts and passwords.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -59,12 +65,12 @@ export default {
       id: '2.2.3',
       title: 'Primary functions with different security levels',
       question:
-        'Are primary functions requiring different security levels managed so that only one primary function exists on a system component, or primary functions with differing security levels that exist on the same system component are isolated from each other, or primary functions with differing security levels on the same system component are all secured to the level required by the function with the highest security need?',
+        'Where primary functions need different levels of protection, does each system component carry only one such function — or, if it carries several, are they kept isolated from one another, or is the whole component protected to the standard the most demanding function requires?',
       requirement:
-        'Primary functions requiring different security levels are managed as follows: only one primary function exists on a system component, OR primary functions with differing security levels that exist on the same system component are isolated from each other, OR primary functions with differing security levels on the same system component are all secured to the level required by the function with the highest security need.',
+        'Primary functions that call for different levels of protection are handled by one of three arrangements: a system component hosts only a single primary function; or several primary functions of differing protection levels share a component but are isolated from each other; or several such functions share a component and the whole of it is protected to the level demanded by the function with the greatest need.',
       testing: [
-        'Examine system configuration standards to verify that the requirement is addressed.',
-        'Examine system configurations to verify that primary functions are managed as specified.',
+        'Read the hardening standards and confirm this point is covered.',
+        'Inspect the system configurations and confirm primary functions are arranged in one of the permitted ways.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -73,12 +79,12 @@ export default {
       id: '2.2.4',
       title: 'Unnecessary functionality removed',
       question:
-        'Are only necessary services, protocols, daemons, and functions enabled, and is all unnecessary functionality removed or disabled?',
+        'Is only what is needed switched on — services, protocols, daemons and functions alike — with everything unnecessary taken off the system or disabled?',
       requirement:
-        'Only necessary services, protocols, daemons, and functions are enabled, and all unnecessary functionality is removed or disabled.',
+        'Only the services, protocols, daemons and functions that are needed are enabled. Anything unnecessary is either removed from the system or disabled.',
       testing: [
-        'Examine system configuration standards to verify necessary services, protocols, daemons, and functions are identified and documented.',
-        'Examine system configurations to verify that only documented functionality is present and enabled.',
+        'Read the hardening standards and confirm the needed services, protocols, daemons and functions are named and recorded.',
+        'Inspect the system configurations and confirm nothing is present and running that the documentation does not account for.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -87,12 +93,12 @@ export default {
       id: '2.2.5',
       title: 'Insecure services, protocols or daemons',
       question:
-        'If any insecure services, protocols, or daemons are present, is the business justification documented and are additional security features documented and implemented that reduce the risk of using them?',
+        'Where an insecure service, protocol or daemon is present, is the business reason for keeping it recorded, and are extra security features both written down and actually in place to bring the resulting risk down?',
       requirement:
-        'If any insecure services, protocols, or daemons are present: business justification is documented; additional security features are documented and implemented that reduce the risk of using insecure services, protocols, or daemons.',
+        'Where any insecure service, protocol or daemon is present, two things follow: the business reason for its presence is recorded; and additional security features that lower the risk of running it are both documented and implemented.',
       testing: [
-        'If insecure services, protocols, or daemons are present, examine system configuration standards and interview personnel to verify the business justification is documented.',
-        'Examine configuration settings to verify that additional security features are implemented.',
+        'Where such services, protocols or daemons exist, read the hardening standards and ask staff, to confirm the business reason is on record.',
+        'Inspect the configuration and confirm the additional security features are in place.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -102,11 +108,12 @@ export default {
       id: '2.2.6',
       title: 'System security parameters',
       question:
-        'Are system security parameters configured to prevent misuse?',
-      requirement: 'System security parameters are configured to prevent misuse.',
+        'Are the systems’ security parameters set so that they cannot readily be turned to the wrong purpose?',
+      requirement:
+        'Security parameters on systems are set in a way that forestalls misuse.',
       testing: [
-        'Examine system configuration standards to verify that common security parameter settings are defined.',
-        'Examine system configurations to verify that the defined security parameters are set appropriately.',
+        'Read the hardening standards and confirm the security parameter settings that matter are specified.',
+        'Inspect the systems and confirm those parameters carry the specified values.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -115,12 +122,12 @@ export default {
       id: '2.2.7',
       title: 'Encrypted non-console administrative access',
       question:
-        'Is all non-console administrative access encrypted using strong cryptography?',
+        'Is every administrative session that does not take place at the machine’s own console carried over strong cryptography?',
       requirement:
-        'All non-console administrative access is encrypted using strong cryptography.',
+        'Administrative access by any route other than the system’s own console is encrypted with strong cryptography.',
       testing: [
-        'Examine system components and observe an administrator log on to verify that strong cryptography is invoked before the administrator’s password is requested.',
-        'Examine system configurations to verify that services and parameter files are configured to prevent use of insecure remote login technologies.',
+        'Watch an administrator sign in to a system component and confirm strong cryptography is in force before the point at which a password is asked for.',
+        'Inspect the system configuration, including services and parameter files, and confirm insecure remote login methods cannot be used.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -129,12 +136,12 @@ export default {
       id: '2.3.1',
       title: 'Wireless vendor defaults',
       question:
-        'For wireless environments connected to the CDE or transmitting account data, are all wireless vendor defaults changed at installation or confirmed to be secure — including default wireless encryption keys, passwords on wireless access points, SNMP defaults, and any other security-related wireless vendor defaults?',
+        'In any wireless environment that touches the cardholder data environment or carries account data, has every security-relevant setting the vendor shipped been changed at installation, or else established to be safe — encryption keys, access point passwords and SNMP values included?',
       requirement:
-        'For wireless environments connected to the CDE or transmitting account data, all wireless vendor defaults are changed at installation or are confirmed to be secure, including but not limited to: default wireless encryption keys; passwords on wireless access points; SNMP defaults; any other security-related wireless vendor defaults.',
+        'For wireless environments that connect to the cardholder data environment or carry account data, every security-relevant vendor-shipped setting is either changed when the equipment is installed or established to be secure as shipped. This covers, without being limited to, the encryption keys a wireless product ships with, the passwords guarding its access points, its SNMP community values, and any other security-relevant setting supplied by the vendor.',
       testing: [
-        'Examine policies and procedures and vendor documentation for wireless devices.',
-        'Examine settings on wireless devices to verify that default passwords, encryption keys, and SNMP community strings have been changed or confirmed secure.',
+        'Read the policies and procedures, together with the vendor documentation for the wireless equipment in use.',
+        'Inspect the settings on the wireless devices and confirm shipped passwords, encryption keys and SNMP community strings were changed or established to be safe.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -144,11 +151,11 @@ export default {
       id: '2.3.2',
       title: 'Wireless encryption key changes',
       question:
-        'For wireless environments connected to the CDE or transmitting account data, are wireless encryption keys changed whenever personnel with knowledge of the key leave the company or the role for which the knowledge was necessary, and whenever a key is suspected of or known to be compromised?',
+        'In those same wireless environments, are encryption keys replaced when someone who knew a key leaves the company or moves out of the role that required knowing it, and whenever a key is thought or known to have been compromised?',
       requirement:
-        'For wireless environments connected to the CDE or transmitting account data, wireless encryption keys are changed as follows: whenever personnel with knowledge of the key leave the company or the role for which the knowledge was necessary; whenever a key is suspected of or known to be compromised.',
+        'For wireless environments that connect to the cardholder data environment or carry account data, encryption keys are replaced on two occasions: when a person who knew the key departs the company, or leaves the role for which that knowledge was needed; and whenever a key is suspected of compromise or known to be compromised.',
       testing: [
-        'Interview responsible personnel and examine key-management documentation to verify that keys are changed as specified.',
+        'Ask the responsible staff and read the key-management records to confirm keys are replaced on both occasions.',
       ],
       appliesTo: 'all',
       allowNA: true,

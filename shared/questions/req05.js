@@ -3,16 +3,19 @@ export default {
   title: 'Protect All Systems and Networks from Malicious Software',
   goal: 'Maintain a Vulnerability Management Program',
   intro:
-    'Malicious software (malware) is software or firmware designed to infiltrate or damage a computer system without the owner’s knowledge or consent. Anti-malware solutions and processes must be maintained to protect systems from current and evolving malware threats.',
+    'Malware is code written to get into a system, or damage it, without the owner agreeing to it or knowing about it. Requirement 5 is about keeping defences against it in place and current, since what those defences have to recognise changes constantly.',
   questions: [
     {
       id: '5.1.1',
       title: 'Documented policies and procedures',
       question:
-        'Are all security policies and operational procedures identified in Requirement 5 documented, kept up to date, in use, and known to all affected parties?',
+        'Are the security policies and operating procedures covering Requirement 5 written down, kept current, actually followed, and communicated to everyone whose work they govern?',
       requirement:
-        'All security policies and operational procedures that are identified in Requirement 5 are: documented, kept up to date, in use, and known to all affected parties.',
-      testing: ['Examine documented policies and procedures for Requirement 5.', 'Interview personnel to verify they are in use and known.'],
+        'Written policies and operating procedures exist for the subject matter of Requirement 5. They are kept up to date, are in active use rather than shelved, and are known to every party they affect.',
+      testing: [
+        'Read the policies and operating procedures the entity holds for Requirement 5.',
+        'Ask the personnel governed by them whether they are followed in practice and known to those affected.',
+      ],
       appliesTo: 'all',
       allowNA: false,
     },
@@ -20,10 +23,13 @@ export default {
       id: '5.1.2',
       title: 'Roles and responsibilities',
       question:
-        'Are roles and responsibilities for performing activities in Requirement 5 documented, assigned, and understood?',
+        'Is it written down who is accountable for each Requirement 5 activity, has that accountability been allocated to specific people or roles, and do they understand it?',
       requirement:
-        'Roles and responsibilities for performing activities in Requirement 5 are documented, assigned, and understood.',
-      testing: ['Examine documentation of roles and responsibilities.', 'Interview responsible personnel to verify they are understood.'],
+        'Accountability for performing each Requirement 5 activity is recorded in writing, allocated to identified roles, and understood by the people holding those roles.',
+      testing: [
+        'Read the documentation that allocates these responsibilities and check that each one has an owner.',
+        'Ask the people named whether they understand what falls to them.',
+      ],
       appliesTo: 'all',
       allowNA: false,
     },
@@ -31,12 +37,12 @@ export default {
       id: '5.2.1',
       title: 'Anti-malware deployment',
       question:
-        'Is an anti-malware solution(s) deployed on all system components, except for those system components identified in periodic evaluations per Requirement 5.2.3 that concluded the system components are not at risk from malware?',
+        'Is anti-malware software running on every system component, apart from those the recurring assessments under Requirement 5.2.3 have found to face no malware risk?',
       requirement:
-        'An anti-malware solution(s) is deployed on all system components, except for those system components identified in periodic evaluations per Requirement 5.2.3 that concludes the system components are not at risk from malware.',
+        'Anti-malware software is installed on every system component. The only exceptions are components that a recurring assessment under Requirement 5.2.3 has concluded are not exposed to malware risk.',
       testing: [
-        'Examine system components to verify that an anti-malware solution is deployed on all system components not identified as not at risk from malware.',
-        'Examine the list of system components identified as not at risk from malware and the supporting evaluations.',
+        'Inspect the system components and confirm anti-malware software is present on each one not carved out as free of malware risk.',
+        'Read the list of components claimed to face no malware risk, along with the assessments that reached that conclusion.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -45,11 +51,11 @@ export default {
       id: '5.2.2',
       title: 'Anti-malware capability',
       question:
-        'Does the deployed anti-malware solution(s) detect all known types of malware and remove, block, or contain all known types of malware?',
+        'Does the anti-malware software in use recognise every known class of malware, and does it then remove, block or contain it?',
       requirement:
-        'The deployed anti-malware solution(s): detects all known types of malware; removes, blocks, or contains all known types of malware.',
+        'The anti-malware software in use recognises every known class of malware, and deals with each by removing it, blocking it, or containing it.',
       testing: [
-        'Examine vendor documentation and system configurations to verify the anti-malware solution detects all known types of malware and removes, blocks, or contains them.',
+        'Read the vendor documentation and inspect the configuration to confirm the software recognises every known class of malware and removes, blocks or contains it.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -58,12 +64,12 @@ export default {
       id: '5.2.3',
       title: 'Evaluation of components not at risk',
       question:
-        'Are any system components that are not at risk for malware evaluated periodically, including a documented list of all system components not at risk, identification and evaluation of evolving malware threats for those components, and confirmation whether such components continue to not require anti-malware protection?',
+        'Where system components are claimed to face no malware risk, is that claim revisited on a recurring basis — keeping a written list of the components concerned, examining how malware threats to them are evolving, and reaching a fresh conclusion on whether they still need no protection?',
       requirement:
-        'Any system components that are not at risk for malware are evaluated periodically to include: a documented list of all system components not at risk for malware; identification and evaluation of evolving malware threats for those system components; confirmation whether such system components continue to not require anti-malware protection.',
+        'Components claimed to face no malware risk are reassessed on a recurring basis. Each reassessment covers three things: a written list of every component so claimed; consideration of how malware threats relevant to those components are developing; and a fresh determination of whether each still has no need of anti-malware protection.',
       testing: [
-        'Examine documented policies and procedures to verify a process is defined for periodic evaluations.',
-        'Interview personnel and examine records to verify the evaluations are performed at the defined frequency.',
+        'Read the documented policies and procedures and confirm a recurring reassessment process is defined.',
+        'Ask staff and read the records to confirm the reassessments happen at the interval the entity has set.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -73,12 +79,12 @@ export default {
       id: '5.2.3.1',
       title: 'Frequency defined by targeted risk analysis',
       question:
-        'Is the frequency of periodic evaluations of system components identified as not at risk for malware defined in your targeted risk analysis performed according to Requirement 12.3.1?',
+        'Is the interval between those reassessments fixed by your own targeted risk analysis, carried out as Requirement 12.3.1 lays down?',
       requirement:
-        'The frequency of periodic evaluations of system components identified as not at risk for malware is defined in the entity’s targeted risk analysis, which is performed according to all elements specified in Requirement 12.3.1.',
+        'The interval at which components claimed to face no malware risk are reassessed is set by the entity’s targeted risk analysis, carried out against every element Requirement 12.3.1 specifies.',
       testing: [
-        'Examine the entity’s targeted risk analysis for the frequency of periodic evaluations to verify it is defined and documented per Requirement 12.3.1.',
-        'Examine records of evaluations to verify they occur at the defined frequency.',
+        'Read the entity’s targeted risk analysis and confirm the interval is set and recorded in the way Requirement 12.3.1 demands.',
+        'Read the reassessment records and confirm they were carried out at the interval so set.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -88,12 +94,12 @@ export default {
       id: '5.3.1',
       title: 'Automatic updates',
       question:
-        'Is the anti-malware solution(s) kept current via automatic updates?',
+        'Does the anti-malware software update itself automatically, so that it stays current?',
       requirement:
-        'The anti-malware solution(s) is kept current via automatic updates.',
+        'The anti-malware software is held at its current state by means of automatic updates.',
       testing: [
-        'Examine anti-malware solution configurations, including any master installation, to verify the solution is kept current via automatic updates.',
-        'Examine system components to verify the solution is enabled and current.',
+        'Inspect the anti-malware configuration, taking in any master installation, and confirm updating happens automatically.',
+        'Inspect the system components and confirm the software is switched on and up to date.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -102,12 +108,12 @@ export default {
       id: '5.3.2',
       title: 'Scanning or continuous behavioral analysis',
       question:
-        'Does the anti-malware solution(s) perform periodic scans and active or real-time scans, or perform continuous behavioral analysis of systems or processes?',
+        'Does the anti-malware software either run scans on a recurring basis together with active or real-time scanning, or else watch system and process behaviour continuously?',
       requirement:
-        'The anti-malware solution(s): performs periodic scans and active or real-time scans, OR performs continuous behavioral analysis of systems or processes.',
+        'The anti-malware software does one of two things: it runs recurring scans and also scans actively or in real time; or it analyses the behaviour of systems or processes continuously.',
       testing: [
-        'Examine anti-malware solution configurations to verify the solution performs the required scanning or behavioral analysis.',
-        'Examine logs or scan results to verify the solution is active.',
+        'Inspect the anti-malware configuration and confirm one of those two approaches is in force.',
+        'Read the logs or the scan output and confirm the software is actually working.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -116,12 +122,12 @@ export default {
       id: '5.3.2.1',
       title: 'Scan frequency defined by risk analysis',
       question:
-        'If periodic malware scans are performed to meet Requirement 5.3.2, is the frequency of scans defined in your targeted risk analysis performed according to Requirement 12.3.1?',
+        'If you satisfy Requirement 5.3.2 by running recurring scans, is the interval between them fixed by your own targeted risk analysis, carried out as Requirement 12.3.1 lays down?',
       requirement:
-        'If periodic malware scans are performed to meet Requirement 5.3.2, the frequency of scans is defined in the entity’s targeted risk analysis, which is performed according to all elements specified in Requirement 12.3.1.',
+        'Where recurring malware scans are the means of satisfying Requirement 5.3.2, the interval between them is set by the entity’s targeted risk analysis, carried out against every element Requirement 12.3.1 specifies.',
       testing: [
-        'Examine the targeted risk analysis for the frequency of periodic malware scans.',
-        'Examine scan records to verify scans occur at the defined frequency.',
+        'Read the targeted risk analysis and find the scanning interval it sets.',
+        'Read the scan records and confirm scans took place at that interval.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -131,12 +137,12 @@ export default {
       id: '5.3.3',
       title: 'Removable electronic media',
       question:
-        'For removable electronic media, does the anti-malware solution(s) perform automatic scans when the media is inserted, connected, or logically mounted, or perform continuous behavioral analysis of systems or processes when the media is inserted, connected, or logically mounted?',
+        'When removable electronic media is put in, plugged in or mounted, does the anti-malware software scan it without being asked — or is behaviour being watched continuously at that moment instead?',
       requirement:
-        'For removable electronic media, the anti-malware solution(s): performs automatic scans of when the media is inserted, connected, or logically mounted, OR performs continuous behavioral analysis of systems or processes when the media is inserted, connected, or logically mounted.',
+        'For removable electronic media, the anti-malware software does one of two things the moment that media is put in, plugged in, or logically mounted: it scans it automatically; or it is continuously analysing the behaviour of systems or processes at that point.',
       testing: [
-        'Examine anti-malware configurations to verify that removable electronic media is scanned or covered by continuous behavioral analysis.',
-        'Observe media being inserted to verify that the solution acts as configured.',
+        'Inspect the anti-malware configuration and confirm removable electronic media is either scanned or covered by continuous behavioural analysis.',
+        'Watch media being inserted and confirm the software behaves as configured.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -146,11 +152,11 @@ export default {
       id: '5.3.4',
       title: 'Anti-malware audit logs',
       question:
-        'Are audit logs for the anti-malware solution(s) enabled and retained in accordance with Requirement 10.5.1?',
+        'Is audit logging switched on for the anti-malware software, and are those logs retained as Requirement 10.5.1 requires?',
       requirement:
-        'Audit logs for the anti-malware solution(s) are enabled and retained in accordance with Requirement 10.5.1.',
+        'Audit logging is enabled for the anti-malware software, and the resulting logs are retained on the terms set by Requirement 10.5.1.',
       testing: [
-        'Examine anti-malware solution configurations to verify that logs are enabled and retained per Requirement 10.5.1.',
+        'Inspect the anti-malware configuration and confirm logging is switched on and that retention matches Requirement 10.5.1.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -159,12 +165,12 @@ export default {
       id: '5.3.5',
       title: 'Anti-malware cannot be disabled by users',
       question:
-        'Are anti-malware mechanisms prevented from being disabled or altered by users, unless specifically documented and authorized by management on a case-by-case basis for a limited time period?',
+        'Are users unable to switch off or tamper with the anti-malware mechanisms, other than where management has documented and authorised a specific exception for a bounded period?',
       requirement:
-        'Anti-malware mechanisms cannot be disabled or altered by users, unless specifically documented, and authorized by management on a case-by-case basis for a limited time period.',
+        'Users cannot switch off or alter the anti-malware mechanisms. The sole exception is where management has documented and authorised it for that particular case and for a limited period.',
       testing: [
-        'Examine anti-malware configurations to verify that the solution cannot be disabled or altered by users.',
-        'Interview personnel and examine records of any authorized exceptions.',
+        'Inspect the anti-malware configuration and confirm users cannot switch it off or alter it.',
+        'Ask staff and read the records of any exception that was authorised.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -173,11 +179,11 @@ export default {
       id: '5.4.1',
       title: 'Anti-phishing mechanisms',
       question:
-        'Are processes and automated mechanisms in place to detect and protect personnel against phishing attacks?',
+        'Are there processes, and automated mechanisms, that spot phishing attacks and shield staff from them?',
       requirement:
-        'Processes and automated mechanisms are in place to detect and protect personnel against phishing attacks.',
+        'Processes and automated mechanisms exist that detect phishing attacks and protect personnel against them.',
       testing: [
-        'Observe implemented mechanisms and interview personnel to verify controls are in place to detect and protect personnel against phishing attacks.',
+        'Observe the mechanisms in operation and ask staff, to confirm controls are in place that detect phishing and protect personnel from it.',
       ],
       appliesTo: 'all',
       allowNA: false,

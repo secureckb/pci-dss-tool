@@ -3,18 +3,18 @@ export default {
   title: 'Install and Maintain Network Security Controls',
   goal: 'Build and Maintain a Secure Network and Systems',
   intro:
-    'Network security controls (NSCs), such as firewalls and other network security technologies, are network policy enforcement points that typically control network traffic between two or more logical or physical network segments.',
+    'Network security controls are the enforcement points that decide what traffic may cross from one part of a network to another — firewalls, and the newer technologies that do the same job. Requirement 1 is about having them where the boundaries are, configuring them deliberately, and keeping those configurations honest over time.',
   questions: [
     {
       id: '1.1.1',
       title: 'Documented policies and procedures',
       question:
-        'Are all security policies and operational procedures identified in Requirement 1 documented, kept up to date, in use, and known to all affected parties?',
+        'Are the security policies and operating procedures covering Requirement 1 written down, kept current, actually followed, and communicated to everyone whose work they govern?',
       requirement:
-        'All security policies and operational procedures that are identified in Requirement 1 are: documented, kept up to date, in use, and known to all affected parties.',
+        'Written policies and operating procedures exist for the subject matter of Requirement 1. They are kept up to date, are in active use rather than shelved, and are known to every party they affect.',
       testing: [
-        'Examine the documented policies and procedures for Requirement 1.',
-        'Interview personnel to verify the policies and procedures are in use and known to all affected parties.',
+        'Read the policies and operating procedures the entity holds for Requirement 1.',
+        'Ask the personnel governed by them whether they are followed in practice, and whether those affected know they exist.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -23,12 +23,12 @@ export default {
       id: '1.1.2',
       title: 'Roles and responsibilities',
       question:
-        'Are roles and responsibilities for performing activities in Requirement 1 documented, assigned, and understood?',
+        'Is it written down who is accountable for each Requirement 1 activity, has that accountability been allocated to specific people or roles, and do they understand it?',
       requirement:
-        'Roles and responsibilities for performing activities in Requirement 1 are documented, assigned, and understood.',
+        'Accountability for performing each Requirement 1 activity is recorded in writing, allocated to identified roles, and understood by the people holding those roles.',
       testing: [
-        'Examine documentation to verify that descriptions of roles and responsibilities are documented and assigned.',
-        'Interview responsible personnel to verify that roles and responsibilities are understood.',
+        'Read the documentation that allocates these responsibilities, and check that each one has an owner.',
+        'Ask the people named whether they understand what falls to them.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -37,12 +37,12 @@ export default {
       id: '1.2.1',
       title: 'NSC configuration standards',
       question:
-        'Are configuration standards for NSC rulesets defined, implemented, and maintained?',
+        'Has the organisation written down the standards its network security control rulesets must meet, put them into effect, and kept them current?',
       requirement:
-        'Configuration standards for NSC rulesets are: defined, implemented, and maintained.',
+        'Standards governing how network security control rulesets are to be built exist in writing, are applied in practice, and are maintained.',
       testing: [
-        'Examine the configuration standards for NSC rulesets.',
-        'Examine configuration settings for NSC rulesets to verify that rulesets are implemented according to the configuration standards.',
+        'Read the configuration standards that apply to network security control rulesets.',
+        'Compare the rulesets actually configured against those standards, and confirm they were built to match.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -51,12 +51,12 @@ export default {
       id: '1.2.2',
       title: 'Change control for network connections',
       question:
-        'Are all changes to network connections and to configurations of NSCs approved and managed in accordance with the change control process defined at Requirement 6.5.1?',
+        'Does every change to a network connection, and to any network security control configuration, go through the approval and change control process required by Requirement 6.5.1?',
       requirement:
-        'All changes to network connections and to configurations of NSCs are approved and managed in accordance with the change control process defined at Requirement 6.5.1.',
+        'Changes to network connections, and changes to network security control configurations, are approved and handled under the change control process that Requirement 6.5.1 calls for. No change is exempt.',
       testing: [
-        'Examine documented procedures and network configuration settings.',
-        'Examine network configuration change records and interview responsible personnel.',
+        'Read the documented procedure, and inspect the network configuration as it now stands.',
+        'Trace recorded network changes back through the change process, and ask the staff who make them how changes are handled.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -65,12 +65,12 @@ export default {
       id: '1.2.3',
       title: 'Network diagram',
       question:
-        'Is an accurate network diagram(s) maintained that shows all connections between the CDE and other networks, including any wireless networks, and is it kept current upon changes to the environment?',
+        'Is there an accurate network diagram showing every connection between the cardholder data environment and any other network, wireless networks included, and is it revised whenever the environment changes?',
       requirement:
-        'An accurate network diagram(s) is maintained that shows all connections between the CDE and other networks, including any wireless networks, and is updated as needed upon changes to the environment.',
+        'The entity keeps one or more accurate network diagrams depicting every connection between the cardholder data environment and other networks, including any wireless network. The diagrams are revised as the environment changes.',
       testing: [
-        'Examine the diagram(s) and network configurations to verify that an accurate network diagram(s) exists.',
-        'Interview responsible personnel to verify the diagram is kept current.',
+        'Compare the diagrams against the network as configured, and confirm they are accurate.',
+        'Ask the staff responsible how the diagrams are kept current when the environment changes.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -79,12 +79,12 @@ export default {
       id: '1.2.4',
       title: 'Data-flow diagram',
       question:
-        'Is an accurate data-flow diagram(s) maintained that shows all account data flows across systems and networks, and updated as needed upon changes to the environment?',
+        'Is there an accurate data-flow diagram tracing every movement of account data across your systems and networks, and is it revised whenever the environment changes?',
       requirement:
-        'An accurate data-flow diagram(s) is maintained that meets the following: shows all account data flows across systems and networks; updated as needed upon changes to the environment.',
+        'The entity keeps one or more accurate data-flow diagrams that trace every flow of account data across its systems and networks, and revises them as the environment changes.',
       testing: [
-        'Examine data-flow diagram(s) and interview personnel to verify the diagram shows all account data flows.',
-        'Examine documentation and interview responsible personnel to verify the diagram is current.',
+        'Read the data-flow diagrams and ask staff whether every account data flow is represented.',
+        'Check the supporting documentation and ask the responsible staff how currency is maintained.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -93,12 +93,12 @@ export default {
       id: '1.2.5',
       title: 'Services, protocols and ports inventory',
       question:
-        'Are all services, protocols, and ports allowed identified, approved, and do they have a defined business need?',
+        'Is every permitted service, protocol and port listed, individually approved, and tied to a stated business reason for allowing it?',
       requirement:
-        'All services, protocols, and ports allowed are identified, approved, and have a defined business need.',
+        'Every service, protocol and port the entity permits is enumerated, has been approved, and has a business need recorded against it.',
       testing: [
-        'Examine documentation to verify a list exists of all allowed services, protocols, and ports, including business justification and approval for each.',
-        'Examine NSC configuration settings to verify only approved services, protocols, and ports are in use.',
+        'Read the inventory and confirm it lists every permitted service, protocol and port, each with its business justification and its approval.',
+        'Inspect the network security control configuration and confirm nothing is permitted that the inventory has not approved.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -107,12 +107,12 @@ export default {
       id: '1.2.6',
       title: 'Security features for insecure services',
       question:
-        'Are security features defined and implemented for all services, protocols, and ports that are in use and considered to be insecure, such that the risk is mitigated?',
+        'Where a service, protocol or port in use is regarded as insecure, have compensating security features been specified and put in place so the risk it carries is reduced?',
       requirement:
-        'Security features are defined and implemented for all services, protocols, and ports that are in use and considered to be insecure, such that the risk is mitigated.',
+        'For each service, protocol or port in use that is considered insecure, security features are specified and implemented such that the resulting risk is mitigated.',
       testing: [
-        'Examine documentation that identifies all insecure services, protocols, and ports in use, and the security features implemented for each.',
-        'Examine configuration settings to verify that security features are implemented for each identified insecure service, protocol, and port.',
+        'Read the documentation naming each insecure service, protocol and port in use, together with the security features applied to each.',
+        'Inspect the configuration and confirm those features are in place for every one of them.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -122,12 +122,12 @@ export default {
       id: '1.2.7',
       title: 'Six-monthly NSC configuration review',
       question:
-        'Are configurations of NSCs reviewed at least once every six months to confirm they are relevant and effective?',
+        'Does a review of network security control configurations take place at intervals no longer than six months, testing whether each remains appropriate and remains effective?',
       requirement:
-        'Configurations of NSCs are reviewed at least once every six months to confirm they are relevant and effective.',
+        'Network security control configurations are reviewed no less often than every six months, to establish that they remain relevant and remain effective.',
       testing: [
-        'Examine documentation to verify procedures are defined for reviewing NSC configurations at least once every six months.',
-        'Examine documentation of reviews and interview responsible personnel to verify reviews occur at the required frequency.',
+        'Read the documentation and confirm a review procedure exists with a frequency of at least once every six months.',
+        'Read the records of reviews actually performed, and ask the responsible staff, to confirm the interval has been met.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -136,12 +136,12 @@ export default {
       id: '1.2.8',
       title: 'Securing NSC configuration files',
       question:
-        'Are configuration files for NSCs secured from unauthorized access and kept consistent with active network configurations?',
+        'Are the configuration files for network security controls protected against unauthorised access, and do they match what the devices are actually running?',
       requirement:
-        'Configuration files for NSCs are: secured from unauthorized access; kept consistent with active network configurations.',
+        'Network security control configuration files are protected from unauthorised access, and their contents agree with the configurations running on the live network.',
       testing: [
-        'Examine NSC configuration files and interview personnel to verify the files are secured from unauthorized access.',
-        'Compare configuration files with active network configurations to verify they are consistent.',
+        'Inspect the configuration files and ask staff how access to them is restricted.',
+        'Compare the stored files against the running network configuration and confirm the two agree.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -150,12 +150,12 @@ export default {
       id: '1.3.1',
       title: 'Inbound traffic to the CDE',
       question:
-        'Is inbound traffic to the CDE restricted to only traffic that is necessary, with all other traffic specifically denied?',
+        'Is traffic entering the cardholder data environment cut back to only what is necessary, with everything else explicitly refused?',
       requirement:
-        'Inbound traffic to the CDE is restricted to: only traffic that is necessary; all other traffic is specifically denied.',
+        'Traffic inbound to the cardholder data environment is limited to what is necessary. Everything not necessary is denied explicitly, rather than left to an implicit default.',
       testing: [
-        'Examine configuration standards for NSCs to verify they define restricting inbound traffic to the CDE.',
-        'Examine NSC configurations to verify inbound traffic is restricted as specified and all other traffic is denied.',
+        'Read the network security control configuration standards and confirm they require inbound traffic to the cardholder data environment to be restricted.',
+        'Inspect the live configuration and confirm the restriction is in force and that remaining traffic is denied.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -164,12 +164,12 @@ export default {
       id: '1.3.2',
       title: 'Outbound traffic from the CDE',
       question:
-        'Is outbound traffic from the CDE restricted to only traffic that is necessary, with all other traffic specifically denied?',
+        'Is traffic leaving the cardholder data environment cut back to only what is necessary, with everything else explicitly refused?',
       requirement:
-        'Outbound traffic from the CDE is restricted to: only traffic that is necessary; all other traffic is specifically denied.',
+        'Traffic outbound from the cardholder data environment is limited to what is necessary. Everything not necessary is denied explicitly.',
       testing: [
-        'Examine configuration standards for NSCs to verify they define restricting outbound traffic from the CDE.',
-        'Examine NSC configurations to verify outbound traffic is restricted as specified and all other traffic is denied.',
+        'Read the network security control configuration standards and confirm they require outbound traffic from the cardholder data environment to be restricted.',
+        'Inspect the live configuration and confirm the restriction is in force and that remaining traffic is denied.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -178,12 +178,12 @@ export default {
       id: '1.3.3',
       title: 'Wireless networks and the CDE',
       question:
-        'Are NSCs installed between all wireless networks and the CDE, regardless of whether the wireless network is a CDE, such that all wireless traffic into the CDE is denied by default and only wireless traffic with an authorized business purpose is allowed?',
+        'Do network security controls sit between every wireless network and the cardholder data environment — whether or not the wireless network is itself in scope — refusing wireless traffic into that environment by default and admitting only what has an authorised business purpose?',
       requirement:
-        'NSCs are installed between all wireless networks and the CDE, regardless of whether the wireless network is a CDE, such that: all wireless traffic from wireless networks into the CDE is denied by default; only wireless traffic with an authorized business purpose is allowed into the CDE.',
+        'Network security controls are placed between the cardholder data environment and every wireless network, irrespective of whether that wireless network is itself part of the cardholder data environment. The default for wireless traffic entering the cardholder data environment is refusal; only traffic with an authorised business purpose is admitted.',
       testing: [
-        'Examine configuration settings and network diagrams to verify that NSCs are implemented between all wireless networks and the CDE.',
-        'Examine NSC configurations to verify that wireless traffic into the CDE is denied by default and only authorized traffic is allowed.',
+        'Inspect the configuration and the network diagrams to confirm controls sit between the cardholder data environment and each wireless network.',
+        'Inspect the control configuration and confirm the default is refusal and that only authorised traffic is admitted.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -193,11 +193,12 @@ export default {
       id: '1.4.1',
       title: 'NSCs between trusted and untrusted networks',
       question:
-        'Are NSCs implemented between trusted and untrusted networks?',
-      requirement: 'NSCs are implemented between trusted and untrusted networks.',
+        'Are network security controls in place wherever a trusted network meets an untrusted one?',
+      requirement:
+        'Network security controls are deployed at the boundaries between trusted and untrusted networks.',
       testing: [
-        'Examine configuration standards and network diagrams to verify that NSCs are defined between trusted and untrusted networks.',
-        'Examine network configurations to verify that NSCs are in place between trusted and untrusted networks.',
+        'Read the configuration standards and the network diagrams to confirm controls are specified at these boundaries.',
+        'Inspect the live network configuration and confirm they are actually deployed there.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -206,12 +207,12 @@ export default {
       id: '1.4.2',
       title: 'Inbound traffic from untrusted networks',
       question:
-        'Is inbound traffic from untrusted networks to trusted networks restricted to communications with system components authorized to provide publicly accessible services, protocols, and ports, and stateful responses to communications initiated by system components in a trusted network, with all other traffic denied?',
+        'Is traffic arriving from untrusted networks into trusted ones held to just two things — reaching system components authorised to offer publicly available services, protocols and ports, and stateful replies to conversations a trusted system component started — with the rest refused?',
       requirement:
-        'Inbound traffic from untrusted networks to trusted networks is restricted to: communications with system components that are authorized to provide publicly accessible services, protocols, and ports; stateful responses to communications initiated by system components in a trusted network; all other traffic is denied.',
+        'Traffic inbound from untrusted networks to trusted networks is confined to two categories: traffic to system components cleared to offer services, protocols and ports that are publicly reachable; and stateful responses to communications that a system component on a trusted network initiated. Anything outside those two is refused.',
       testing: [
-        'Examine vendor documentation and configurations of NSCs to verify that inbound traffic is restricted as specified.',
-        'Examine NSC configurations to verify all other traffic is denied.',
+        'Read the vendor documentation and the network security control configurations, and confirm inbound traffic is confined as described.',
+        'Inspect the configurations and confirm all other traffic is refused.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -220,12 +221,12 @@ export default {
       id: '1.4.3',
       title: 'Anti-spoofing measures',
       question:
-        'Are anti-spoofing measures implemented to detect and block forged source IP addresses from entering the trusted network?',
+        'Are anti-spoofing measures deployed, so that packets carrying a forged source IP address are spotted and stopped before they reach the trusted network?',
       requirement:
-        'Anti-spoofing measures are implemented to detect and block forged source IP addresses from entering the trusted network.',
+        'Anti-spoofing measures are in place to detect packets bearing forged source IP addresses and to block them from entering the trusted network.',
       testing: [
-        'Examine NSC vendor documentation to verify anti-spoofing measures are available and can be configured.',
-        'Examine configurations of NSCs to verify anti-spoofing measures are implemented.',
+        'Read the vendor documentation to confirm the network security controls in use offer an anti-spoofing capability that can be turned on.',
+        'Inspect the configurations and confirm it has been turned on.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -234,12 +235,12 @@ export default {
       id: '1.4.4',
       title: 'Stored cardholder data not directly reachable',
       question:
-        'Are system components that store cardholder data prevented from being directly accessible from untrusted networks?',
+        'Are the system components that hold stored cardholder data placed out of direct reach from untrusted networks?',
       requirement:
-        'System components that store cardholder data are not directly accessible from untrusted networks.',
+        'System components storing cardholder data cannot be reached directly from an untrusted network.',
       testing: [
-        'Examine the data-flow diagram and network diagram to verify that system components storing cardholder data are not directly accessible from untrusted networks.',
-        'Examine configurations of NSCs to verify that controls are implemented to prevent direct access.',
+        'Read the data-flow and network diagrams and confirm no component storing cardholder data is directly reachable from an untrusted network.',
+        'Inspect the network security control configurations and confirm controls are in place that prevent such direct access.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -249,12 +250,12 @@ export default {
       id: '1.4.5',
       title: 'Disclosure of internal IP addresses',
       question:
-        'Is the disclosure of internal IP addresses and routing information limited to only authorized parties?',
+        'Is knowledge of your internal IP addressing and routing held to authorised parties only?',
       requirement:
-        'The disclosure of internal IP addresses and routing information is limited to only authorized parties.',
+        'Internal IP addresses and routing information are disclosed to authorised parties only.',
       testing: [
-        'Examine configurations of NSCs to verify that the disclosure of internal IP addresses and routing information is controlled.',
-        'Interview personnel and examine documentation to verify that controls exist such that any disclosure is limited to authorized parties.',
+        'Inspect the network security control configurations and confirm disclosure of internal addressing and routing information is controlled.',
+        'Ask staff and read the documentation to confirm that where such information is disclosed, it goes only to authorised parties.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -263,12 +264,12 @@ export default {
       id: '1.5.1',
       title: 'Computing devices connecting to untrusted networks and the CDE',
       question:
-        'Are security controls implemented on any computing devices, including company- and employee-owned devices, that connect to both untrusted networks and the CDE, to prevent threats from being introduced into the CDE?',
+        'For any computing device that connects both to an untrusted network and to the cardholder data environment — whether the company owns it or an employee does — are security controls in place to stop it carrying threats into that environment?',
       requirement:
-        'Security controls are implemented on any computing devices, including company- and employee-owned devices, that connect to both untrusted networks (including the Internet) and the CDE as follows: specific configuration settings are defined to prevent threats being introduced into the entity’s network; security controls are actively running; security controls are not alterable by users of the computing devices unless specifically documented and authorized by management on a case-by-case basis for a limited period.',
+        'Any computing device that attaches both to an untrusted network (the internet included) and to the cardholder data environment is subject to security controls, whoever owns it: particular configuration settings are laid down to stop threats reaching the entity’s network; the controls are running, not merely installed; and the device’s user cannot change them, unless management has documented and authorised an exception for that case and for a bounded period.',
       testing: [
-        'Examine policies and configuration standards to verify that controls are defined for computing devices that connect to both untrusted networks and the CDE.',
-        'Examine configuration settings on such devices to verify controls are active and not alterable by users.',
+        'Read the policies and configuration standards and confirm controls are specified for devices that attach to both an untrusted network and the cardholder data environment.',
+        'Inspect the settings on such devices and confirm the controls are running and are beyond the user’s ability to alter.',
       ],
       appliesTo: 'all',
       allowNA: true,
