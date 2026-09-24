@@ -436,11 +436,11 @@ export default {
       id: '12.10.3',
       title: '24/7 incident response availability',
       question:
-        'Are named people on call around the clock, every day, to respond when an incident is suspected or confirmed?',
+        'Are named people on call 24/7 — around the clock, every day — to respond when an incident is suspected or confirmed?',
       requirement:
-        'Named personnel are designated to be available at any hour of any day to respond to a suspected or confirmed security incident.',
+        'Named personnel are designated as available 24/7, at any hour of any day, to respond to a suspected or confirmed security incident.',
       testing: [
-        'Read the documentation and ask the responsible staff, confirming named personnel are designated and available around the clock.',
+        'Read the documentation and ask the responsible staff, confirming particular people are named for this duty and are reachable 24/7.',
       ],
       appliesTo: 'all',
       allowNA: false,
