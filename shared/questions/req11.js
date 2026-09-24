@@ -3,16 +3,19 @@ export default {
   title: 'Test Security of Systems and Networks Regularly',
   goal: 'Regularly Monitor and Test Networks',
   intro:
-    'Vulnerabilities are being discovered continually by malicious individuals and researchers, and being introduced by new software. System components, processes, and bespoke and custom software should be tested frequently to ensure security controls continue to reflect a changing environment.',
+    'New weaknesses turn up all the time — found by researchers, found by attackers, and introduced by the next piece of software installed. A control that was sound last quarter may not be sound now, which is why testing has to be a habit rather than a one-off.',
   questions: [
     {
       id: '11.1.1',
       title: 'Documented policies and procedures',
       question:
-        'Are all security policies and operational procedures identified in Requirement 11 documented, kept up to date, in use, and known to all affected parties?',
+        'Are the security policies and operating procedures covering Requirement 11 written down, kept current, actually followed, and communicated to everyone whose work they govern?',
       requirement:
-        'All security policies and operational procedures that are identified in Requirement 11 are: documented, kept up to date, in use, and known to all affected parties.',
-      testing: ['Examine documented policies and procedures for Requirement 11.', 'Interview personnel to verify they are in use and known.'],
+        'Written policies and operating procedures exist for the subject matter of Requirement 11. They are kept up to date, are in active use rather than shelved, and are known to every party they affect.',
+      testing: [
+        'Read the policies and operating procedures the entity holds for Requirement 11.',
+        'Ask the personnel governed by them whether they are followed in practice and known to those affected.',
+      ],
       appliesTo: 'all',
       allowNA: false,
     },
@@ -20,10 +23,13 @@ export default {
       id: '11.1.2',
       title: 'Roles and responsibilities',
       question:
-        'Are roles and responsibilities for performing activities in Requirement 11 documented, assigned, and understood?',
+        'Is it written down who is accountable for each Requirement 11 activity, has that accountability been allocated to specific people or roles, and do they understand it?',
       requirement:
-        'Roles and responsibilities for performing activities in Requirement 11 are documented, assigned, and understood.',
-      testing: ['Examine documentation of roles and responsibilities.', 'Interview responsible personnel to verify they are understood.'],
+        'Accountability for performing each Requirement 11 activity is recorded in writing, allocated to identified roles, and understood by the people holding those roles.',
+      testing: [
+        'Read the documentation that allocates these responsibilities and check that each one has an owner.',
+        'Ask the people named whether they understand what falls to them.',
+      ],
       appliesTo: 'all',
       allowNA: false,
     },
@@ -31,12 +37,12 @@ export default {
       id: '11.2.1',
       title: 'Wireless access point detection',
       question:
-        'Are authorized and unauthorized wireless access points managed such that the presence of wireless access points is tested for, all authorized and unauthorized wireless access points are detected and identified, testing/detection/identification occurs at least once every three months, and if automated monitoring is used personnel are notified via generated alerts?',
+        'Do you go looking for wireless access points — finding and identifying both the sanctioned and the unsanctioned, doing so at intervals no longer than three months, and, where the monitoring is automated, having it raise an alert to staff?',
       requirement:
-        'Authorized and unauthorized wireless access points are managed as follows: the presence of wireless (Wi-Fi) access points is tested for; all authorized and unauthorized wireless access points are detected and identified; testing, detection, and identification occurs at least once every three months; if automated monitoring is used, personnel are notified via generated alerts.',
+        'Wireless access points, sanctioned and unsanctioned alike, are managed as follows: the entity actively tests for the presence of Wi-Fi access points; every access point found is identified, whether or not it was authorised; that testing, detection and identification happens at intervals no longer than three months; and where the monitoring is automated, it raises an alert that reaches personnel.',
       testing: [
-        'Examine policies and procedures to verify processes are defined for managing authorized and unauthorized wireless access points.',
-        'Examine the results of recent wireless scans to verify testing occurs at least once every three months.',
+        'Read the policies and procedures and confirm the handling of sanctioned and unsanctioned wireless access points is laid down.',
+        'Read the output of recent wireless scans and confirm the testing happens at least every three months.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -47,11 +53,11 @@ export default {
       id: '11.2.2',
       title: 'Inventory of authorized wireless access points',
       question:
-        'Is an inventory of authorized wireless access points maintained, including a documented business justification for each?',
+        'Do you keep an inventory of the wireless access points you have sanctioned, each with a written business reason for its existence?',
       requirement:
-        'An inventory of authorized wireless access points is maintained, including a documented business justification.',
+        'An inventory of sanctioned wireless access points is kept, and a written business reason accompanies it.',
       testing: [
-        'Examine the inventory of authorized wireless access points and documented business justifications.',
+        'Read the inventory of sanctioned wireless access points together with the written business reasons.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -61,13 +67,13 @@ export default {
       id: '11.3.1',
       title: 'Internal vulnerability scans',
       question:
-        'Are internal vulnerability scans performed at least once every three months, with high-risk and critical vulnerabilities resolved, rescans performed that confirm all high-risk and critical vulnerabilities have been resolved, the scan tool kept up to date with the latest vulnerability information, and scans performed by qualified personnel with organizational independence of the tester?',
+        'Do internal vulnerability scans run at intervals no longer than three months, with anything ranked high risk or critical fixed and a rescan proving it, the scanning tool holding current vulnerability data, and the scanning done by competent people who are organisationally independent of what they are scanning?',
       requirement:
-        'Internal vulnerability scans are performed as follows: at least once every three months; high-risk and critical vulnerabilities (per the entity’s vulnerability risk rankings defined at Requirement 6.3.1) are resolved; rescans are performed that confirm all high-risk and critical vulnerabilities have been resolved; scan tool is kept up to date with latest vulnerability information; scans are performed by qualified personnel and organizational independence of the tester exists.',
+        'Internal vulnerability scanning runs as follows: at intervals no longer than three months; anything the entity’s own risk rankings under Requirement 6.3.1 place at high risk or critical is put right; a rescan then establishes that every such finding has been put right; the scanning tool holds current vulnerability information; and the scanning is carried out by competent personnel who are organisationally independent of the subject of the scan.',
       testing: [
-        'Examine internal scan report results from the last 12 months to verify scanning occurred at least once every three months.',
-        'Examine rescan results to verify high-risk and critical vulnerabilities were resolved.',
-        'Interview personnel to verify the scan tool is current and the tester is qualified and organizationally independent.',
+        'Read the internal scan reports covering the last 12 months and confirm scanning happened at least every three months.',
+        'Read the rescan output and confirm high-risk and critical findings were put right.',
+        'Ask staff to confirm the tool holds current data and that the tester is competent and organisationally independent.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -76,12 +82,12 @@ export default {
       id: '11.3.1.1',
       title: 'Management of other vulnerabilities',
       question:
-        'Are all other applicable vulnerabilities (those not ranked as high-risk or critical) managed by being addressed based on the risk defined in your targeted risk analysis performed according to Requirement 12.3.1, with rescans conducted as needed?',
+        'Are the remaining vulnerabilities — those not ranked high risk or critical — dealt with according to the risk your targeted risk analysis assigns under Requirement 12.3.1, with a rescan where one is called for?',
       requirement:
-        'All other applicable vulnerabilities (those not ranked as high-risk or critical per the entity’s vulnerability risk rankings defined at Requirement 6.3.1) are managed as follows: addressed based on the risk defined in the entity’s targeted risk analysis, which is performed according to all elements specified in Requirement 12.3.1; rescans are conducted as needed.',
+        'Vulnerabilities other than those the entity’s risk rankings under Requirement 6.3.1 place at high risk or critical are handled as follows: each is dealt with according to the risk assigned to it by the entity’s targeted risk analysis, carried out against every element Requirement 12.3.1 specifies; and a rescan follows where one is called for.',
       testing: [
-        'Examine the targeted risk analysis to verify the approach for addressing other vulnerabilities is defined.',
-        'Examine scan and rescan results and interview personnel to verify vulnerabilities are addressed as defined.',
+        'Read the targeted risk analysis and confirm it sets out how these other vulnerabilities are to be dealt with.',
+        'Read the scan and rescan output and ask staff, confirming they were dealt with accordingly.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -90,12 +96,12 @@ export default {
       id: '11.3.1.2',
       title: 'Authenticated internal scanning',
       question:
-        'Are internal vulnerability scans performed via authenticated scanning, with systems unable to accept credentials for authenticated scanning documented, and sufficient privileges used for those systems that accept credentials, and if accounts used for authenticated scanning can be used for interactive login are they managed in accordance with Requirement 8.2.2?',
+        'Do internal scans run with credentials — with any system that cannot take credentials recorded as such, adequate privilege used on the systems that can, and any credential also usable for interactive login managed under Requirement 8.2.2?',
       requirement:
-        'Internal vulnerability scans are performed via authenticated scanning as follows: systems that are unable to accept credentials for authenticated scanning are documented; sufficient privileges are used for those systems that accept credentials for scanning; if accounts used for authenticated scanning can be used for interactive login, they are managed in accordance with Requirement 8.2.2.',
+        'Internal vulnerability scanning is carried out with authentication, as follows: any system incapable of accepting credentials for an authenticated scan is recorded as such; the privilege used on systems that do accept credentials is sufficient for the scan; and where an account used for authenticated scanning is also capable of interactive login, it is managed in the manner Requirement 8.2.2 lays down.',
       testing: [
-        'Examine scan tool configurations to verify that authenticated scanning is used with sufficient privileges.',
-        'Examine scan report results and documentation of systems unable to accept credentials.',
+        'Inspect the scanning tool configuration and confirm authenticated scanning is in use with sufficient privilege.',
+        'Read the scan output and the record of systems that cannot accept credentials.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -104,12 +110,12 @@ export default {
       id: '11.3.1.3',
       title: 'Internal scans after significant change',
       question:
-        'Are internal vulnerability scans performed after any significant change, with high-risk and critical vulnerabilities resolved, rescans conducted as needed, and scans performed by qualified personnel with organizational independence of the tester?',
+        'After a significant change, does an internal vulnerability scan follow — with high-risk and critical findings fixed, a rescan where needed, and the scanning done by competent, organisationally independent people?',
       requirement:
-        'Internal vulnerability scans are performed after any significant change as follows: high-risk and critical vulnerabilities (per the entity’s vulnerability risk rankings defined at Requirement 6.3.1) are resolved; rescans are conducted as needed; scans are performed by qualified personnel and organizational independence of the tester exists.',
+        'An internal vulnerability scan follows any significant change, and: anything the entity’s risk rankings under Requirement 6.3.1 place at high risk or critical is put right; a rescan follows where one is called for; and the scanning is carried out by competent personnel who are organisationally independent of the subject of the scan.',
       testing: [
-        'Examine change control documentation and internal scan reports to verify that scans were performed after significant changes.',
-        'Interview personnel to verify the tester is qualified and organizationally independent.',
+        'Read the change control records alongside the internal scan reports, confirming a scan followed each significant change.',
+        'Ask staff to confirm the tester is competent and organisationally independent.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -118,12 +124,12 @@ export default {
       id: '11.3.2',
       title: 'External vulnerability scans (ASV)',
       question:
-        'Are external vulnerability scans performed at least once every three months by a PCI SSC Approved Scanning Vendor (ASV), with vulnerabilities resolved and ASV Program Guide requirements for a passing scan met, and rescans performed as needed to confirm a passing scan?',
+        'Do external scans run at intervals no longer than three months, carried out by a scanning vendor the PCI SSC has approved, with findings cleared to the standard the ASV Program Guide sets for a pass, and rescans where needed to reach that pass?',
       requirement:
-        'External vulnerability scans are performed as follows: at least once every three months; by a PCI SSC Approved Scanning Vendor (ASV); vulnerabilities are resolved and ASV Program Guide requirements for a passing scan are met; rescans are performed as needed to confirm that vulnerabilities are resolved per the ASV Program Guide requirements for a passing scan.',
+        'External vulnerability scanning runs as follows: at intervals no longer than three months; carried out by a scanning vendor approved by the PCI SSC; with findings cleared such that the ASV Program Guide’s conditions for a passing scan are met; and with rescans where needed to establish that findings were cleared to those same conditions.',
       testing: [
-        'Examine ASV scan reports from the last 12 months to verify that external scans occurred at least once every three months.',
-        'Examine ASV scan reports to verify that a passing scan result was achieved.',
+        'Read the approved vendor’s scan reports covering the last 12 months and confirm external scanning happened at least every three months.',
+        'Read those reports and confirm a passing result was reached.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -133,12 +139,12 @@ export default {
       id: '11.3.2.1',
       title: 'External scans after significant change',
       question:
-        'Are external vulnerability scans performed after any significant change, with vulnerabilities scored 4.0 or higher by the CVSS resolved, rescans conducted as needed, and scans performed by qualified personnel with organizational independence of the tester (not required to be an ASV)?',
+        'After a significant change, does an external scan follow — with anything the CVSS scores at 4.0 or above fixed, a rescan where needed, and the work done by competent, organisationally independent people, who need not be an approved scanning vendor?',
       requirement:
-        'External vulnerability scans are performed after any significant change as follows: vulnerabilities that are scored 4.0 or higher by the CVSS are resolved; rescans are conducted as needed; scans are performed by qualified personnel and organizational independence of the tester exists (not required to be a QSA or ASV).',
+        'An external vulnerability scan follows any significant change, and: anything the Common Vulnerability Scoring System rates at 4.0 or above is put right; a rescan follows where one is called for; and the scanning is carried out by competent personnel who are organisationally independent of the subject of the scan, though they need be neither a qualified security assessor nor an approved scanning vendor.',
       testing: [
-        'Examine change control documentation and external scan reports to verify that scans were performed after significant changes.',
-        'Examine scan reports to verify that vulnerabilities scored 4.0 or higher were resolved.',
+        'Read the change control records alongside the external scan reports, confirming a scan followed each significant change.',
+        'Read those reports and confirm findings rated 4.0 or above were put right.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -148,11 +154,11 @@ export default {
       id: '11.4.1',
       title: 'Penetration testing methodology',
       question:
-        'Is a penetration testing methodology defined, documented, and implemented that includes industry-accepted approaches, coverage for the entire CDE perimeter and critical systems, testing from both inside and outside the network, testing to validate any segmentation and scope-reduction controls, application-layer and network-layer testing, review and consideration of threats and vulnerabilities experienced in the last 12 months, documented approach to assessing and addressing the risk posed by exploitable vulnerabilities and security weaknesses, and retention of penetration testing results and remediation activities for at least 12 months?',
+        'Have you written down and put into practice a penetration testing method that uses recognised industry approaches, covers the whole cardholder data environment boundary and the critical systems, tests from inside the network as well as outside, checks that segmentation and scope-reduction controls actually hold, tests at both the application and network layers, takes account of the threats and weaknesses of the past 12 months, states how the risk from anything exploitable found will be judged and handled, and keeps the results and the remediation records for at least 12 months?',
       requirement:
-        'A penetration testing methodology is defined, documented, and implemented by the entity, and includes: industry-accepted penetration testing approaches; coverage for the entire CDE perimeter and critical systems; testing from both inside and outside the network; testing to validate any segmentation and scope-reduction controls; application-layer penetration testing to identify, at a minimum, the vulnerabilities listed in Requirement 6.2.4; network-layer penetration tests that encompass all components that support network functions as well as operating systems; review and consideration of threats and vulnerabilities experienced in the last 12 months; documented approach to assessing and addressing the risk posed by exploitable vulnerabilities and security weaknesses found during penetration testing; retention of penetration testing results and remediation activities results for at least 12 months.',
+        'A penetration testing method is written down and put into practice by the entity. It takes in: penetration testing approaches the industry recognises; coverage of the entire cardholder data environment boundary and of the critical systems; testing conducted from inside the network as well as from outside it; testing that establishes whether the segmentation and scope-reduction controls genuinely hold; application-layer testing that looks, as a minimum, for the weaknesses Requirement 6.2.4 enumerates; network-layer testing reaching every component supporting network functions, and the operating systems too; consideration of the threats and weaknesses encountered over the preceding 12 months; a stated approach to judging and handling the risk from any exploitable weakness the testing uncovers; and retention, for no less than 12 months, of the test results and of the records of what was remediated.',
       testing: [
-        'Examine documentation and interview personnel to verify that the penetration testing methodology is defined, documented, and includes all required elements.',
+        'Read the documentation and ask staff, confirming the penetration testing method is written down and takes in each of those points.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -161,12 +167,12 @@ export default {
       id: '11.4.2',
       title: 'Internal penetration testing',
       question:
-        'Is internal penetration testing performed per your defined methodology at least once every 12 months and after any significant infrastructure or application upgrade or change, by a qualified internal resource or qualified external third party, with organizational independence of the tester?',
+        'Is internal penetration testing carried out to that method, at intervals no longer than 12 months and again after any significant infrastructure or application change, by a competent person in-house or a competent outside firm, organisationally independent of what is being tested?',
       requirement:
-        'Internal penetration testing is performed: per the entity’s defined methodology; at least once every 12 months; after any significant infrastructure or application upgrade or change; by a qualified internal resource or qualified external third party; with organizational independence of the tester (does not require that the tester be a QSA or ASV).',
+        'Internal penetration testing is carried out: to the method the entity has laid down; at intervals no longer than 12 months; and additionally after any significant upgrade or change to infrastructure or to an application. The work is done by a competent internal resource or a competent external third party, organisationally independent of the subject of the test; that person need be neither a qualified security assessor nor an approved scanning vendor.',
       testing: [
-        'Examine the scope of work and results from the most recent internal penetration test to verify it was performed per the methodology and at the required frequency.',
-        'Interview personnel to verify that the tester was qualified and organizationally independent.',
+        'Read the scope of work and the results of the latest internal penetration test, confirming it followed the method and happened at the required interval.',
+        'Ask staff to confirm the tester was competent and organisationally independent.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -175,12 +181,12 @@ export default {
       id: '11.4.3',
       title: 'External penetration testing',
       question:
-        'Is external penetration testing performed per your defined methodology at least once every 12 months and after any significant infrastructure or application upgrade or change, by a qualified internal resource or qualified external third party, with organizational independence of the tester?',
+        'Is external penetration testing carried out to that method, at intervals no longer than 12 months and again after any significant infrastructure or application change, by a competent person in-house or a competent outside firm, organisationally independent of what is being tested?',
       requirement:
-        'External penetration testing is performed: per the entity’s defined methodology; at least once every 12 months; after any significant infrastructure or application upgrade or change; by a qualified internal resource or qualified external third party; with organizational independence of the tester (does not require that the tester be a QSA or ASV).',
+        'External penetration testing is carried out: to the method the entity has laid down; at intervals no longer than 12 months; and additionally after any significant upgrade or change to infrastructure or to an application. The work is done by a competent internal resource or a competent external third party, organisationally independent of the subject of the test; that person need be neither a qualified security assessor nor an approved scanning vendor.',
       testing: [
-        'Examine the scope of work and results from the most recent external penetration test to verify it was performed per the methodology and at the required frequency.',
-        'Interview personnel to verify that the tester was qualified and organizationally independent.',
+        'Read the scope of work and the results of the latest external penetration test, confirming it followed the method and happened at the required interval.',
+        'Ask staff to confirm the tester was competent and organisationally independent.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -189,12 +195,12 @@ export default {
       id: '11.4.4',
       title: 'Correcting penetration test findings',
       question:
-        'Are exploitable vulnerabilities and security weaknesses found during penetration testing corrected in accordance with your assessment of the risk posed by the security issue as defined in Requirement 6.3.1, and is penetration testing repeated to verify the corrections?',
+        'Is anything exploitable that penetration testing turns up put right according to how you judged its risk under Requirement 6.3.1, and is the testing run again to prove the fix?',
       requirement:
-        'Exploitable vulnerabilities and security weaknesses found during penetration testing are corrected as follows: in accordance with the entity’s assessment of the risk posed by the security issue as defined in Requirement 6.3.1; penetration testing is repeated to verify the corrections.',
+        'An exploitable weakness uncovered by penetration testing is put right in accordance with the entity’s judgement of the risk it poses, that judgement being made as Requirement 6.3.1 provides; and the penetration testing is then repeated to establish that the fix holds.',
       testing: [
-        'Examine penetration testing results and remediation records to verify that exploitable vulnerabilities and security weaknesses were corrected.',
-        'Examine repeat testing results to verify the corrections were validated.',
+        'Read the penetration test results and the remediation records, confirming exploitable weaknesses were put right.',
+        'Read the results of the repeat testing, confirming the fixes were validated.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -203,12 +209,12 @@ export default {
       id: '11.4.5',
       title: 'Segmentation penetration testing',
       question:
-        'If segmentation is used to isolate the CDE from other networks, are penetration tests performed on segmentation controls at least once every 12 months and after any changes to segmentation controls/methods, covering all segmentation controls/methods in use, according to your defined penetration testing methodology, confirming that the segmentation controls/methods are operational and effective and isolate the CDE from all out-of-scope systems, confirming effectiveness of any use of isolation to separate systems with differing security levels, and performed by a qualified internal resource or qualified external third party with organizational independence of the tester?',
+        'Where segmentation keeps the cardholder data environment apart from other networks, are the segmentation controls penetration tested at intervals no longer than 12 months and again whenever they change — covering every segmentation control in use, following your written method, establishing that each is working and genuinely isolates the cardholder data environment from every out-of-scope system, establishing that any isolation between systems of differing security levels works too, and carried out by a competent, organisationally independent tester?',
       requirement:
-        'If segmentation is used to isolate the CDE from other networks, penetration tests are performed on segmentation controls as follows: at least once every 12 months and after any changes to segmentation controls/methods; covering all segmentation controls/methods in use; according to the entity’s defined penetration testing methodology; confirming that the segmentation controls/methods are operational and effective, and isolate the CDE from all out-of-scope systems; confirming effectiveness of any use of isolation to separate systems with differing security levels; performed by a qualified internal resource or qualified external third party, with organizational independence of the tester.',
+        'Where segmentation keeps the cardholder data environment apart from other networks, the segmentation controls are penetration tested as follows: at intervals no longer than 12 months, and again after any change to a segmentation control or method; covering every segmentation control and method in use; following the penetration testing method the entity has laid down; establishing that each control is working, is effective, and does isolate the cardholder data environment from every out-of-scope system; establishing that any isolation used to keep apart systems of differing security levels is effective; and carried out by a competent internal resource or competent external third party, organisationally independent of the subject of the test.',
       testing: [
-        'Examine segmentation controls and review penetration testing methodology to verify that penetration-testing procedures are defined to test all segmentation methods.',
-        'Examine the results from the most recent penetration test to verify the test covers and addresses all segmentation controls/methods.',
+        'Inspect the segmentation controls and read the penetration testing method, confirming procedures exist to test every segmentation method in use.',
+        'Read the results of the latest penetration test and confirm it reached and addressed every segmentation control and method.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -218,11 +224,11 @@ export default {
       id: '11.4.6',
       title: 'Six-monthly segmentation testing (service providers)',
       question:
-        'If segmentation is used to isolate the CDE from other networks, are penetration tests performed on segmentation controls at least once every six months and after any changes to segmentation controls/methods?',
+        'Where segmentation keeps the cardholder data environment apart from other networks, are the segmentation controls penetration tested at intervals no longer than six months, and again whenever they change?',
       requirement:
-        'Additional requirement for service providers only: If segmentation is used to isolate the CDE from other networks, penetration tests are performed on segmentation controls as follows: at least once every six months and after any changes to segmentation controls/methods; covering all segmentation controls/methods in use; according to the entity’s defined penetration testing methodology; confirming that the segmentation controls/methods are operational and effective, and isolate the CDE from all out-of-scope systems; confirming effectiveness of any use of isolation to separate systems with differing security levels; performed by a qualified internal resource or qualified external third party, with organizational independence of the tester.',
+        'An extra obligation on service providers. Where segmentation keeps the cardholder data environment apart from other networks, the segmentation controls are penetration tested as follows: at intervals no longer than six months, and again after any change to a segmentation control or method; covering every segmentation control and method in use; following the penetration testing method the entity has laid down; establishing that each control is working, is effective, and does isolate the cardholder data environment from every out-of-scope system; establishing that any isolation used to keep apart systems of differing security levels is effective; and carried out by a competent internal resource or competent external third party, organisationally independent of the subject of the test.',
       testing: [
-        'Examine the results from the most recent penetration tests to verify that segmentation testing is performed at least once every six months and after any changes to segmentation controls.',
+        'Read the results of the latest penetration tests and confirm segmentation testing happens at least every six months, and after any change to a segmentation control.',
       ],
       appliesTo: 'service-provider',
       allowNA: true,
@@ -232,11 +238,11 @@ export default {
       id: '11.4.7',
       title: 'Multi-tenant provider support for customer testing',
       question:
-        'Does your organization, as a multi-tenant service provider, support its customers for external penetration testing per Requirements 11.4.3 and 11.4.4?',
+        'As a provider serving multiple tenants, do you help your customers carry out the external penetration testing that Requirements 11.4.3 and 11.4.4 ask of them?',
       requirement:
-        'Additional requirement for multi-tenant service providers only: Multi-tenant service providers support their customers for external penetration testing per Requirement 11.4.3 and 11.4.4.',
+        'An extra obligation on providers serving multiple tenants. Such a provider assists its customers with the external penetration testing that Requirements 11.4.3 and 11.4.4 require of them.',
       testing: [
-        'Examine documented evidence and interview personnel to verify that the multi-tenant service provider supports customers for external penetration testing, either by providing access or evidence that penetration testing is performed.',
+        'Read the documented evidence and ask staff, confirming the provider assists customers with external penetration testing — either by permitting access for it, or by supplying evidence that such testing has been carried out.',
       ],
       appliesTo: 'service-provider',
       allowNA: true,
@@ -246,12 +252,12 @@ export default {
       id: '11.5.1',
       title: 'Intrusion detection and prevention',
       question:
-        'Are intrusion-detection and/or intrusion-prevention techniques used to detect and/or prevent intrusions into the network such that all traffic is monitored at the perimeter of the CDE, all traffic is monitored at critical points in the CDE, personnel are alerted to suspected compromises, and all intrusion-detection and prevention engines, baselines, and signatures are kept up to date?',
+        'Are intrusion detection or prevention techniques used against network intrusions — watching all traffic at the cardholder data environment boundary, watching all traffic at the critical points inside it, alerting staff to a suspected compromise, and keeping every engine, baseline and signature current?',
       requirement:
-        'Intrusion-detection and/or intrusion-prevention techniques are used to detect and/or prevent intrusions into the network as follows: all traffic is monitored at the perimeter of the CDE; all traffic is monitored at critical points in the CDE; personnel are alerted to suspected compromises; all intrusion-detection and prevention engines, baselines, and signatures are kept up to date.',
+        'Intrusion-detection techniques, intrusion-prevention techniques, or both, are used to detect or prevent intrusions into the network, arranged as follows: all traffic crossing the cardholder data environment boundary is watched; all traffic at the critical points within that environment is watched; personnel are alerted where a compromise is suspected; and every detection and prevention engine, along with its baselines and signatures, is kept current.',
       testing: [
-        'Examine system configurations and network diagrams to verify that intrusion-detection and/or intrusion-prevention techniques are in place at the perimeter and critical points of the CDE.',
-        'Examine system configurations and interview personnel to verify engines, baselines, and signatures are kept up to date and personnel are alerted.',
+        'Inspect the system configuration and the network diagrams, confirming these techniques operate at the boundary and at the critical points inside the cardholder data environment.',
+        'Inspect the configuration and ask staff, confirming engines, baselines and signatures are current and that personnel do get alerted.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -260,12 +266,12 @@ export default {
       id: '11.5.1.1',
       title: 'Covert malware communication channels (service providers)',
       question:
-        'Do intrusion-detection and/or intrusion-prevention techniques detect, alert on/prevent, and address covert malware communication channels?',
+        'Do those techniques catch covert channels malware uses to communicate — alerting on them or blocking them, and dealing with them?',
       requirement:
-        'Additional requirement for service providers only: Intrusion-detection and/or intrusion-prevention techniques detect, alert on/prevent, and address covert malware communication channels.',
+        'An extra obligation on service providers. The intrusion-detection or intrusion-prevention techniques in use detect covert channels used by malware to communicate, raise an alert on them or block them, and see that they are dealt with.',
       testing: [
-        'Examine documented procedures and system configurations to verify that methods to detect and address covert malware communication channels are in place.',
-        'Examine alerting and response records and interview personnel to verify covert channels are addressed.',
+        'Read the documented procedures and inspect the configuration, confirming means exist to detect such covert channels and deal with them.',
+        'Read the alerting and response records and ask staff, confirming covert channels are actually dealt with.',
       ],
       appliesTo: 'service-provider',
       allowNA: false,
@@ -274,12 +280,12 @@ export default {
       id: '11.5.2',
       title: 'Change-detection mechanism',
       question:
-        'Is a change-detection mechanism (for example, file integrity monitoring tools) deployed to alert personnel to unauthorized modification — including changes, additions, and deletions — of critical files, and to perform critical file comparisons at least once weekly?',
+        'Is a change-detection mechanism — file integrity monitoring, for instance — in place to alert staff when a critical file is altered, added or removed without authorisation, and does it compare those critical files at least once a week?',
       requirement:
-        'A change-detection mechanism (for example, file integrity monitoring tools) is deployed as follows: to alert personnel to unauthorized modification (including changes, additions, and deletions) of critical files; to perform critical file comparisons at least once weekly.',
+        'A change-detection mechanism, file integrity monitoring tooling for example, is deployed so that: personnel are alerted when a critical file is modified without authorisation, which takes in alteration, addition and deletion; and comparisons of the critical files take place no less often than once a week.',
       testing: [
-        'Examine system settings, monitored files, and results from monitoring activities to verify the use of a change-detection mechanism.',
-        'Examine settings for the change-detection mechanism to verify it is configured to perform critical file comparisons at least once weekly.',
+        'Inspect the system settings, the files being monitored, and the output of that monitoring, confirming a change-detection mechanism is in use.',
+        'Inspect the mechanism’s settings and confirm it compares the critical files at least weekly.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -288,12 +294,12 @@ export default {
       id: '11.6.1',
       title: 'Payment page change- and tamper-detection',
       question:
-        'Is a change- and tamper-detection mechanism deployed to alert personnel to unauthorized modification — including indicators of compromise, changes, additions, and deletions — to the security-impacting HTTP headers and the script contents of payment pages as received by the consumer browser, with the mechanism configured to evaluate the received HTTP headers and payment pages, and with the mechanism functions performed at least once every seven days or periodically at the frequency defined in your targeted risk analysis performed according to Requirement 12.3.1?',
+        'Is there a change- and tamper-detection mechanism that alerts staff to unauthorised alteration — signs of compromise, changes, additions, removals — of the security-relevant HTTP headers and script content of your payment pages as the shopper’s browser actually receives them, set up to examine what was received, and running at least once every seven days or at the interval your targeted risk analysis sets under Requirement 12.3.1?',
       requirement:
-        'A change- and tamper-detection mechanism is deployed as follows: to alert personnel to unauthorized modification (including indicators of compromise, changes, additions, and deletions) to the security-impacting HTTP headers and the script contents of payment pages as received by the consumer browser; the mechanism is configured to evaluate the received HTTP header and payment page; the mechanism functions are performed as follows — at least once every seven days OR periodically (at the frequency defined in the entity’s targeted risk analysis, which is performed according to all elements specified in Requirement 12.3.1).',
+        'The entity deploys a mechanism that detects change and tampering. It alerts personnel to unauthorised alteration — indicators of compromise, and changes, additions and deletions — of the security-relevant HTTP headers and the script content of payment pages, judged as the consumer’s browser receives them. It is configured to examine the header and the page as received. And its functions run either no less often than once every seven days, or on a recurring basis at an interval set by the entity’s targeted risk analysis, carried out against every element Requirement 12.3.1 specifies.',
       testing: [
-        'Examine system settings, monitored payment pages, and results from monitoring activities to verify the use of a change- and tamper-detection mechanism.',
-        'Examine configuration settings to verify the mechanism functions are performed at the required frequency.',
+        'Inspect the system settings, the payment pages under watch, and the output of that monitoring, confirming such a mechanism is in use.',
+        'Inspect the configuration and confirm the mechanism runs at the required interval.',
       ],
       appliesTo: 'all',
       allowNA: true,

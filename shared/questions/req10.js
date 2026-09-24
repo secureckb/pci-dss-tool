@@ -3,16 +3,19 @@ export default {
   title: 'Log and Monitor All Access to System Components and Cardholder Data',
   goal: 'Regularly Monitor and Test Networks',
   intro:
-    'Logging mechanisms and the ability to track user activities are critical in preventing, detecting, or minimizing the impact of a data compromise. The presence of logs on all system components and in the CDE allows thorough tracking, alerting, and analysis when something goes wrong.',
+    'Being able to say what happened, and who did it, is what turns a breach from a mystery into something that can be scoped and contained. Logs on every system component, and someone actually reading them, are what make that possible.',
   questions: [
     {
       id: '10.1.1',
       title: 'Documented policies and procedures',
       question:
-        'Are all security policies and operational procedures identified in Requirement 10 documented, kept up to date, in use, and known to all affected parties?',
+        'Are the security policies and operating procedures covering Requirement 10 written down, kept current, actually followed, and communicated to everyone whose work they govern?',
       requirement:
-        'All security policies and operational procedures that are identified in Requirement 10 are: documented, kept up to date, in use, and known to all affected parties.',
-      testing: ['Examine documented policies and procedures for Requirement 10.', 'Interview personnel to verify they are in use and known.'],
+        'Written policies and operating procedures exist for the subject matter of Requirement 10. They are kept up to date, are in active use rather than shelved, and are known to every party they affect.',
+      testing: [
+        'Read the policies and operating procedures the entity holds for Requirement 10.',
+        'Ask the personnel governed by them whether they are followed in practice and known to those affected.',
+      ],
       appliesTo: 'all',
       allowNA: false,
     },
@@ -20,10 +23,13 @@ export default {
       id: '10.1.2',
       title: 'Roles and responsibilities',
       question:
-        'Are roles and responsibilities for performing activities in Requirement 10 documented, assigned, and understood?',
+        'Is it written down who is accountable for each Requirement 10 activity, has that accountability been allocated to specific people or roles, and do they understand it?',
       requirement:
-        'Roles and responsibilities for performing activities in Requirement 10 are documented, assigned, and understood.',
-      testing: ['Examine documentation of roles and responsibilities.', 'Interview responsible personnel to verify they are understood.'],
+        'Accountability for performing each Requirement 10 activity is recorded in writing, allocated to identified roles, and understood by the people holding those roles.',
+      testing: [
+        'Read the documentation that allocates these responsibilities and check that each one has an owner.',
+        'Ask the people named whether they understand what falls to them.',
+      ],
       appliesTo: 'all',
       allowNA: false,
     },
@@ -31,11 +37,11 @@ export default {
       id: '10.2.1',
       title: 'Audit logs enabled',
       question:
-        'Are audit logs enabled and active for all system components and cardholder data?',
+        'Is audit logging switched on and running across every system component and for cardholder data?',
       requirement:
-        'Audit logs are enabled and active for all system components and cardholder data.',
+        'Audit logging is switched on and running for every system component and for cardholder data.',
       testing: [
-        'Interview the system administrator and examine system configurations to verify that audit logs are enabled and active for all system components.',
+        'Ask the system administrator and inspect the system configuration, confirming audit logging is switched on and running on every system component.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -44,10 +50,11 @@ export default {
       id: '10.2.1.1',
       title: 'Logging individual access to cardholder data',
       question:
-        'Do audit logs capture all individual user access to cardholder data?',
-      requirement: 'Audit logs capture all individual user access to cardholder data.',
+        'Does the audit log record every occasion on which an individual user reaches cardholder data?',
+      requirement:
+        'Every occasion on which an individual user reaches cardholder data appears in the audit log.',
       testing: [
-        'Examine audit log configurations and log data to verify that all individual user access to cardholder data is logged.',
+        'Inspect the audit log configuration and the log data itself, confirming each such occasion is recorded.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -56,11 +63,11 @@ export default {
       id: '10.2.1.2',
       title: 'Logging administrative actions',
       question:
-        'Do audit logs capture all actions taken by any individual with administrative access, including any interactive use of application or system accounts?',
+        'Does the audit log record everything done by anyone holding administrative access, including any interactive use of an application or system account?',
       requirement:
-        'Audit logs capture all actions taken by any individual with administrative access, including any interactive use of application or system accounts.',
+        'Everything done by an individual holding administrative access appears in the audit log, and that includes any interactive use of an application or system account.',
       testing: [
-        'Examine audit log configurations and log data to verify that all actions taken by individuals with administrative access are logged.',
+        'Inspect the audit log configuration and the log data itself, confirming the actions of those with administrative access are recorded.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -68,10 +75,10 @@ export default {
     {
       id: '10.2.1.3',
       title: 'Logging access to audit logs',
-      question: 'Do audit logs capture all access to audit logs?',
-      requirement: 'Audit logs capture all access to audit logs.',
+      question: 'Does the audit log record every occasion on which the audit logs themselves are reached?',
+      requirement: 'Every occasion on which an audit log is reached appears in the audit log.',
       testing: [
-        'Examine audit log configurations and log data to verify that access to all audit logs is captured.',
+        'Inspect the audit log configuration and the log data itself, confirming access to the logs is recorded.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -79,10 +86,10 @@ export default {
     {
       id: '10.2.1.4',
       title: 'Logging invalid access attempts',
-      question: 'Do audit logs capture all invalid logical access attempts?',
-      requirement: 'Audit logs capture all invalid logical access attempts.',
+      question: 'Does the audit log record every failed attempt at logical access?',
+      requirement: 'Every failed attempt at logical access appears in the audit log.',
       testing: [
-        'Examine audit log configurations and log data to verify that invalid logical access attempts are captured.',
+        'Inspect the audit log configuration and the log data itself, confirming failed logical access attempts are recorded.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -91,11 +98,11 @@ export default {
       id: '10.2.1.5',
       title: 'Logging credential changes',
       question:
-        'Do audit logs capture all changes to identification and authentication credentials, including creation of new accounts, elevation of privileges, and all changes, additions, or deletions to accounts with administrative access?',
+        'Does the audit log record every change to an identification or authentication credential — a new account being created, a privilege being raised, and any change, addition or removal touching an account with administrative access?',
       requirement:
-        'Audit logs capture all changes to identification and authentication credentials including, but not limited to: creation of new accounts; elevation of privileges; all changes, additions, or deletions to accounts with administrative access.',
+        'Every change to an identification or authentication credential appears in the audit log. That takes in, without being limited to: the creation of a new account; the raising of a privilege; and any change, addition or deletion affecting an account that holds administrative access.',
       testing: [
-        'Examine audit log configurations and log data to verify that changes to identification and authentication credentials are captured.',
+        'Inspect the audit log configuration and the log data itself, confirming credential changes are recorded.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -104,11 +111,11 @@ export default {
       id: '10.2.1.6',
       title: 'Logging audit log initialization and changes',
       question:
-        'Do audit logs capture all initialization of new audit logs, and all starting, stopping, or pausing of the existing audit logs?',
+        'Does the audit log record a new log being started, and every occasion on which existing logging is started, stopped or paused?',
       requirement:
-        'Audit logs capture the following: all initialization of new audit logs, and all starting, stopping, or pausing of the existing audit logs.',
+        'The audit log records the initialisation of a new audit log, and every starting, stopping or pausing of logging already running.',
       testing: [
-        'Examine audit log configurations and log data to verify that initialization, starting, stopping, or pausing of audit logs is captured.',
+        'Inspect the audit log configuration and the log data itself, confirming these events are recorded.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -117,11 +124,11 @@ export default {
       id: '10.2.1.7',
       title: 'Logging system-level object changes',
       question:
-        'Do audit logs capture all creation and deletion of system-level objects?',
+        'Does the audit log record every system-level object being created and every one being deleted?',
       requirement:
-        'Audit logs capture all creation and deletion of system-level objects.',
+        'The creation of a system-level object, and the deletion of one, each appear in the audit log.',
       testing: [
-        'Examine audit log configurations and log data to verify that creation and deletion of system-level objects is captured.',
+        'Inspect the audit log configuration and the log data itself, confirming these events are recorded.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -130,11 +137,11 @@ export default {
       id: '10.2.2',
       title: 'Audit log details',
       question:
-        'Do audit logs record the following details for each auditable event: user identification, type of event, date and time, success and failure indication, origination of event, and identity or name of affected data, system component, resource, or service?',
+        'For each event logged, does the record show who the user was, what kind of event it was, when it happened, whether it succeeded or failed, where it came from, and which data, system component, resource or service it touched?',
       requirement:
-        'Audit logs record the following details for each auditable event: user identification; type of event; date and time; success and failure indication; origination of event; identity or name of affected data, system component, resource, or service (for example, name and protocol).',
+        'Each auditable event is recorded with the following particulars: which user was involved; what kind of event it was; the date and time; whether it succeeded or failed; where the event originated; and the identity or name of the data, system component, resource or service affected — a name and protocol, for instance.',
       testing: [
-        'Interview personnel and examine audit log configurations and log data to verify that all required details are recorded for each auditable event.',
+        'Ask staff and inspect the audit log configuration and the log data, confirming every one of those particulars is recorded for each auditable event.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -143,11 +150,11 @@ export default {
       id: '10.3.1',
       title: 'Read access to audit logs',
       question:
-        'Is read access to audit log files limited to those with a job-related need?',
+        'Is the ability to read audit log files confined to people whose job requires it?',
       requirement:
-        'Read access to audit logs files is limited to those with a job-related need.',
+        'Reading an audit log file is confined to those with a job-related need to do so.',
       testing: [
-        'Interview personnel and examine system configurations and privileges to verify that only individuals with a job-related need have read access to audit log files.',
+        'Ask staff and inspect the system configuration and privileges, confirming only those with a job-related need can read the audit log files.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -156,11 +163,11 @@ export default {
       id: '10.3.2',
       title: 'Protection of audit logs from modification',
       question:
-        'Are audit log files protected to prevent modifications by individuals?',
+        'Are audit log files protected so that a person cannot alter them?',
       requirement:
-        'Audit log files are protected to prevent modifications by individuals.',
+        'Audit log files are protected such that an individual cannot modify them.',
       testing: [
-        'Examine system configurations and privileges and interview personnel to verify that audit log files are protected from modification.',
+        'Inspect the system configuration and privileges and ask staff, confirming the audit log files are protected against modification.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -169,11 +176,11 @@ export default {
       id: '10.3.3',
       title: 'Backup of audit logs',
       question:
-        'Are audit log files, including those for external-facing technologies, promptly backed up to a secure, central, internal log server(s) or other media that is difficult to modify?',
+        'Are audit log files — those from externally exposed technologies included — copied promptly onto a secure central internal log server, or onto other media that resists alteration?',
       requirement:
-        'Audit log files, including those for external-facing technologies, are promptly backed up to a secure, central, internal log server(s) or other media that is difficult to modify.',
+        'Audit log files, including those produced by externally facing technologies, are backed up promptly to a secure, central, internal log server, or to other media that is difficult to alter.',
       testing: [
-        'Examine backup configurations or log files to verify that audit log files are promptly backed up to a secure, central location or media that is difficult to modify.',
+        'Inspect the backup configuration or the log files themselves, confirming prompt backup to a secure central location or to media that resists alteration.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -182,11 +189,11 @@ export default {
       id: '10.3.4',
       title: 'File integrity monitoring on audit logs',
       question:
-        'Is file integrity monitoring or a change-detection mechanism used on audit logs to ensure that existing log data cannot be changed without generating alerts?',
+        'Is file integrity monitoring, or some other change-detection mechanism, applied to the audit logs so that existing log data cannot be altered without an alert being raised?',
       requirement:
-        'File integrity monitoring or change-detection mechanisms is used on audit logs to ensure that existing log data cannot be changed without generating alerts.',
+        'File integrity monitoring, or another change-detection mechanism, is applied to the audit logs, so that log data already written cannot be altered without an alert being raised.',
       testing: [
-        'Examine system settings, monitored files, and results from monitoring activities to verify that file integrity monitoring or change-detection mechanisms are in use on audit logs.',
+        'Inspect the system settings, the files being monitored, and the output of that monitoring, confirming such a mechanism operates on the audit logs.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -195,12 +202,12 @@ export default {
       id: '10.4.1',
       title: 'Daily audit log reviews',
       question:
-        'Are the following audit logs reviewed at least once daily: all security events, logs of all system components that store, process, or transmit CHD and/or SAD, logs of all critical system components, and logs of all servers and system components that perform security functions?',
+        'Are these logs looked at no less than once a day: everything recorded as a security event; the logs of any system component that stores, processes or transmits cardholder data or sensitive authentication data; the logs of every critical system component; and the logs of every server and component performing a security function?',
       requirement:
-        'The following audit logs are reviewed at least once daily: all security events; logs of all system components that store, process, or transmit CHD and/or SAD; logs of all critical system components; logs of all servers and system components that perform security functions (for example, network security controls, intrusion-detection systems/intrusion-prevention systems, authentication servers).',
+        'The following logs are reviewed no less than once each day: every security event; the logs of any system component that stores, processes or transmits cardholder data or sensitive authentication data; the logs of every critical system component; and the logs of every server and system component that performs a security function, such as a network security control, an intrusion-detection or intrusion-prevention system, or an authentication server.',
       testing: [
-        'Examine security policies and procedures to verify that processes are defined for reviewing the specified audit logs at least once daily.',
-        'Observe processes and interview personnel to verify that the reviews occur daily.',
+        'Read the security policies and procedures and confirm daily review of those logs is laid down.',
+        'Watch the process and ask staff, confirming the reviews really happen every day.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -209,10 +216,11 @@ export default {
       id: '10.4.1.1',
       title: 'Automated log review mechanisms',
       question:
-        'Are automated mechanisms used to perform audit log reviews?',
-      requirement: 'Automated mechanisms are used to perform audit log reviews.',
+        'Is the reviewing of audit logs done with the help of automated mechanisms?',
+      requirement:
+        'Audit log reviews are carried out using automated mechanisms.',
       testing: [
-        'Examine log review mechanisms and interview personnel to verify that automated mechanisms are used to perform audit log reviews.',
+        'Inspect the review mechanisms and ask staff, confirming automation is used to carry out the audit log reviews.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -221,11 +229,11 @@ export default {
       id: '10.4.2',
       title: 'Periodic review of other logs',
       question:
-        'Are logs of all other system components (those not specified in Requirement 10.4.1) reviewed periodically?',
+        'Are the logs of the remaining system components — the ones Requirement 10.4.1 does not name — reviewed on a recurring basis?',
       requirement:
-        'Logs of all other system components (those not specified in Requirement 10.4.1) are reviewed periodically.',
+        'The logs of system components not named in Requirement 10.4.1 are reviewed on a recurring basis.',
       testing: [
-        'Examine security policies and procedures and interview personnel to verify that logs of all other system components are reviewed periodically.',
+        'Read the security policies and procedures and ask staff, confirming those other logs are reviewed on a recurring basis.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -234,12 +242,12 @@ export default {
       id: '10.4.2.1',
       title: 'Review frequency defined by risk analysis',
       question:
-        'Is the frequency of periodic log reviews for all other system components (not defined in Requirement 10.4.1) defined in your targeted risk analysis performed according to Requirement 12.3.1?',
+        'Is the interval between those reviews fixed by your targeted risk analysis, carried out as Requirement 12.3.1 lays down?',
       requirement:
-        'The frequency of periodic log reviews for all other system components (not defined in Requirement 10.4.1) is defined in the entity’s targeted risk analysis, which is performed according to all elements specified in Requirement 12.3.1.',
+        'The interval at which the logs of those other system components are reviewed is set by the entity’s targeted risk analysis, carried out against every element Requirement 12.3.1 specifies.',
       testing: [
-        'Examine the targeted risk analysis for the frequency of periodic log reviews to verify it is defined and justified.',
-        'Examine documented results of reviews to verify they occur at the defined frequency.',
+        'Read the targeted risk analysis covering that review interval and confirm it is set out and justified.',
+        'Read the recorded outcomes of the reviews and confirm they happened at that interval.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -248,12 +256,12 @@ export default {
       id: '10.4.3',
       title: 'Addressing exceptions and anomalies',
       question:
-        'Are exceptions and anomalies identified during the log review process addressed?',
+        'Is anything unexpected or out of place that a log review turns up actually dealt with?',
       requirement:
-        'Exceptions and anomalies identified during the review process are addressed.',
+        'An exception or anomaly that a review brings to light is dealt with.',
       testing: [
-        'Examine documented policies and procedures to verify that processes are defined for addressing exceptions and anomalies identified during the review process.',
-        'Observe processes and interview personnel to verify that exceptions and anomalies are addressed.',
+        'Read the documented policies and procedures and confirm they say how such findings are to be dealt with.',
+        'Watch the process and ask staff, confirming these findings really are dealt with.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -262,12 +270,12 @@ export default {
       id: '10.5.1',
       title: 'Audit log retention',
       question:
-        'Is audit log history retained for at least 12 months, with at least the most recent three months immediately available for analysis?',
+        'Is audit log history held for a minimum of 12 months, and can the most recent three months of it be analysed straight away?',
       requirement:
-        'Retain audit log history for at least 12 months, with at least the most recent three months immediately available for analysis.',
+        'Audit log history is kept for no less than 12 months, and at least the most recent three months of it is immediately available to analyse.',
       testing: [
-        'Examine documentation to verify that audit log history is retained for at least 12 months.',
-        'Interview personnel and examine audit logs to verify that at least the most recent three months of logs are immediately available for analysis.',
+        'Read the documentation and confirm audit log history is kept for at least 12 months.',
+        'Ask staff and inspect the logs, confirming at least the last three months can be analysed immediately.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -276,11 +284,11 @@ export default {
       id: '10.6.1',
       title: 'Time synchronization',
       question:
-        'Are system clocks and time synchronized using time-synchronization technology?',
+        'Are system clocks kept in step using time-synchronisation technology?',
       requirement:
-        'System clocks and time are synchronized using time-synchronization technology.',
+        'System clocks and the time they show are kept in step by means of time-synchronisation technology.',
       testing: [
-        'Examine system configuration settings to verify that time-synchronization technology is implemented and kept current.',
+        'Inspect the system configuration and confirm time-synchronisation technology is in place and kept current.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -289,11 +297,11 @@ export default {
       id: '10.6.2',
       title: 'Correct and consistent time',
       question:
-        'Are systems configured to the correct and consistent time such that one or more designated time servers are in use, only the designated central time server(s) receives time from external sources, time received from external sources is based on International Atomic Time or UTC, the designated time server(s) accept time updates only from specific industry-accepted external sources, where there is more than one designated time server the time servers peer with one another to keep accurate time, and client systems receive time information only from designated central time server(s)?',
+        'Is time set correctly and uniformly — with one or more nominated time servers, only those central servers taking time from outside, the outside time resting on either International Atomic Time or Coordinated Universal Time, updates accepted only from particular sources the industry accepts, multiple nominated servers peering with each other, and client systems taking their time only from the nominated central servers?',
       requirement:
-        'Systems are configured to the correct and consistent time as follows: one or more designated time servers are in use; only the designated central time server(s) receives time from external sources; time received from external sources is based on International Atomic Time or Coordinated Universal Time (UTC); the designated time server(s) accept time updates only from specific industry-accepted external sources; where there is more than one designated time server, the time servers peer with one another to keep accurate time; client systems receive time information only from designated central time server(s).',
+        'Systems carry the correct time, and the same time, arranged as follows. One or more nominated time servers are in use. Only those nominated central time servers take time from an external source. Time taken from outside rests on International Atomic Time or on Coordinated Universal Time. A nominated time server accepts an update only from particular external sources that the industry accepts. Where more than one nominated time server exists, they peer with one another to hold accurate time. And a client system takes its time only from a nominated central time server.',
       testing: [
-        'Examine system configuration settings for acquiring, distributing, and storing the correct time to verify all required elements are met.',
+        'Inspect the configuration governing how the correct time is obtained, distributed and stored, confirming every one of those points holds.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -302,12 +310,12 @@ export default {
       id: '10.6.3',
       title: 'Protection of time data',
       question:
-        'Are time synchronization settings and data protected such that access to time data is restricted to only personnel with a business need, and any changes to time settings on critical systems are logged, monitored, and reviewed?',
+        'Are the time settings and time data protected — reaching the time data confined to people with a business need, and any change to the time on a critical system logged, watched and reviewed?',
       requirement:
-        'Time synchronization settings and data are protected as follows: access to time data is restricted to only personnel with a business need; any changes to time settings on critical systems are logged, monitored, and reviewed.',
+        'Time-synchronisation settings and time data are protected in two ways: reaching the time data is confined to personnel with a business need to do so; and any change to the time settings of a critical system is logged, monitored and reviewed.',
       testing: [
-        'Examine system configurations and time-synchronization settings to verify that access to time data is restricted.',
-        'Examine logs and monitoring configurations to verify that changes to time settings on critical systems are logged, monitored, and reviewed.',
+        'Inspect the system and time-synchronisation configuration, confirming access to the time data is restricted.',
+        'Inspect the logs and the monitoring configuration, confirming that when a critical system has its time altered, that alteration is recorded, watched and reviewed.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -316,12 +324,12 @@ export default {
       id: '10.7.1',
       title: 'Detection of critical security control failures (service providers)',
       question:
-        'Are failures of critical security control systems detected, alerted, and addressed promptly — including failures of network security controls, IDS/IPS, FIM, anti-malware solutions, physical access controls, logical access controls, audit logging mechanisms, and segmentation controls if used?',
+        'When a critical security control system fails, is the failure noticed, alerted on and dealt with promptly — covering audit logging, anti-malware, the network security controls, intrusion detection and prevention, file integrity monitoring, access control both physical and logical, and segmentation controls where those are used?',
       requirement:
-        'Additional requirement for service providers only: Failures of critical security control systems are detected, alerted, and addressed promptly, including but not limited to failure of the following critical security control systems: network security controls; IDS/IPS; FIM; anti-malware solutions; physical access controls; logical access controls; audit logging mechanisms; segmentation controls (if used).',
+        'An extra obligation on service providers. The failure of a critical security control system is detected, raised as an alert, and dealt with promptly. The systems covered take in, without being limited to: the audit logging mechanisms; anti-malware; access control, whether physical or logical; the network security controls; intrusion-detection and intrusion-prevention systems; file integrity monitoring; and segmentation controls, where those are used.',
       testing: [
-        'Examine documented policies and procedures and configuration settings to verify that failures of critical security control systems are detected and alerted.',
-        'Observe detection and alerting processes and interview personnel to verify failures are addressed promptly.',
+        'Read the documented policies and procedures and inspect the configuration, confirming such failures are detected and alerted on.',
+        'Watch the detection and alerting in operation and ask staff, confirming failures are dealt with promptly.',
       ],
       appliesTo: 'service-provider',
       allowNA: false,
@@ -330,12 +338,12 @@ export default {
       id: '10.7.2',
       title: 'Detection of critical security control failures (all entities)',
       question:
-        'Are failures of critical security control systems detected, alerted, and addressed promptly — including failures of network security controls, IDS/IPS, change-detection mechanisms, anti-malware solutions, physical access controls, logical access controls, audit logging mechanisms, segmentation controls if used, audit log review mechanisms, and automated security testing tools if used?',
+        'When a critical security control system fails, is the failure noticed, alerted on and dealt with promptly — covering audit logging and the log review mechanisms themselves, anti-malware, access control both physical and logical, the network security controls, intrusion detection and prevention, change-detection mechanisms, and — where they are used — segmentation controls and automated security testing tools?',
       requirement:
-        'Failures of critical security control systems are detected, alerted, and addressed promptly, including but not limited to failure of the following critical security control systems: network security controls; IDS/IPS; change-detection mechanisms; anti-malware solutions; physical access controls; logical access controls; audit logging mechanisms; segmentation controls (if used); audit log review mechanisms; automated security testing tools (if used).',
+        'The failure of a critical security control system is detected, raised as an alert, and dealt with promptly. The systems covered take in, without being limited to: the audit logging mechanisms, and the mechanisms that review those logs; anti-malware; access control, whether physical or logical; the network security controls; intrusion-detection and intrusion-prevention systems; change-detection mechanisms; and, where they are used, segmentation controls and automated security testing tools.',
       testing: [
-        'Examine documented policies and procedures and configuration settings to verify that failures of critical security control systems are detected and alerted.',
-        'Observe detection and alerting processes and interview personnel to verify failures are addressed promptly.',
+        'Read the documented policies and procedures and inspect the configuration, confirming such failures are detected and alerted on.',
+        'Watch the detection and alerting in operation and ask staff, confirming failures are dealt with promptly.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -344,12 +352,12 @@ export default {
       id: '10.7.3',
       title: 'Response to security control failures',
       question:
-        'Are failures of any critical security control systems responded to promptly, including restoring security functions, identifying and documenting the duration of the security failure, identifying and documenting the cause(s) of failure and required remediation, identifying and addressing any security issues that arose during the failure, determining whether further actions are required, implementing controls to prevent the cause of failure from reoccurring, and resuming monitoring of security controls?',
+        'When a critical security control fails, does the response happen promptly and cover all of it — getting the security function working again, recording how long the failure lasted from start to finish, recording what caused it and what has to be put right, finding and dealing with anything that went wrong while it was down, deciding whether anything further is needed, putting controls in place so the same cause does not recur, and starting the monitoring up again?',
       requirement:
-        'Failures of any critical security controls systems are responded to promptly, including but not limited to: restoring security functions; identifying and documenting the duration (date and time from start to end) of the security failure; identifying and documenting the cause(s) of failure and documenting required remediation; identifying and addressing any security issues that arose during the failure; determining whether further actions are required as a result of the security failure; implementing controls to prevent the cause of failure from reoccurring; resuming monitoring of security controls.',
+        'The failure of any critical security control system is responded to promptly, and the response takes in, without being limited to: restoring the security function; recording how long the failure lasted, from the date and time it began to the date and time it ended; recording what caused it, and what remediation is called for; finding and dealing with any security problem that arose while it was down; deciding whether the failure calls for anything further; putting controls in place so the same cause cannot produce the same failure again; and resuming the monitoring of security controls.',
       testing: [
-        'Examine documented policies and procedures to verify that processes are defined for responding to security control failures.',
-        'Examine records of responses to security control failures to verify all required actions were taken.',
+        'Read the documented policies and procedures and confirm the response to a security control failure is laid down.',
+        'Read the records of past responses and confirm each of those actions was taken.',
       ],
       appliesTo: 'all',
       allowNA: false,
