@@ -3,16 +3,19 @@ export default {
   title: 'Identify Users and Authenticate Access to System Components',
   goal: 'Implement Strong Access Control Measures',
   intro:
-    'Two fundamental principles of identifying and authenticating users are to establish the identity of an individual or process on a computer system, and to prove or verify the user associated with the identity. Assigning a unique identification to each person with access ensures that actions taken on critical data and systems are performed by, and can be traced to, known and authorized users and processes.',
+    'Two separate things have to happen before someone may act on a system: they have to be identified, and that identity has to be proved. Giving every person their own identifier is what makes it possible to say afterwards who did something, and to know it was somebody entitled to.',
   questions: [
     {
       id: '8.1.1',
       title: 'Documented policies and procedures',
       question:
-        'Are all security policies and operational procedures identified in Requirement 8 documented, kept up to date, in use, and known to all affected parties?',
+        'Are the security policies and operating procedures covering Requirement 8 written down, kept current, actually followed, and communicated to everyone whose work they govern?',
       requirement:
-        'All security policies and operational procedures that are identified in Requirement 8 are: documented, kept up to date, in use, and known to all affected parties.',
-      testing: ['Examine documented policies and procedures for Requirement 8.', 'Interview personnel to verify they are in use and known.'],
+        'Written policies and operating procedures exist for the subject matter of Requirement 8. They are kept up to date, are in active use rather than shelved, and are known to every party they affect.',
+      testing: [
+        'Read the policies and operating procedures the entity holds for Requirement 8.',
+        'Ask the personnel governed by them whether they are followed in practice and known to those affected.',
+      ],
       appliesTo: 'all',
       allowNA: false,
     },
@@ -20,10 +23,13 @@ export default {
       id: '8.1.2',
       title: 'Roles and responsibilities',
       question:
-        'Are roles and responsibilities for performing activities in Requirement 8 documented, assigned, and understood?',
+        'Is it written down who is accountable for each Requirement 8 activity, has that accountability been allocated to specific people or roles, and do they understand it?',
       requirement:
-        'Roles and responsibilities for performing activities in Requirement 8 are documented, assigned, and understood.',
-      testing: ['Examine documentation of roles and responsibilities.', 'Interview responsible personnel to verify they are understood.'],
+        'Accountability for performing each Requirement 8 activity is recorded in writing, allocated to identified roles, and understood by the people holding those roles.',
+      testing: [
+        'Read the documentation that allocates these responsibilities and check that each one has an owner.',
+        'Ask the people named whether they understand what falls to them.',
+      ],
       appliesTo: 'all',
       allowNA: false,
     },
@@ -31,12 +37,12 @@ export default {
       id: '8.2.1',
       title: 'Unique user IDs',
       question:
-        'Are all users assigned a unique ID before access to system components or cardholder data is allowed?',
+        'Does each user get an identifier of their own before they are let anywhere near a system component or cardholder data?',
       requirement:
-        'All users are assigned a unique ID before access to system components or cardholder data is allowed.',
+        'Every user receives an identifier belonging to them alone, and receives it before being granted access to any system component or to cardholder data.',
       testing: [
-        'Interview responsible personnel to verify that all users are assigned a unique ID.',
-        'Examine audit logs and other evidence to verify that access to system components and cardholder data can be traced to individual users.',
+        'Ask the responsible staff to confirm each user holds an identifier of their own.',
+        'Read the audit logs and other evidence, confirming that reaching a system component or cardholder data can be traced back to one particular person.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -45,12 +51,12 @@ export default {
       id: '8.2.2',
       title: 'Shared and generic accounts',
       question:
-        'Are group, shared, or generic accounts, or other shared authentication credentials, used only when necessary on an exception basis, and managed such that account use is prevented unless needed for an exceptional circumstance, use is limited to the time needed, business justification is documented, use is explicitly approved by management, individual user identity is confirmed before access is granted, and every action taken is attributable to an individual user?',
+        'Are group, shared or generic accounts — and any other shared credential — kept for genuine exceptions only, blocked the rest of the time, limited to however long the exception lasts, backed by a written business reason, expressly approved by management, opened only once the individual using them has been identified, and arranged so that every action can still be pinned to one person?',
       requirement:
-        'Group, shared, or generic accounts, or other shared authentication credentials are only used when necessary on an exception basis, and are managed as follows: account use is prevented unless needed for an exceptional circumstance; use is limited to the time needed for the exceptional circumstance; business justification for use is documented; use is explicitly approved by management; individual user identity is confirmed before access to an account is granted; every action taken is attributable to an individual user.',
+        'Group, shared and generic accounts, along with any other shared authentication credential, are reserved for cases of genuine necessity and treated as exceptions. Their handling runs as follows: use of the account is blocked unless an exceptional circumstance calls for it; use lasts no longer than that circumstance requires; the business reason for it is recorded; management expressly approves it; the individual is identified before the account is opened to them; and each action taken through the account remains attributable to one particular person.',
       testing: [
-        'Examine policies and procedures to verify that use of shared accounts is addressed.',
-        'Examine user ID lists, authorization records, and audit logs to verify shared account use is managed as specified.',
+        'Read the policies and procedures and confirm the use of shared accounts is dealt with.',
+        'Read the user ID lists, the authorisation records and the audit logs, confirming shared accounts are handled as described.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -59,11 +65,11 @@ export default {
       id: '8.2.3',
       title: 'Unique authentication for each customer premises',
       question:
-        'Does your organization, when providing remote access to customer premises, use unique authentication factors for each customer premises?',
+        'When you reach into a customer’s premises remotely, do you use a different authentication factor for each customer?',
       requirement:
-        'Additional requirement for service providers only: Service providers with remote access to customer premises use unique authentication factors for each customer premises.',
+        'An extra obligation on service providers. Where a provider has remote access into customer premises, the authentication factor it uses differs from one customer’s premises to another.',
       testing: [
-        'Examine authentication policies and procedures and interview personnel to verify that unique authentication factors are used for access to each customer premises.',
+        'Read the authentication policies and procedures and ask staff, confirming a distinct authentication factor is used for reaching each customer’s premises.',
       ],
       appliesTo: 'service-provider',
       allowNA: true,
@@ -73,12 +79,12 @@ export default {
       id: '8.2.4',
       title: 'Management of user IDs and credentials',
       question:
-        'Is the addition, deletion, and modification of user IDs, authentication factors, and other identifier objects managed such that changes are authorized with the appropriate approval and implemented with only the privileges specified on the documented approval?',
+        'When a user ID, authentication factor or similar identifier object is created, removed or altered, is the change authorised by the right approver — and does what gets built carry only the privileges that written approval named?',
       requirement:
-        'Addition, deletion, and modification of user IDs, authentication factors, and other identifier objects are managed as follows: authorized with the appropriate approval; implemented with only the privileges specified on the documented approval.',
+        'Creating an identifier object, removing one, or altering one — a user ID, an authentication factor, or anything of that kind — proceeds on two conditions: the change carries authorisation from the appropriate approver; and what is put in place carries no privileges beyond those named on the written approval.',
       testing: [
-        'Examine documented authorizations and compare with the user IDs and privileges implemented.',
-        'Interview responsible personnel to verify the process is followed.',
+        'Read the written authorisations and set them against the user IDs and privileges actually in place.',
+        'Ask the responsible staff to confirm the process is followed.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -87,11 +93,12 @@ export default {
       id: '8.2.5',
       title: 'Revoking access for terminated users',
       question:
-        'Is access for terminated users immediately revoked?',
-      requirement: 'Access for terminated users is immediately revoked.',
+        'When someone leaves, is their access withdrawn straight away?',
+      requirement:
+        'Access belonging to a user whose employment has ended is withdrawn immediately.',
       testing: [
-        'Examine information sources for terminated users and review current user access lists to verify that terminated users’ IDs have been deactivated or removed.',
-        'Examine physical and logical authentication factors to verify they have been returned or deactivated.',
+        'Compare the record of departures against the current access lists, confirming departed users’ identifiers are deactivated or gone.',
+        'Check the physical and logical authentication factors, confirming each has been handed back or deactivated.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -100,11 +107,11 @@ export default {
       id: '8.2.6',
       title: 'Inactive accounts',
       question:
-        'Are inactive user accounts removed or disabled within 90 days of inactivity?',
+        'Is an account that has gone unused for 90 days removed or disabled by the time those 90 days are up?',
       requirement:
-        'Inactive user accounts are removed or disabled within 90 days of inactivity.',
+        'A user account that has seen no activity is removed or disabled no later than 90 days after that inactivity began.',
       testing: [
-        'Examine user accounts and last logon information to verify that inactive accounts are removed or disabled within 90 days of inactivity.',
+        'Read the account list alongside the last sign-in records, confirming dormant accounts are removed or disabled inside the 90 days.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -113,12 +120,12 @@ export default {
       id: '8.2.7',
       title: 'Third-party remote access accounts',
       question:
-        'Are accounts used by third parties to access, support, or maintain system components via remote access enabled only during the time period needed and disabled when not in use, with use monitored for unexpected activity?',
+        'Are the accounts third parties use to reach, support or maintain your systems remotely switched on only for as long as they are needed and switched off the rest of the time, with their use watched for anything unexpected?',
       requirement:
-        'Accounts used by third parties to access, support, or maintain system components via remote access are managed as follows: enabled only during the time period needed and disabled when not in use; use is monitored for unexpected activity.',
+        'Accounts through which third parties reach, support or maintain system components remotely are handled as follows: each is enabled only for the period it is needed and disabled otherwise; and its use is monitored for activity that does not belong.',
       testing: [
-        'Interview personnel and examine processes for enabling and disabling third-party remote access accounts.',
-        'Examine evidence of monitoring to verify that third-party account use is monitored.',
+        'Ask staff and examine how these accounts are enabled and disabled.',
+        'Read the monitoring evidence and confirm use of third-party accounts is actually watched.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -128,11 +135,11 @@ export default {
       id: '8.2.8',
       title: 'Idle session re-authentication',
       question:
-        'If a user session has been idle for more than 15 minutes, is the user required to re-authenticate to re-activate the terminal or session?',
+        'After a session has sat idle for more than 15 minutes, must the user authenticate again before the terminal or session comes back to life?',
       requirement:
-        'If a user session has been idle for more than 15 minutes, the user is required to re-authenticate to re-activate the terminal or session.',
+        'A session left idle beyond 15 minutes cannot be resumed without the user authenticating again.',
       testing: [
-        'Examine system configuration settings to verify that system/session idle time out features have been set to 15 minutes or less.',
+        'Inspect the system configuration and confirm the idle timeout is set to 15 minutes or less.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -141,12 +148,12 @@ export default {
       id: '8.3.1',
       title: 'Authentication factors',
       question:
-        'Is all user access to system components for users and administrators authenticated via at least one of the following authentication factors: something you know (such as a password or passphrase), something you have (such as a token device or smart card), or something you are (such as a biometric element)?',
+        'Does every user and administrator reaching a system component authenticate with at least one of: a password or passphrase they have memorised; a token or smart card they carry; or a biometric trait that is simply theirs?',
       requirement:
-        'All user access to system components for users and administrators is authenticated via at least one of the following authentication factors: something you know, such as a password or passphrase; something you have, such as a token device or smart card; something you are, such as a biometric element.',
+        'Access to a system component, whether by an ordinary user or an administrator, is authenticated using at least one of three kinds of factor: something in the person’s memory, a password or a passphrase; something in the person’s possession, such as a token device or a smart card; or something the person is, such as a biometric trait.',
       testing: [
-        'Examine documentation describing the authentication factor(s) used.',
-        'Observe an authentication attempt for each in-use factor to verify authentication is performed as described.',
+        'Read the documentation describing which factors are in use.',
+        'Watch an authentication attempt using each factor in use and confirm it behaves as described.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -155,12 +162,12 @@ export default {
       id: '8.3.2',
       title: 'Authentication factors rendered unreadable',
       question:
-        'Is strong cryptography used to render all authentication factors unreadable during transmission and storage on all system components?',
+        'On every system component, are authentication factors made unreadable by strong cryptography, both while travelling and while stored?',
       requirement:
-        'Strong cryptography is used to render all authentication factors unreadable during transmission and storage on all system components.',
+        'Strong cryptography makes every authentication factor unreadable, in transit and at rest, on every system component.',
       testing: [
-        'Examine vendor documentation and system configuration settings to verify that authentication factors are rendered unreadable with strong cryptography during transmission and storage.',
-        'Examine repositories of authentication factors to verify they are unreadable during storage.',
+        'Read the vendor documentation and inspect the system configuration, confirming strong cryptography makes the factors unreadable in transit and at rest.',
+        'Inspect the stores holding authentication factors and confirm they are unreadable there.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -169,12 +176,12 @@ export default {
       id: '8.3.3',
       title: 'Identity verification before credential changes',
       question:
-        'Is user identity verified before modifying any authentication factor?',
+        'Before an authentication factor is altered, is the identity of the person asking established?',
       requirement:
-        'User identity is verified before modifying any authentication factor.',
+        'The identity of the user is established before any authentication factor of theirs is altered.',
       testing: [
-        'Examine procedures for modifying authentication factors and interview personnel to verify that user identity is verified before any modification.',
-        'Observe a request to modify an authentication factor to verify identity is confirmed.',
+        'Read the procedure for altering authentication factors and ask staff, confirming identity is established beforehand.',
+        'Watch a request to alter an authentication factor and confirm identity is checked.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -183,12 +190,12 @@ export default {
       id: '8.3.4',
       title: 'Account lockout',
       question:
-        'Are invalid authentication attempts limited by locking out the user ID after not more than 10 attempts, and setting the lockout duration to a minimum of 30 minutes or until the user’s identity is confirmed?',
+        'Are failed authentication attempts capped by locking the user ID after no more than 10 of them, with the lock lasting at least 30 minutes or until the person’s identity has been established?',
       requirement:
-        'Invalid authentication attempts are limited by: locking out the user ID after not more than 10 attempts; setting the lockout duration to a minimum of 30 minutes or until the user’s identity is confirmed.',
+        'Failed authentication attempts are capped in two ways: the user ID locks after no more than 10 of them; and the lock holds for at least 30 minutes, or else until the user’s identity has been established.',
       testing: [
-        'Examine system configuration settings to verify that authentication parameters are set to require lockout after not more than 10 invalid attempts.',
-        'Examine system configuration settings to verify that the lockout duration is set to a minimum of 30 minutes or until identity is confirmed.',
+        'Inspect the system configuration and confirm a lockout is triggered by no more than 10 failed attempts.',
+        'Inspect the system configuration and confirm the lock lasts at least 30 minutes, or until identity is established.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -197,12 +204,12 @@ export default {
       id: '8.3.5',
       title: 'First-time and reset passwords',
       question:
-        'If passwords/passphrases are used as authentication factors, are they set and reset for each user such that they are set to a unique value for first-time use and upon reset, and forced to be changed immediately after the first use?',
+        'Where passwords or passphrases are the authentication factor, is each one set to a value unique to that user on first issue and on every reset, and must the user change it the moment they first use it?',
       requirement:
-        'If passwords/passphrases are used as authentication factors to meet Requirement 8.3.1, they are set and reset for each user as follows: set to a unique value for first-time use and upon reset; forced to be changed immediately after the first use.',
+        'Where a password or passphrase serves as the authentication factor under Requirement 8.3.1, it is issued and reissued as follows: the value given is unique to that user, both on first issue and on each reset; and the user is obliged to change it immediately upon first use.',
       testing: [
-        'Examine procedures for setting and resetting passwords/passphrases.',
-        'Observe security personnel set or reset a password/passphrase to verify a unique value is set and a change is forced on first use.',
+        'Read the procedures for issuing and resetting a password or passphrase.',
+        'Watch security staff issue or reset one, confirming a unique value is given and a change is forced at first use.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -212,11 +219,11 @@ export default {
       id: '8.3.6',
       title: 'Password complexity',
       question:
-        'If passwords/passphrases are used as authentication factors, do they meet a minimum length of 12 characters (or, if the system does not support 12 characters, a minimum length of 8 characters) and contain both numeric and alphabetic characters?',
+        'Where passwords or passphrases are the authentication factor, is each at least 12 characters long — or 8, where the system cannot manage 12 — and does it mix letters with numbers?',
       requirement:
-        'If passwords/passphrases are used as authentication factors to meet Requirement 8.3.1, they meet the following minimum level of complexity: a minimum length of 12 characters (or IF the system does not support 12 characters, a minimum length of eight characters); contain both numeric and alphabetic characters.',
+        'Where a password or passphrase serves as the authentication factor under Requirement 8.3.1, it meets these minimums: a length of at least 12 characters, falling to at least 8 only where the system is incapable of 12; and a mixture of alphabetic and numeric characters.',
       testing: [
-        'Examine system configuration settings to verify that password/passphrase parameters are set to require the specified complexity.',
+        'Inspect the system configuration and confirm the password and passphrase settings enforce that length and that mixture.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -226,11 +233,11 @@ export default {
       id: '8.3.7',
       title: 'Password history',
       question:
-        'Are individuals prevented from submitting a new password/passphrase that is the same as any of the last four passwords/passphrases used?',
+        'Is a person stopped from choosing a new password or passphrase that matches any of their previous four?',
       requirement:
-        'Individuals are not allowed to submit a new password/passphrase that is the same as any of the last four passwords/passphrases used.',
+        'A person may not adopt a new password or passphrase identical to any of the four they used before it.',
       testing: [
-        'Examine system configuration settings to verify that password parameters are set to require that new passwords cannot be the same as the four previously used passwords.',
+        'Inspect the system configuration and confirm the settings refuse a new password matching any of the previous four.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -240,12 +247,12 @@ export default {
       id: '8.3.8',
       title: 'Authentication policies communicated to users',
       question:
-        'Are authentication policies and procedures documented and communicated to all users, including guidance on selecting strong authentication factors, guidance for how users should protect their authentication factors, instructions not to reuse previously used passwords/passphrases, and instructions to change passwords/passphrases if there is any suspicion or knowledge of compromise and how to report the incident?',
+        'Are your authentication policies written down and passed on to every user — how to pick a strong factor, how to look after it, not to fall back on a password used before, and what to do and whom to tell if a password may have been compromised?',
       requirement:
-        'Authentication policies and procedures are documented and communicated to all users including: guidance on selecting strong authentication factors; guidance for how users should protect their authentication factors; instructions not to reuse previously used passwords/passphrases; instructions to change passwords/passphrases if there is any suspicion or knowledge that the password/passphrases have been compromised and how to report the incident.',
+        'Authentication policies and procedures are written down and conveyed to every user. They cover: how to choose a strong authentication factor; how a user should safeguard the factors they hold; an instruction against reusing a password or passphrase used previously; and an instruction to change a password or passphrase wherever there is reason to suspect, or knowledge, that it has been compromised, together with how to report that.',
       testing: [
-        'Examine documented authentication policies and procedures to verify all required elements are included.',
-        'Interview users to verify the policies and procedures have been communicated and are understood.',
+        'Read the written authentication policies and procedures and confirm each of those points appears.',
+        'Ask users to confirm the policies reached them and are understood.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -254,11 +261,11 @@ export default {
       id: '8.3.9',
       title: 'Password changes for single-factor access',
       question:
-        'If passwords/passphrases are used as the only authentication factor for user access (single-factor authentication), are they changed at least once every 90 days, or is the security posture of accounts dynamically analyzed with real-time access to resources automatically determined accordingly?',
+        'Where a password or passphrase is the only factor standing between a user and access, is it changed at least every 90 days — or is each account’s security posture examined continuously, with access to resources decided in real time on that basis?',
       requirement:
-        'If passwords/passphrases are used as the only authentication factor for user access (i.e., in any single-factor authentication implementation) then either: passwords/passphrases are changed at least once every 90 days, OR the security posture of accounts is dynamically analyzed, and real-time access to resources is automatically determined accordingly.',
+        'Where a password or passphrase is the sole authentication factor for user access, meaning any single-factor arrangement, one of two things holds: the password or passphrase is changed no less often than every 90 days; or each account’s security standing is under continuous examination, with access to resources granted or withheld automatically, in real time, according to what that examination finds.',
       testing: [
-        'Examine system configuration settings to verify that password parameters require changes at least once every 90 days, OR examine the dynamic analysis mechanism.',
+        'Inspect the system configuration and confirm either that a change is required at least every 90 days, or that the continuous-analysis mechanism is in place.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -268,11 +275,11 @@ export default {
       id: '8.3.10',
       title: 'Password guidance for customer users',
       question:
-        'If passwords/passphrases are used as the only authentication factor for customer user access to cardholder data, is guidance provided to customer users including guidance for customers to change their passwords/passphrases periodically, and guidance as to when and under what circumstances passwords/passphrases are to be changed?',
+        'Where a password or passphrase is the only factor protecting your customers’ access to cardholder data, have you given those customers guidance — that they should change it from time to time, and when and in what circumstances a change is called for?',
       requirement:
-        'Additional requirement for service providers only: If passwords/passphrases are used as the only authentication factor for customer user access to cardholder data, then guidance is provided to customer users including: guidance for customers to change their user passwords/passphrases periodically; guidance as to when, and under what circumstances, passwords/passphrases are to be changed.',
+        'An extra obligation on service providers. Where a password or passphrase is the sole authentication factor for customer users reaching cardholder data, those customers are given guidance covering: that they should change their password or passphrase from time to time; and when, and in what circumstances, a change is called for.',
       testing: [
-        'Examine the guidance provided to customer users to verify it includes all required elements.',
+        'Read the guidance issued to customer users and confirm it covers both points.',
       ],
       appliesTo: 'service-provider',
       allowNA: true,
@@ -282,11 +289,11 @@ export default {
       id: '8.3.10.1',
       title: 'Customer password changes or dynamic analysis',
       question:
-        'If passwords/passphrases are used as the only authentication factor for customer user access, are passwords/passphrases changed at least once every 90 days, or is the security posture of accounts dynamically analyzed with real-time access to resources automatically determined accordingly?',
+        'Where a password or passphrase is the only factor protecting customer access, is it changed at least every 90 days — or is each account’s security posture examined continuously, with access decided in real time on that basis?',
       requirement:
-        'Additional requirement for service providers only: If passwords/passphrases are used as the only authentication factor for customer user access then either: passwords/passphrases are changed at least once every 90 days, OR the security posture of accounts is dynamically analyzed, and real-time access to resources is automatically determined accordingly.',
+        'An extra obligation on service providers. Where a password or passphrase is the sole authentication factor for customer user access, one of two things holds: it is changed no less often than every 90 days; or each account’s security standing is under continuous examination, with access to resources granted or withheld automatically, in real time, according to what that examination finds.',
       testing: [
-        'Examine system configuration settings to verify that customer user passwords are required to be changed at least once every 90 days, OR examine the dynamic analysis mechanism.',
+        'Inspect the system configuration and confirm either that customer passwords must change at least every 90 days, or that the continuous-analysis mechanism is in place.',
       ],
       appliesTo: 'service-provider',
       allowNA: true,
@@ -296,12 +303,12 @@ export default {
       id: '8.3.11',
       title: 'Tokens, smart cards and certificates',
       question:
-        'Where authentication factors such as physical or logical security tokens, smart cards, or certificates are used, are these factors assigned to an individual user and not shared among multiple users, and do physical and/or logical controls ensure only the intended user can use that factor to gain access?',
+        'Where a token, smart card or certificate is the authentication factor, does each belong to one named person rather than being shared, and do physical or logical controls make sure only that person can use it to get in?',
       requirement:
-        'Where authentication factors such as physical or logical security tokens, smart cards, or certificates are used: factors are assigned to an individual user and not shared among multiple users; physical and/or logical controls ensure only the intended user can use that factor to gain access.',
+        'Where the authentication factor is a physical or logical security token, a smart card or a certificate, two things hold: each such factor belongs to one individual user and is not shared between several; and physical controls, logical controls, or both, ensure that only the person it belongs to can use it to obtain access.',
       testing: [
-        'Examine authentication policies and procedures to verify that the requirement is addressed.',
-        'Interview personnel and observe processes to verify that factors are assigned to individuals and not shared.',
+        'Read the authentication policies and procedures and confirm this point is dealt with.',
+        'Ask staff and watch the process, confirming these factors belong to individuals and are not shared.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -311,12 +318,12 @@ export default {
       id: '8.4.1',
       title: 'MFA for administrative non-console access',
       question:
-        'Is multi-factor authentication implemented for all non-console access into the CDE for personnel with administrative access?',
+        'Do administrators need multi-factor authentication for every route into the cardholder data environment other than its own console?',
       requirement:
-        'MFA is implemented for all non-console access into the CDE for personnel with administrative access.',
+        'Multi-factor authentication is required of personnel holding administrative access for every route into the cardholder data environment other than the console itself.',
       testing: [
-        'Examine network and system configurations to verify that MFA is required for all non-console administrative access into the CDE.',
-        'Observe an administrator logging in to verify that MFA is required.',
+        'Inspect the network and system configurations and confirm multi-factor authentication is demanded on every such administrative route in.',
+        'Watch an administrator sign in and confirm multi-factor authentication is demanded.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -325,11 +332,12 @@ export default {
       id: '8.4.2',
       title: 'MFA for all access into the CDE',
       question:
-        'Is multi-factor authentication implemented for all access into the CDE?',
-      requirement: 'MFA is implemented for all access into the CDE.',
+        'Does every way into the cardholder data environment require multi-factor authentication?',
+      requirement:
+        'Multi-factor authentication is required for all access into the cardholder data environment.',
       testing: [
-        'Examine network and system configurations to verify that MFA is implemented for all access into the CDE.',
-        'Observe personnel logging in to the CDE to verify that MFA is required.',
+        'Inspect the network and system configurations and confirm multi-factor authentication covers every route in.',
+        'Watch personnel sign in to the cardholder data environment and confirm multi-factor authentication is demanded.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -338,12 +346,12 @@ export default {
       id: '8.4.3',
       title: 'MFA for remote network access',
       question:
-        'Is multi-factor authentication implemented for all remote network access originating from outside your network that could access or impact the CDE — including all remote access by all personnel, both users and administrators, and all remote access by third parties and vendors?',
+        'Does multi-factor authentication apply to every remote connection coming in from outside your network that could reach or affect the cardholder data environment — staff and administrators alike, and third parties and vendors too?',
       requirement:
-        'MFA is implemented for all remote network access originating from outside the entity’s network that could access or impact the CDE as follows: all remote access by all personnel, both users and administrators, originating from outside the entity’s network; all remote access by third parties and vendors.',
+        'Multi-factor authentication applies to every remote network connection originating outside the entity’s own network that could reach or affect the cardholder data environment. That covers remote access by all personnel, ordinary users and administrators alike, arriving from outside the entity’s network; and remote access by third parties and by vendors.',
       testing: [
-        'Examine network and system configurations for remote access servers and systems to verify MFA is required.',
-        'Observe personnel connecting remotely to verify that MFA is required.',
+        'Inspect the configuration of the remote access servers and systems and confirm multi-factor authentication is demanded.',
+        'Watch personnel connect from outside and confirm multi-factor authentication is demanded.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -352,12 +360,12 @@ export default {
       id: '8.5.1',
       title: 'MFA system implementation',
       question:
-        'Are MFA systems implemented such that the MFA system is not susceptible to replay attacks, MFA systems cannot be bypassed by any users including administrative users unless specifically documented and authorized by management on an exception basis for a limited time period, at least two different types of authentication factors are used, and success of all authentication factors is required before access is granted?',
+        'Is the multi-factor system built so that a captured exchange cannot be replayed against it, so that nobody — administrators included — can go round it except under a documented exception management has authorised for a bounded period, so that at least two different kinds of factor are involved, and so that every factor must succeed before access opens?',
       requirement:
-        'MFA systems are implemented as follows: the MFA system is not susceptible to replay attacks; MFA systems cannot be bypassed by any users, including administrative users unless specifically documented, and authorized by management on an exception basis, for a limited time period; at least two different types of authentication factors are used; success of all authentication factors is required before access is granted.',
+        'Multi-factor authentication systems are built as follows. The system is not vulnerable to a replay attack. Nobody can circumvent it, administrative users included, save under an exception that is documented and authorised by management for a limited period. No fewer than two different kinds of authentication factor are involved. And access opens only once every factor has succeeded.',
       testing: [
-        'Examine vendor system documentation and configuration settings to verify that the MFA system is implemented as specified.',
-        'Observe personnel authenticating to verify that all factors must succeed before access is granted.',
+        'Read the vendor documentation and inspect the configuration, confirming the system is built as described.',
+        'Watch personnel authenticate and confirm that access waits on every factor succeeding.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -366,12 +374,12 @@ export default {
       id: '8.6.1',
       title: 'Interactive login for system/application accounts',
       question:
-        'If accounts used by systems or applications can be used for interactive login, are they managed such that interactive use is prevented unless needed for an exceptional circumstance, limited to the time needed, with business justification documented, explicitly approved by management, individual user identity confirmed before access is granted, and every action attributable to an individual user?',
+        'Where an account belonging to a system or application can also be logged into interactively, is that interactive use blocked unless an exception calls for it, held to the length of the exception, backed by a written business reason, expressly approved by management, opened only once the individual has been identified, and arranged so every action traces back to one person?',
       requirement:
-        'If accounts used by systems or applications can be used for interactive login, they are managed as follows: interactive use is prevented unless needed for an exceptional circumstance; interactive use is limited to the time needed for the exceptional circumstance; business justification for interactive use is documented; interactive use is explicitly approved by management; individual user identity is confirmed before access to an account is granted; every action taken is attributable to an individual user.',
+        'Where an account used by a system or an application is also capable of interactive login, that capability is handled as follows: interactive use is blocked unless an exceptional circumstance calls for it; it lasts no longer than that circumstance requires; the business reason for it is recorded; management expressly approves it; the individual is identified before the account is opened to them; and each action taken remains attributable to one particular person.',
       testing: [
-        'Examine application and system accounts and related authentication settings to verify interactive login is managed as specified.',
-        'Examine authorization records and audit logs for any interactive use.',
+        'Inspect the application and system accounts and their authentication settings, confirming interactive login is handled as described.',
+        'Read the authorisation records and the audit logs covering any interactive use that occurred.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -381,12 +389,12 @@ export default {
       id: '8.6.2',
       title: 'Hard-coded credentials',
       question:
-        'Are passwords/passphrases for any application and system accounts that can be used for interactive login prevented from being hard coded in scripts, configuration/property files, or bespoke and custom source code?',
+        'Are the passwords for application and system accounts capable of interactive login kept out of scripts, configuration and property files, and your own source code?',
       requirement:
-        'Passwords/passphrases for any application and system accounts that can be used for interactive login are not hard coded in scripts, configuration/property files, or bespoke and custom source code.',
+        'The password or passphrase of an application or system account capable of interactive login does not appear written into a script, a configuration or property file, or bespoke and custom source code.',
       testing: [
-        'Examine scripts, configuration/property files, and bespoke and custom source code for evidence that passwords/passphrases are not hard coded.',
-        'Interview personnel to verify that processes prevent hard-coded credentials.',
+        'Search the scripts, the configuration and property files, and your own application source, looking for any password that has been written straight into them.',
+        'Ask staff to confirm the arrangements keep credentials out of code.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -395,12 +403,12 @@ export default {
       id: '8.6.3',
       title: 'Protection of application/system account passwords',
       question:
-        'Are passwords/passphrases for any application and system accounts protected against misuse by being changed periodically at the frequency defined in your targeted risk analysis performed according to Requirement 12.3.1 and upon suspicion or confirmation of compromise, and constructed with sufficient complexity appropriate for how frequently they are changed?',
+        'Are the passwords for application and system accounts guarded against misuse — changed at the interval your targeted risk analysis sets under Requirement 12.3.1 and whenever compromise is suspected or confirmed, and made complex enough to suit how often they change?',
       requirement:
-        'Passwords/passphrases for any application and system accounts are protected against misuse as follows: passwords/passphrases are changed periodically (at the frequency defined in the entity’s targeted risk analysis, which is performed according to all elements specified in Requirement 12.3.1) and upon suspicion or confirmation of compromise; passwords/passphrases are constructed with sufficient complexity appropriate for how frequently the entity changes the passwords/passphrases.',
+        'The passwords and passphrases of application and system accounts are guarded against misuse in two ways. They are changed on a recurring basis, at an interval set by the entity’s targeted risk analysis carried out against every element Requirement 12.3.1 specifies, and changed additionally whenever compromise is suspected or confirmed. And each is built to a complexity that suits how often the entity changes it.',
       testing: [
-        'Examine the targeted risk analysis defining the change frequency.',
-        'Examine system configuration settings and interview personnel to verify passwords for application and system accounts are changed and constructed as specified.',
+        'Read the targeted risk analysis that sets the change interval.',
+        'Inspect the system configuration and ask staff, confirming these passwords are changed and built as described.',
       ],
       appliesTo: 'all',
       allowNA: false,

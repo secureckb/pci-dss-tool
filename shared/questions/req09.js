@@ -3,16 +3,19 @@ export default {
   title: 'Restrict Physical Access to Cardholder Data',
   goal: 'Implement Strong Access Control Measures',
   intro:
-    'Any physical access to data or systems that store account data provides the opportunity for individuals to access and/or remove devices, data, systems, or hardcopies, and should be appropriately restricted.',
+    'Somebody standing next to a system, a disk or a filing cabinet can take what is in it, and no amount of network control prevents that. Requirement 9 is about who can get into the room, who can walk out with the media, and who can interfere with the terminals customers put their cards into.',
   questions: [
     {
       id: '9.1.1',
       title: 'Documented policies and procedures',
       question:
-        'Are all security policies and operational procedures identified in Requirement 9 documented, kept up to date, in use, and known to all affected parties?',
+        'Are the security policies and operating procedures covering Requirement 9 written down, kept current, actually followed, and communicated to everyone whose work they govern?',
       requirement:
-        'All security policies and operational procedures that are identified in Requirement 9 are: documented, kept up to date, in use, and known to all affected parties.',
-      testing: ['Examine documented policies and procedures for Requirement 9.', 'Interview personnel to verify they are in use and known.'],
+        'Written policies and operating procedures exist for the subject matter of Requirement 9. They are kept up to date, are in active use rather than shelved, and are known to every party they affect.',
+      testing: [
+        'Read the policies and operating procedures the entity holds for Requirement 9.',
+        'Ask the personnel governed by them whether they are followed in practice and known to those affected.',
+      ],
       appliesTo: 'all',
       allowNA: false,
     },
@@ -20,10 +23,13 @@ export default {
       id: '9.1.2',
       title: 'Roles and responsibilities',
       question:
-        'Are roles and responsibilities for performing activities in Requirement 9 documented, assigned, and understood?',
+        'Is it written down who is accountable for each Requirement 9 activity, has that accountability been allocated to specific people or roles, and do they understand it?',
       requirement:
-        'Roles and responsibilities for performing activities in Requirement 9 are documented, assigned, and understood.',
-      testing: ['Examine documentation of roles and responsibilities.', 'Interview responsible personnel to verify they are understood.'],
+        'Accountability for performing each Requirement 9 activity is recorded in writing, allocated to identified roles, and understood by the people holding those roles.',
+      testing: [
+        'Read the documentation that allocates these responsibilities and check that each one has an owner.',
+        'Ask the people named whether they understand what falls to them.',
+      ],
       appliesTo: 'all',
       allowNA: false,
     },
@@ -31,11 +37,11 @@ export default {
       id: '9.2.1',
       title: 'Facility entry controls',
       question:
-        'Are appropriate facility entry controls in place to restrict physical access to systems in the CDE?',
+        'Are there entry controls at the building suitable for keeping people physically away from the systems in the cardholder data environment?',
       requirement:
-        'Appropriate facility entry controls are in place to restrict physical access to systems in the CDE.',
+        'Entry controls suitable to the premises are in place, limiting who can physically reach the systems that make up the cardholder data environment.',
       testing: [
-        'Observe entry controls and interview responsible personnel to verify that physical security controls are in place to restrict access to systems in the CDE.',
+        'Watch the entry controls operate and ask the responsible staff, confirming physical measures keep people away from the cardholder data environment’s systems.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -44,12 +50,12 @@ export default {
       id: '9.2.1.1',
       title: 'Monitoring of sensitive areas',
       question:
-        'Is individual physical access to sensitive areas within the CDE monitored with either video cameras or physical access control mechanisms (or both), such that entry and exit points to/from sensitive areas are monitored, monitoring devices or mechanisms are protected from tampering or disabling, collected data is reviewed and correlated with other entries, and collected data is stored for at least three months unless otherwise restricted by law?',
+        'Is each person’s entry into a sensitive area of the cardholder data environment watched — by camera, by access control mechanism, or both — with the ways in and out covered, the watching equipment itself protected from being tampered with or switched off, the recordings reviewed and matched against other records, and kept for at least three months unless the law says otherwise?',
       requirement:
-        'Individual physical access to sensitive areas within the CDE is monitored with either video cameras or physical access control mechanisms (or both) as follows: entry and exit points to/from sensitive areas within the CDE are monitored; monitoring devices or mechanisms are protected from tampering or disabling; collected data is reviewed and correlated with other entries; collected data is stored for at least three months, unless otherwise restricted by law.',
+        'Physical entry by an individual into a sensitive area of the cardholder data environment is monitored, by video camera or by physical access control mechanism, or by both. The arrangement runs as follows: the points of entry to and exit from those sensitive areas are covered; the monitoring equipment or mechanism is itself protected against tampering and against being disabled; what is collected is reviewed and matched against other records of entry; and what is collected is kept for no less than three months, except where the law restricts that.',
       testing: [
-        'Observe the monitoring mechanisms at entry and exit points to sensitive areas within the CDE.',
-        'Examine collected data and interview personnel to verify data is reviewed, correlated, and stored for at least three months.',
+        'Watch the monitoring mechanisms covering the ways into and out of sensitive areas of the cardholder data environment.',
+        'Read what has been collected and ask staff, confirming it is reviewed, matched against other records, and kept for at least three months.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -59,11 +65,11 @@ export default {
       id: '9.2.2',
       title: 'Publicly accessible network jacks',
       question:
-        'Are physical and/or logical controls implemented to restrict use of publicly accessible network jacks within the facility?',
+        'Are there controls, physical or logical, that stop a network socket in a publicly reachable part of the premises being used?',
       requirement:
-        'Physical and/or logical controls are implemented to restrict use of publicly accessible network jacks within the facility.',
+        'Physical controls, logical controls, or both, restrict the use of network jacks located where the public can reach them.',
       testing: [
-        'Interview responsible personnel and observe locations of publicly accessible network jacks to verify that controls restrict their use.',
+        'Ask the responsible staff and look at where the publicly reachable network jacks are, confirming controls restrict their use.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -72,11 +78,11 @@ export default {
       id: '9.2.3',
       title: 'Physical access to networking hardware',
       question:
-        'Is physical access to wireless access points, gateways, networking/communications hardware, and telecommunication lines within the facility restricted?',
+        'Is physical access restricted to the wireless access points, gateways, networking and communications hardware, and telecommunication lines on the premises?',
       requirement:
-        'Physical access to wireless access points, gateways, networking/communications hardware, and telecommunication lines within the facility is restricted.',
+        'Physical access is restricted to the premises’ wireless access points, gateways, networking and communications hardware, and telecommunication lines.',
       testing: [
-        'Interview responsible personnel and observe the locations of wireless access points, gateways, networking hardware, and telecommunication lines to verify physical access is restricted.',
+        'Ask the responsible staff and look at where that equipment and cabling sit, confirming physical access to it is restricted.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -85,11 +91,11 @@ export default {
       id: '9.2.4',
       title: 'Consoles in sensitive areas',
       question:
-        'Is access to consoles in sensitive areas restricted via locking when not in use?',
+        'Are consoles in sensitive areas locked whenever nobody is using them?',
       requirement:
-        'Access to consoles in sensitive areas is restricted via locking when not in use.',
+        'A console situated in a sensitive area is locked while not in use, so access through it is restricted.',
       testing: [
-        'Observe a system administrator’s attempt to log into consoles in sensitive areas and verify that they are locked to prevent unauthorized use.',
+        'Watch an administrator try to sign in at a console in a sensitive area, confirming it is locked against use by anyone unauthorised.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -99,12 +105,12 @@ export default {
       id: '9.3.1',
       title: 'Authorizing physical access for personnel',
       question:
-        'Are procedures implemented for authorizing and managing physical access of personnel to the CDE, including identifying personnel, managing changes to an individual’s physical access requirements, revoking or terminating personnel identification, and limiting access to the identification process or system to authorized personnel?',
+        'Are there working procedures for granting and managing staff physical access to the cardholder data environment — identifying people, handling changes to what access an individual needs, withdrawing or ending their identification, and restricting who can operate the identification process or system?',
       requirement:
-        'Procedures are implemented for authorizing and managing physical access of personnel to the CDE, including: identifying personnel; managing changes to an individual’s physical access requirements; revoking or terminating personnel identification; limiting access to the identification process or system to authorized personnel.',
+        'Procedures are in force for granting and managing staff physical access to the cardholder data environment. They cover: establishing who a person is; handling changes in what physical access an individual requires; withdrawing or cancelling a person’s identification; and confining use of the identification process or system to authorised personnel.',
       testing: [
-        'Examine documented procedures to verify that procedures to authorize and manage physical access of personnel to the CDE are defined.',
-        'Observe identification methods and processes and interview responsible personnel to verify the procedures are implemented.',
+        'Read the documented procedures and confirm the granting and managing of staff physical access to the cardholder data environment is laid down.',
+        'Watch the identification methods in operation and ask the responsible staff, confirming the procedures are actually followed.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -113,12 +119,12 @@ export default {
       id: '9.3.1.1',
       title: 'Physical access to sensitive areas',
       question:
-        'Is physical access to sensitive areas within the CDE for personnel controlled such that access is authorized and based on individual job function, access is revoked immediately upon termination, and all physical access mechanisms such as keys and access cards are returned or disabled upon termination?',
+        'For sensitive areas of the cardholder data environment, is staff access authorised and tied to the individual’s job, withdrawn the moment they leave, with every key, card or similar handed back or deactivated at that point?',
       requirement:
-        'Physical access to sensitive areas within the CDE for personnel is controlled as follows: access is authorized and based on individual job function; access is revoked immediately upon termination; all physical access mechanisms, such as keys, access cards, etc., are returned or disabled upon termination.',
+        'Staff physical access to sensitive areas within the cardholder data environment is controlled as follows: access is authorised, and rests on what the individual’s job requires; it is withdrawn immediately when their employment ends; and every means of physical access they held — keys, access cards and the like — is handed back or deactivated at that point.',
       testing: [
-        'Examine documented procedures and observe processes for authorizing and revoking access to sensitive areas.',
-        'Interview responsible personnel and examine records of terminated personnel to verify access was revoked and mechanisms returned or disabled.',
+        'Read the documented procedures and watch how access to sensitive areas is granted and withdrawn.',
+        'Ask the responsible staff and read the records for departed personnel, confirming access was withdrawn and the means of access returned or deactivated.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -128,12 +134,12 @@ export default {
       id: '9.3.2',
       title: 'Visitor authorization and escort',
       question:
-        'Are procedures implemented for authorizing and managing visitor access to the CDE, including that visitors are authorized before entering, escorted at all times, clearly identified and given a badge or other identification that expires, and that visitor badges or other identification visibly distinguish visitors from personnel?',
+        'Are there working procedures for visitors to the cardholder data environment — authorised before they come in, accompanied throughout, plainly identified with a badge or equivalent that runs out, and that badge visibly telling a visitor apart from staff?',
       requirement:
-        'Procedures are implemented for authorizing and managing visitor access to the CDE, including: visitors are authorized before entering; visitors are escorted at all times; visitors are clearly identified and given a badge or other identification that expires; visitor badges or other identification visibly distinguishes visitors from personnel.',
+        'Procedures are in force for authorising and managing visitor access to the cardholder data environment. They provide that: a visitor is authorised before entering; a visitor is accompanied at all times; a visitor is plainly identified and issued a badge or other identification that ceases to be valid after a period; and that badge or identification makes a visitor visibly distinguishable from a member of staff.',
       testing: [
-        'Examine documented procedures and observe visitor handling to verify visitors are authorized, escorted, and identified.',
-        'Observe the use of visitor badges to verify they expire and visibly distinguish visitors from personnel.',
+        'Read the documented procedures and watch how visitors are handled, confirming they are authorised, accompanied and identified.',
+        'Watch the visitor badges in use, confirming they expire and that they visibly set a visitor apart from staff.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -142,11 +148,11 @@ export default {
       id: '9.3.3',
       title: 'Visitor badge surrender',
       question:
-        'Are visitor badges or identification surrendered or deactivated before visitors leave the facility or at the date of expiration?',
+        'Is a visitor’s badge handed back or deactivated before they leave the premises, or once it has run out?',
       requirement:
-        'Visitor badges or identification are surrendered or deactivated before visitors leave the facility or at the date of expiration.',
+        'A visitor badge or identification is handed back, or deactivated, before the visitor leaves the premises or upon the date it ceases to be valid.',
       testing: [
-        'Observe visitors leaving the facility and interview personnel to verify that visitor badges or other identification are surrendered or deactivated.',
+        'Watch visitors leaving and ask staff, confirming badges and other identification are handed back or deactivated.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -155,12 +161,12 @@ export default {
       id: '9.3.4',
       title: 'Visitor log',
       question:
-        'Is a visitor log used to maintain a physical record of visitor activity within the facility and within sensitive areas, including the visitor’s name and the organization represented, the date and time of the visit, the name of the personnel authorizing physical access, and is the log retained for at least three months unless otherwise restricted by law?',
+        'Is there a visitor log recording visits to the premises and to sensitive areas — the visitor’s name and who they represent, when the visit took place, who authorised their entry — kept for at least three months unless the law says otherwise?',
       requirement:
-        'A visitor log is used to maintain a physical record of visitor activity within the facility and within sensitive areas, including: the visitor’s name and the organization represented; the date and time of the visit; the name of the personnel authorizing physical access; retaining the log for at least three months, unless otherwise restricted by law.',
+        'A visitor log is kept as a physical record of visitor activity on the premises and within sensitive areas. It records: the visitor’s name and the organisation they represent; the date and time of the visit; and the name of the person who authorised their physical entry. The log is retained for no less than three months, except where the law restricts that.',
       testing: [
-        'Examine the visitor log and interview responsible personnel to verify that it contains all required elements.',
-        'Examine storage locations to verify logs are retained for at least three months.',
+        'Read the visitor log and ask the responsible staff, confirming each of those particulars is recorded.',
+        'Look at where the logs are held and confirm they are kept for at least three months.',
       ],
       appliesTo: 'all',
       allowNA: false,
@@ -169,11 +175,12 @@ export default {
       id: '9.4.1',
       title: 'Physical security of media',
       question:
-        'Is all media with cardholder data physically secured?',
-      requirement: 'All media with cardholder data is physically secured.',
+        'Is every piece of media holding cardholder data physically secured?',
+      requirement:
+        'Media holding cardholder data is physically secured, whatever form it takes.',
       testing: [
-        'Examine documented policies and procedures to verify that processes are defined for physically securing media with cardholder data.',
-        'Interview personnel and observe storage locations to verify media is physically secured.',
+        'Read the documented policies and procedures and confirm they say how media holding cardholder data is to be physically secured.',
+        'Ask staff and look at where it is kept, confirming it is physically secured.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -183,11 +190,11 @@ export default {
       id: '9.4.1.1',
       title: 'Offline media backups stored securely',
       question:
-        'Are offline media backups with cardholder data stored in a secure location?',
+        'Are offline backup media holding cardholder data kept somewhere secure?',
       requirement:
-        'Offline media backups with cardholder data are stored in a secure location.',
+        'Offline backup media holding cardholder data is kept in a secure location.',
       testing: [
-        'Examine documentation and interview personnel to verify that offline media backups are stored in a secure location.',
+        'Read the documentation and ask staff, confirming offline backup media is kept somewhere secure.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -197,11 +204,11 @@ export default {
       id: '9.4.1.2',
       title: 'Annual review of backup location security',
       question:
-        'Is the security of the offline media backup location(s) with cardholder data reviewed at least once every 12 months?',
+        'Is the security of wherever those offline backups are kept reviewed at intervals no longer than 12 months?',
       requirement:
-        'The security of the offline media backup location(s) with cardholder data is reviewed at least once every 12 months.',
+        'The security of the location or locations holding offline backup media with cardholder data is reviewed at intervals no longer than 12 months.',
       testing: [
-        'Examine documentation of the reviews and interview personnel to verify the security of the backup location is reviewed at least once every 12 months.',
+        'Read the records of those reviews and ask staff, confirming the location’s security is reviewed at least that often.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -211,12 +218,12 @@ export default {
       id: '9.4.2',
       title: 'Media classification',
       question:
-        'Is all media with cardholder data classified in accordance with the sensitivity of the data?',
+        'Is media holding cardholder data classified according to how sensitive that data is?',
       requirement:
-        'All media with cardholder data is classified in accordance with the sensitivity of the data.',
+        'Media holding cardholder data carries a classification reflecting the sensitivity of the data on it.',
       testing: [
-        'Examine documented procedures to verify that procedures are defined for classifying media with cardholder data.',
-        'Examine media logs and interview personnel to verify media is classified.',
+        'Read the documented procedures and confirm they say how such media is to be classified.',
+        'Read the media logs and ask staff, confirming the classification is actually applied.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -226,12 +233,12 @@ export default {
       id: '9.4.3',
       title: 'Media sent outside the facility',
       question:
-        'Is media with cardholder data sent outside the facility secured such that media sent outside the facility is logged, media is sent by secured courier or other delivery method that can be accurately tracked, and offsite tracking logs include details about media location?',
+        'When media holding cardholder data leaves the premises, is the dispatch logged, does it travel by secured courier or another method whose whereabouts can be tracked accurately, and do the offsite tracking records show where the media is?',
       requirement:
-        'Media with cardholder data sent outside the facility is secured as follows: media sent outside the facility is logged; media is sent by secured courier or other delivery method that can be accurately tracked; offsite tracking logs include details about media location.',
+        'Media holding cardholder data that leaves the premises is protected as follows: the dispatch is logged; the media travels by secured courier, or by another delivery method whose progress can be tracked accurately; and the offsite tracking records show where the media is.',
       testing: [
-        'Examine documented procedures and offsite tracking logs to verify that media sent outside the facility is logged and tracked.',
-        'Interview personnel to verify that a secured courier or trackable delivery method is used.',
+        'Read the documented procedures and the offsite tracking records, confirming departures are logged and consignments tracked.',
+        'Ask staff to confirm a secured courier or another trackable method is used.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -241,11 +248,11 @@ export default {
       id: '9.4.4',
       title: 'Management approval for media movement',
       question:
-        'Does management approve all media with cardholder data that is moved outside the facility, including when media is distributed to individuals?',
+        'Does management approve every movement of cardholder-data media off the premises, handing it to an individual included?',
       requirement:
-        'Management approves all media with cardholder data that is moved outside the facility (including when media is distributed to individuals).',
+        'Management approves every instance of media holding cardholder data being moved off the premises, including where the media is handed to an individual.',
       testing: [
-        'Examine documented procedures and offsite media tracking logs to verify that management approval is obtained for all media moved outside the facility.',
+        'Read the documented procedures and the offsite media tracking records, confirming management approval was obtained for each movement off the premises.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -255,12 +262,12 @@ export default {
       id: '9.4.5',
       title: 'Electronic media inventory logs',
       question:
-        'Are inventory logs of all electronic media with cardholder data maintained?',
+        'Do you keep inventory records of the electronic media holding cardholder data?',
       requirement:
-        'Inventory logs of all electronic media with cardholder data are maintained.',
+        'Inventory records are kept of every piece of electronic media holding cardholder data.',
       testing: [
-        'Examine documented procedures to verify that processes are defined for maintaining electronic media inventory logs.',
-        'Examine the inventory logs and interview personnel to verify they are maintained.',
+        'Read the documented procedures and confirm the keeping of these inventory records is laid down.',
+        'Read the inventory records and ask staff, confirming they are actually kept up.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -270,11 +277,11 @@ export default {
       id: '9.4.5.1',
       title: 'Annual media inventories',
       question:
-        'Are inventories of electronic media with cardholder data conducted at least once every 12 months?',
+        'Is an inventory of that electronic media taken at intervals no longer than 12 months?',
       requirement:
-        'Inventories of electronic media with cardholder data are conducted at least once every 12 months.',
+        'An inventory of the electronic media holding cardholder data is taken at intervals no longer than 12 months.',
       testing: [
-        'Examine inventory records and interview personnel to verify that inventories of electronic media are conducted at least once every 12 months.',
+        'Read the inventory records and ask staff, confirming an inventory is taken at least that often.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -284,12 +291,12 @@ export default {
       id: '9.4.6',
       title: 'Destruction of hard-copy materials',
       question:
-        'Are hard-copy materials with cardholder data destroyed when no longer needed for business or legal reasons, with materials cross-cut shredded, incinerated, or pulped so that cardholder data cannot be reconstructed, and materials stored in secure storage containers prior to destruction?',
+        'Once the business and the law have no further use for paper holding cardholder data, is it destroyed — cross-cut shredded, incinerated or pulped so the data cannot be pieced back together — and held in secure containers until that happens?',
       requirement:
-        'Hard-copy materials with cardholder data are destroyed when no longer needed for business or legal reasons, as follows: materials are cross-cut shredded, incinerated, or pulped so that cardholder data cannot be reconstructed; materials are stored in secure storage containers prior to destruction.',
+        'Paper materials holding cardholder data are destroyed once no business or legal reason for keeping them remains. Destruction is by cross-cut shredding, incineration or pulping, such that the cardholder data cannot afterwards be pieced back together; and until destruction the materials are held in secure storage containers.',
       testing: [
-        'Examine the periodic media destruction policy and observe processes to verify hard-copy materials are destroyed as specified.',
-        'Observe storage containers used for materials that contain information to be destroyed to verify they are secure.',
+        'Read the media destruction policy and watch the process, confirming paper materials are destroyed as described.',
+        'Look at the containers holding material awaiting destruction and confirm they are secure.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -299,12 +306,12 @@ export default {
       id: '9.4.7',
       title: 'Destruction of electronic media',
       question:
-        'Is electronic media with cardholder data destroyed when no longer needed for business or legal reasons, via a secure wipe program in accordance with industry-accepted standards for secure deletion, or by otherwise physically destroying the media so that cardholder data cannot be reconstructed?',
+        'Once the business and the law have no further use for electronic media holding cardholder data, is the media destroyed, or the data on it put beyond recovery so it cannot be pieced back together?',
       requirement:
-        'Electronic media with cardholder data is destroyed when no longer needed for business or legal reasons via one of the following: the electronic media is destroyed; the cardholder data is rendered unrecoverable so that it cannot be reconstructed.',
+        'Electronic media holding cardholder data is dealt with once no business or legal reason for keeping it remains, by one of two means: the media itself is destroyed; or the cardholder data on it is put beyond recovery, so that it cannot be pieced back together.',
       testing: [
-        'Examine the periodic media destruction policy and observe processes to verify electronic media is destroyed or rendered unrecoverable.',
-        'Interview personnel to verify that the process is followed.',
+        'Read the media destruction policy and watch the process, confirming electronic media is destroyed or the data on it put beyond recovery.',
+        'Ask staff to confirm the process is followed.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -314,12 +321,12 @@ export default {
       id: '9.5.1',
       title: 'Protection of POI devices',
       question:
-        'Are POI devices that capture payment card data via direct physical interaction with the payment card form factor protected from tampering and unauthorized substitution, including maintaining a list of POI devices, periodically inspecting POI devices to look for tampering or unauthorized substitution, and training personnel to be aware of suspicious behavior and to report tampering or unauthorized substitution of devices?',
+        'Are the terminals that read a card by physical contact with it protected against tampering and against being swapped for another — with a list of those devices kept, the devices inspected on a recurring basis for signs of either, and staff trained to notice odd behaviour and report tampering or substitution?',
       requirement:
-        'POI devices that capture payment card data via direct physical interaction with the payment card form factor are protected from tampering and unauthorized substitution, including the following: maintaining a list of POI devices; periodically inspecting POI devices to look for tampering or unauthorized substitution; training personnel to be aware of suspicious behavior and to report tampering or unauthorized substitution of devices.',
+        'Point-of-interaction devices that capture payment card data through direct physical interaction with the card itself are protected against tampering and against unauthorised substitution. That protection takes in: keeping a list of those devices; inspecting them on a recurring basis for signs of tampering or substitution; and training staff to notice suspicious behaviour and to report any tampering or substitution.',
       testing: [
-        'Examine documented policies and procedures to verify processes are defined to protect POI devices.',
-        'Interview personnel and observe processes to verify the procedures are implemented.',
+        'Read the documented policies and procedures and confirm the protection of these devices is laid down.',
+        'Ask staff and watch the process, confirming the procedures are actually followed.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -329,12 +336,12 @@ export default {
       id: '9.5.1.1',
       title: 'POI device list',
       question:
-        'Is an up-to-date list of POI devices maintained that includes the make and model of the device, the location of the device, and the device serial number or other method of unique identification?',
+        'Is the list of those terminals current, and does each entry give the make and model, where the device is, and its serial number or some other way of telling it apart?',
       requirement:
-        'An up-to-date list of POI devices is maintained, including: make and model of the device; location of device; device serial number or other methods of unique identification.',
+        'A current list of point-of-interaction devices is kept. Each entry records the device’s make and model, where it is located, and its serial number or another means of identifying that device uniquely.',
       testing: [
-        'Examine the list of POI devices to verify it includes all required elements.',
-        'Observe a sample of devices and their locations and compare to the list to verify the list is accurate and up to date.',
+        'Read the list and confirm each of those particulars appears.',
+        'Take a sample of devices, look at them and where they sit, and compare against the list to confirm it is accurate and current.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -344,12 +351,12 @@ export default {
       id: '9.5.1.2',
       title: 'POI device inspections',
       question:
-        'Are POI device surfaces periodically inspected to detect tampering and unauthorized substitution?',
+        'Are the surfaces of those terminals inspected on a recurring basis to catch tampering or a substituted device?',
       requirement:
-        'POI device surfaces are periodically inspected to detect tampering and unauthorized substitution.',
+        'The surfaces of point-of-interaction devices are inspected on a recurring basis, to catch tampering and unauthorised substitution.',
       testing: [
-        'Examine documented procedures to verify processes are defined for periodic inspection of POI device surfaces.',
-        'Interview personnel and observe inspection processes to verify inspections are performed.',
+        'Read the documented procedures and confirm recurring inspection of these device surfaces is laid down.',
+        'Ask staff and watch an inspection, confirming they actually happen.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -359,12 +366,12 @@ export default {
       id: '9.5.1.2.1',
       title: 'POI inspection frequency defined by risk analysis',
       question:
-        'Is the frequency of periodic POI device inspections and the type of inspections performed defined in your targeted risk analysis performed according to Requirement 12.3.1?',
+        'Are both how often those inspections happen and what kind of inspection is done fixed by your targeted risk analysis, carried out as Requirement 12.3.1 lays down?',
       requirement:
-        'The frequency of periodic POI device inspections and the type of inspections performed is defined in the entity’s targeted risk analysis, which is performed according to all elements specified in Requirement 12.3.1.',
+        'How often point-of-interaction devices are inspected, and what form the inspection takes, are both set by the entity’s targeted risk analysis, carried out against every element Requirement 12.3.1 specifies.',
       testing: [
-        'Examine the targeted risk analysis for POI device inspections to verify the frequency and type of inspections are defined and justified.',
-        'Examine inspection records to verify inspections occur at the defined frequency.',
+        'Read the targeted risk analysis covering these inspections and confirm the interval and the form of inspection are set out and justified.',
+        'Read the inspection records and confirm inspections happened at the interval so set.',
       ],
       appliesTo: 'all',
       allowNA: true,
@@ -374,12 +381,12 @@ export default {
       id: '9.5.1.3',
       title: 'POI personnel training',
       question:
-        'Is training provided for personnel in POI environments to be aware of attempted tampering or replacement of POI devices, including verifying the identity of any third-party persons claiming to be repair or maintenance personnel before granting them access to modify or troubleshoot devices, procedures to ensure devices are not installed, replaced, or returned without verification, being aware of suspicious behavior around devices, and reporting suspicious behavior and indications of device tampering or substitution to appropriate personnel?',
+        'Are staff in terminal environments trained to spot an attempt at tampering or swapping a device — checking who a supposed repair or maintenance visitor really is before letting them touch anything, following procedures so no device is fitted, replaced or returned unverified, staying alert to odd behaviour around the devices, and reporting that behaviour and any sign of tampering or substitution to the right people?',
       requirement:
-        'Training is provided for personnel in POI environments to be aware of attempted tampering or replacement of POI devices, and includes: verifying the identity of any third-party persons claiming to be repair or maintenance personnel, before granting them access to modify or troubleshoot devices; procedures to ensure devices are not installed, replaced, or returned without verification; being aware of suspicious behavior around devices; reporting suspicious behavior and indications of device tampering or substitution to appropriate personnel.',
+        'Staff working in point-of-interaction environments are trained to be alert to attempted tampering with a device, or its replacement. The training covers: establishing the identity of any outsider presenting themselves as repair or maintenance personnel, before that person is allowed to alter or investigate a device; procedures ensuring no device is installed, replaced or returned without verification; alertness to suspicious behaviour in the vicinity of the devices; and reporting such behaviour, and any indication of tampering or substitution, to the appropriate people.',
       testing: [
-        'Examine training materials for personnel in POI environments to verify they include all required elements.',
-        'Interview personnel in POI environments to verify they have received training and are aware of the procedures.',
+        'Read the training material used for staff in these environments and confirm each of those points appears.',
+        'Ask those staff to confirm they received the training and know the procedures.',
       ],
       appliesTo: 'all',
       allowNA: true,
