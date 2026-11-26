@@ -15,6 +15,7 @@ export default function AdminDashboard() {
   // from PUBLIC_BASE_URL. The assessor is about to send it to a client, so they
   // should know it is only as trustworthy as the host they reached this page on.
   const [linkFromHost, setLinkFromHost] = useState(false);
+  const [visits, setVisits] = useState<VisitSummary | null>(null);
 
   const load = () =>
     api
@@ -27,6 +28,11 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     load();
+    // A failed visit summary should never get in the way of the assessments.
+    api
+      .get<VisitSummary>('/api/admin/analytics?days=30')
+      .then(setVisits)
+      .catch(() => setVisits(null));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -153,8 +159,58 @@ export default function AdminDashboard() {
             </div>
           )}
         </div>
+
+        {visits && <SiteVisits visits={visits} />}
       </main>
     </>
+  );
+}
+
+type VisitSummary = {
+  days: number;
+  total: number;
+  byPath: { path: string; views: number }[];
+  bySource: { source: string; views: number }[];
+};
+
+/** Anonymous visit counts for the public pages. Counts only: no visitor data is stored. */
+function SiteVisits({ visits }: { visits: VisitSummary }) {
+  return (
+    <div className="card">
+      <h2>Site visits, last {visits.days} days</h2>
+      <p className="small muted">
+        Page loads of the public pages, counted without cookies or IP addresses. Add <code>?src=email</code> (or any
+        short label) to a link you send to see where visits come from. Client links are never counted.
+      </p>
+      {visits.total === 0 ? (
+        <p className="muted small" style={{ margin: 0 }}>
+          No visits counted yet.
+        </p>
+      ) : (
+        <div className="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Page</th>
+                <th className="num">Visits</th>
+                <th>Source</th>
+                <th className="num">Visits</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Array.from({ length: Math.max(visits.byPath.length, visits.bySource.length) }).map((_, i) => (
+                <tr key={i}>
+                  <td className="small">{visits.byPath[i]?.path ?? ''}</td>
+                  <td className="num">{visits.byPath[i]?.views ?? ''}</td>
+                  <td className="small">{visits.bySource[i]?.source ?? ''}</td>
+                  <td className="num">{visits.bySource[i]?.views ?? ''}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
   );
 }
 
