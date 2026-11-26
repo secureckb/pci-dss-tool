@@ -10,6 +10,8 @@ import adminRoutes from './routes/admin.js';
 import assessmentRoutes from './routes/assessment.js';
 import requirementsRoutes from './routes/requirements.js';
 import eligibilityRoutes from './routes/eligibility.js';
+import seoRoutes, { makeShellRenderer, robotsHeader } from './seo.js';
+import analyticsRoutes, { recordVisit } from './analytics.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DIST = path.join(__dirname, '..', 'dist');
@@ -54,6 +56,7 @@ if (!process.env.SESSION_SECRET || process.env.SESSION_SECRET.length < 32) {
 
 const app = express();
 app.set('trust proxy', 1);
+app.use(robotsHeader);
 app.use(compression());
 app.use(express.json({ limit: '256kb' }));
 app.use(cookieParser());
@@ -131,6 +134,7 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
+app.use('/api/admin/analytics', analyticsRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/assessment', assessmentRoutes);
 app.use('/api/requirements', requirementsRoutes);
@@ -148,10 +152,20 @@ app.use('/api', (err, req, res, _next) => {
   res.status(500).json({ error: 'Something went wrong on the server.' });
 });
 
+// Client links, the admin console and the API are kept out of search results by a
+// response header, so the public pages can be indexed without exposing them.
+// robots.txt, sitemap.xml and the server-rendered guide pages.
+app.use(seoRoutes);
+
 if (fs.existsSync(DIST)) {
+  const renderShell = makeShellRenderer(DIST);
   app.use(express.static(DIST, { index: false, maxAge: '1h' }));
-  // Client-side routing: every non-API path serves the SPA shell.
-  app.get('*', (req, res) => res.sendFile(path.join(DIST, 'index.html')));
+  // Client-side routing: every non-API path serves the SPA shell, with a title
+  // and description injected for the public pages.
+  app.get('*', (req, res) => {
+    recordVisit(req, req.path);
+    res.type('html').send(renderShell(req, req.path.length > 1 ? req.path.replace(/\/+$/, '') : req.path));
+  });
 } else {
   app.get('*', (req, res) =>
     res

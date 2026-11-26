@@ -264,6 +264,17 @@ CREATE INDEX IF NOT EXISTS remediation_plans_assessment_idx
   ON remediation_plans (assessment_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS agent_runs_assessment_idx
   ON agent_runs (assessment_id, started_at DESC);
+
+-- Anonymous visit counts for the public pages. One row per day, page and
+-- campaign label. Nothing about the visitor is stored. See server/analytics.js.
+CREATE TABLE IF NOT EXISTS page_events (
+  day    date    NOT NULL,
+  path   text    NOT NULL,
+  event  text    NOT NULL,
+  source text    NOT NULL DEFAULT 'direct',
+  hits   integer NOT NULL DEFAULT 0,
+  PRIMARY KEY (day, path, event, source)
+);
 `;
 
 export async function migrate() {

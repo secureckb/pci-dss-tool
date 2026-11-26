@@ -328,3 +328,10 @@ input to the determination.
 Where a report includes an approved remediation plan, that section is labelled with the model and
 brief that drafted it and the date it was approved. Where a report has no such plan, it says outright
 that no part of it was written by a model.
+
+## Public pages, search and visit counting
+
+- `/guides` and `/guides/<slug>` are server-rendered HTML (content in `server/guides.js`). `/robots.txt` and `/sitemap.xml` are generated; set `PUBLIC_BASE_URL` in production so canonical links and the sitemap use the real domain.
+- `/q/*`, `/admin*` and `/api/*` send `X-Robots-Tag: noindex, nofollow`. The blanket noindex meta tag was removed from `index.html` so the public pages can be indexed.
+- Visit counting is cookieless and server-side. It stores only a day, a path from a fixed allowlist (`server/analytics.js`), a short campaign label and a count. No IP, user agent or referrer is stored, and `/q/*`, `/admin` and `/api` are never counted.
+- Tag links with `?src=<label>` (letters, digits, `-`, `_`, max 40) to see which channel a visit came from. Admin dashboard shows the last 30 days; JSON at `GET /api/admin/analytics?days=30`.
